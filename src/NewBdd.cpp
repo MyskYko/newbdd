@@ -6,15 +6,15 @@ using namespace std;
 
 namespace NewBdd {
 
-  lit Man::UniqueCreateInt(var l, lit x1, lit x0) {
-    bvar * head, * q;
-    head = q = vpUnique[l] + (Hash(x1, x0) & vUniqueMask[l]);
-    for(; *q; q = pNexts + *q) {
-      if(LevelOfBvar(*q) == l && ThenOfBvar(*q) == x1 && ElseOfBvar(*q) == x0) {
+  lit Man::UniqueCreateInt(var i, lit x1, lit x0) {
+    vector<bvar>::iterator p, q;
+    p = q = vvUnique[i].begin() + (Hash(x1, x0) & vUniqueMask[i]);
+    for(; *q; q = vNexts.begin() + *q) {
+      if(LevelOfBvar(*q) == i && ThenOfBvar(*q) == x1 && ElseOfBvar(*q) == x0) {
         return Bvar2Lit(*q);
       }
     }
-    bvar next = *head;
+    bvar next = *p;
     if(nObjs == nObjsAlloc) {
       return LitMax();
     }
@@ -22,30 +22,29 @@ namespace NewBdd {
     //       if ( BvarIsRemoved( nMinRemoved ) )
     //         break;
     //     if ( nMinRemoved == (lit)nObjs )
-    //     *q = nMinRemoved++;
+    //     *p = nMinRemoved++;
     //   }
     // else
-    q = head;
-    *q = nObjs++;
-    SetLevelOfBvar(*q, l);
-    SetThenOfBvar(*q, x1);
-    SetElseOfBvar(*q, x0);
-    pNexts[*q] = next;
+    *p = nObjs++;
+    SetLevelOfBvar(*p, i);
+    SetThenOfBvar(*p, x1);
+    SetElseOfBvar(*p, x0);
+    vNexts[*p] = next;
     if(nVerbose >= 3) {
-      cout << "Create node " << *q << " : Level = " << l << " Then = " << x1 << " Else = " << x0 << endl;
+      cout << "Create node " << *p << " : Level = " << i << " Then = " << x1 << " Else = " << x0 << endl;
     }
-    return Bvar2Lit(*q);
+    return Bvar2Lit(*p);
   }
-  lit Man::UniqueCreate(var l, lit x1, lit x0) {
+  lit Man::UniqueCreate(var i, lit x1, lit x0) {
     if(x1 == x0) {
       return x1;
     }
     lit x;
     while(true) {
       if(!LitIsCompl(x0)) {
-        x = UniqueCreateInt(l, x1, x0);
+        x = UniqueCreateInt(i, x1, x0);
       } else {
-        x = LitNot(UniqueCreateInt(l, LitNot(x1), LitNot(x0)));
+        x = LitNot(UniqueCreateInt(i, LitNot(x1), LitNot(x0)));
       }
       if((x | 1) == LitMax()) {
         Refresh();
@@ -143,7 +142,6 @@ namespace NewBdd {
   }
 
   void Man::Resize() {
-    bvar nObjsAllocOld = nObjsAlloc;
     nObjsAlloc <<= 1;
     if((size)nObjsAlloc > (size)BvarMax()) {
       nObjsAlloc = BvarMax();
@@ -156,11 +154,7 @@ namespace NewBdd {
     }
     vLevels.resize(nObjsAlloc);
     vObjs.resize((size)nObjsAlloc * 2);
-    pNexts = (bvar *)realloc(pNexts, sizeof(bvar) * nObjsAlloc);
-    if(!pNexts) {
-      throw length_error("Memout (unique) in resize");
-    }
-    memset(pNexts + nObjsAllocOld, 0, sizeof(bvar) * nObjsAllocOld);
+    vNexts.resize(nObjsAlloc);
     vMarks.resize(nObjsAlloc);
     // if ( pRefs )
     //   {

@@ -49,12 +49,13 @@ namespace NewBdd {
     bvar nObjsAlloc;
     std::vector<var> vLevels;
     std::vector<lit> vObjs;
-    bvar * pNexts;
+    std::vector<bvar> vNexts;
     std::vector<bool> vMarks;
     std::vector<ref> vRefs;
 
-    std::vector<bvar *> vpUnique;
+    std::vector<std::vector<bvar> > vvUnique;
     std::vector<size> vUniqueMask;
+    std::vector<size> vUniqueCounts;
 
     std::vector<lit> vCache;
     size CacheMask;
@@ -203,12 +204,13 @@ namespace NewBdd {
       }
       vLevels.resize(nObjsAlloc);
       vObjs.resize((size)nObjsAlloc * 2);
-      pNexts = (bvar *)calloc(nObjsAlloc, sizeof(bvar));
+      vNexts.resize(nObjsAlloc);
       vMarks.resize(nObjsAlloc);
-      vpUnique.resize(nVars);
+      vvUnique.resize(nVars);
       vUniqueMask.resize(nVars);
+      vUniqueCounts.resize(nVars);
       for(int i = 0; i < nVars; i++) {
-        vpUnique[i] = (bvar *)calloc(nUnique, sizeof(bvar));
+        vvUnique[i].resize(nUnique);
         vUniqueMask[i] = nUnique - 1;
       }
       vCache.resize(nCache * 3);
@@ -257,19 +259,15 @@ namespace NewBdd {
     }
     ~Man() {
       if(nVerbose) {
-        std::cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << CacheMask + 1 << " cache." << std::endl;
+        std::cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << vCache.size() / 3 << " cache." << std::endl;
         std::cout << "Free {";
         std::string delim;
         for(int i = 0; i < nVars; i++) {
-          std::cout << delim << vUniqueMask[i] + 1;
+          std::cout << delim << vvUnique.size();
           delim = ", ";
         }
         std::cout << "} unique." << std::endl;
       }
-      for(int i = 0; i < nVars; i++) {
-        free(vpUnique[i]);
-      }
-      free(pNexts);
     }
     
     Node Const0();
