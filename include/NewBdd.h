@@ -50,6 +50,7 @@ namespace NewBdd {
     int nVars;
     bvar nObjs;
     bvar nObjsAlloc;
+    bvar MinBvarRemoved;
     std::vector<var> vLevels;
     std::vector<lit> vObjs;
     std::vector<bvar> vNexts;
@@ -111,12 +112,26 @@ namespace NewBdd {
     bool Mark(lit x) {
       return vMarks[Lit2Bvar(x)];
     }
+    ref Ref(lit x) {
+      return vRefs[Lit2Bvar(x)];
+    }
 
     void SetMark(lit x) {
       vMarks[Lit2Bvar(x)] = true;
     }
     void ResetMark(lit x) {
       vMarks[Lit2Bvar(x)] = false;
+    }
+
+    void IncRef(lit x) {
+      if(!vRefs.empty() && Ref(x) != RefMax()) {
+        vRefs[Lit2Bvar(x)]++;
+      }
+    }
+    void DecRef(lit x) {
+      if(!vRefs.empty() && Ref(x) != RefMax()) {
+        vRefs[Lit2Bvar(x)]--;
+      }
     }
 
     var LevelOfBvar(bvar a) {
@@ -127,6 +142,12 @@ namespace NewBdd {
     }
     lit ElseOfBvar(bvar a) {
       return vObjs[(a << 1) ^ 1];
+    }
+    bool MarkOfBvar(bvar a) {
+      return vMarks[a];
+    }
+    ref RefOfBvar(bvar a) {
+      return vRefs[a];
     }
     void SetLevelOfBvar(bvar a, var i) {
       vLevels[a] = i;
@@ -141,9 +162,6 @@ namespace NewBdd {
     lit UniqueCreateInt(var i, lit x1, lit x0);
     lit UniqueCreate(var i, lit x1, lit x0);
 
-    void IncRef(lit a) {}
-    void DecRef(lit a) {}
-
     void SetMark_rec(lit x);
     void ResetMark_rec(lit x);
 
@@ -153,15 +171,20 @@ namespace NewBdd {
     lit And_rec(lit x, lit y);
     lit And(lit x, lit y);
 
-    void Resize();
+    bool Resize();
     void ResizeUnique(int i);
     void ResizeCache();
+
+    void CacheClear();
+    void RemoveBvar(bvar a);
+    void Gbc();
+
     void Refresh();
 
     size CountNodes_rec(lit x);
 
   public:
-    Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), nVerbose(nVerbose) {
+    Man(int nVars, int nVerbose = 0, bool fGbc = true, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), nVerbose(nVerbose) {
       if(nVars >= VarMax()) {
         throw std::length_error("Memout (var) in init");
       }
@@ -207,6 +230,9 @@ namespace NewBdd {
       vObjs.resize((size)nObjsAlloc * 2);
       vNexts.resize(nObjsAlloc);
       vMarks.resize(nObjsAlloc);
+      if(fGbc) {
+        vRefs.resize(nObjsAlloc);
+      }
       vvUnique.resize(nVars);
       vUniqueMasks.resize(nVars);
       vUniqueCounts.resize(nVars);
@@ -235,6 +261,7 @@ namespace NewBdd {
       nCacheHits = 0;
       CacheThold = nCache;
       CacheHitRate = 1;
+      MinBvarRemoved = BvarMax();
       //   {
       //     var u = std::distance( vOrdering.begin(), std::find( vOrdering.begin(), vOrdering.end(), v ) );
       //     if( u == nVars )

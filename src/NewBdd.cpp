@@ -15,28 +15,32 @@ namespace NewBdd {
       }
     }
     bvar next = *p;
-    if(nObjs == nObjsAlloc) {
-      return LitMax();
+    if(nObjs < nObjsAlloc) {
+      *p = nObjs++;
+    } else {
+      for(; MinBvarRemoved < nObjs; MinBvarRemoved++) {
+        if(LevelOfBvar(MinBvarRemoved) == VarMax()) {
+          break;
+        }
+      }
+      if(MinBvarRemoved >= nObjs) {
+        return LitMax();
+      }
+      *p = MinBvarRemoved++;
     }
-    //     for ( ; nMinRemoved < (lit)nObjs; nMinRemoved++ )
-    //       if ( BvarIsRemoved( nMinRemoved ) )
-    //         break;
-    //     if ( nMinRemoved == (lit)nObjs )
-    //     *p = nMinRemoved++;
-    //   }
-    // else
-    *p = nObjs;
-    SetLevelOfBvar(nObjs, i);
-    SetThenOfBvar(nObjs, x1);
-    SetElseOfBvar(nObjs, x0);
-    vNexts[nObjs] = next;
+    SetLevelOfBvar(*p, i);
+    SetThenOfBvar(*p, x1);
+    SetElseOfBvar(*p, x0);
+    vNexts[*p] = next;
     if(nVerbose >= 3) {
       cout << "Create node " << *p << " : Level = " << i << " Then = " << x1 << " Else = " << x0 << endl;
     }
     if(++vUniqueCounts[i] > vUniqueTholds[i]) {
+      bvar a = *p;
       ResizeUnique(i);
+      return Bvar2Lit(a);
     }
-    return Bvar2Lit(nObjs++);
+    return Bvar2Lit(*p);
   }
   lit Man::UniqueCreate(var i, lit x1, lit x0) {
     if(x1 == x0) {
@@ -155,28 +159,27 @@ namespace NewBdd {
     return And_rec(x, y);
   }
 
-  void Man::Resize() {
+  bool Man::Resize() {
+    bvar nObjsAllocOld = nObjsAlloc;
     nObjsAlloc <<= 1;
     if((size)nObjsAlloc > (size)BvarMax()) {
       nObjsAlloc = BvarMax();
     }
     if((size)nObjsAlloc > nMaxMem) {
-      throw length_error("Memout (node) in resize");
+      nObjsAlloc = nObjsAllocOld;
+      return false;
     }
-    if(nVerbose) {
+    if(nVerbose >= 2) {
       cout << "Reallocate " << nObjsAlloc << " nodes." << endl;
     }
     vLevels.resize(nObjsAlloc);
     vObjs.resize((size)nObjsAlloc * 2);
     vNexts.resize(nObjsAlloc);
     vMarks.resize(nObjsAlloc);
-    // if ( pRefs )
-    //   {
-    //     pRefs       = (ref *)realloc( pRefs, sizeof(ref) * nObjsAlloc );
-    //     if ( !pRefs )
-    //       throw "Reallocation failed";
-    //     memset( pRefs + nObjsAllocOld, 0, sizeof(ref) * nObjsAllocOld );
-    //   }
+    if(!vRefs.empty()) {
+      vRefs.resize(nObjsAlloc);
+    }
+    return true;
     // if ( pEdges )
     //   {
     //     pEdges = (edge *)realloc( pEdges, sizeof(edge) * nObjsAlloc );
@@ -194,8 +197,8 @@ namespace NewBdd {
       vUniqueTholds[i] = BvarMax();
       return;
     }
-    if(nVerbose) {
-      std::cout << "Reallocate " << nUnique << " unique." << std::endl;
+    if(nVerbose >= 2) {
+      cout << "Reallocate " << nUnique << " unique." << endl;
     }
     vvUnique[i].resize(nUnique);
     vUniqueMasks[i] = nUnique - 1;
@@ -236,8 +239,8 @@ namespace NewBdd {
       CacheThold = SizeMax();
       return;
     }
-    if(nVerbose) {
-      std::cout << "Reallocate " << nCache << " cache." << std::endl;
+    if(nVerbose >= 2) {
+      cout << "Reallocate " << nCache << " cache." << endl;
     }
     vCache.resize((size)nCache * 3);
     CacheMask = nCache - 1;
@@ -262,8 +265,57 @@ namespace NewBdd {
     }
   }
 
+  void Man::CacheClear() {
+    size i = vCache.size();
+    vCache.clear();
+    vCache.resize(i);
+  }
+
+  void Man::RemoveBvar(bvar a) {
+    int i = LevelOfBvar(a);
+    vector<bvar>::iterator q = vvUnique[i].begin() + (Hash(ThenOfBvar(a), ElseOfBvar(a)) & vUniqueMasks[i]);
+    for(; *q; q = vNexts.begin() + *q) {
+      if(*q == a) {
+        break;
+      }
+    }
+    vector<bvar>::iterator next = vNexts.begin() + *q;
+    *q = *next;
+    *next = 0;
+    vUniqueCounts[i]--;
+    SetLevelOfBvar(a, VarMax());
+    if(MinBvarRemoved > a) {
+      MinBvarRemoved = a;
+    }
+  }
+
+  void Man::Gbc() {
+    if(nVerbose >= 2) {
+      cout <<  "Garbage collect" << endl;
+    }
+    for(bvar a = nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        SetMark_rec(Bvar2Lit(a));
+      }
+    }
+    for(bvar a = nVars + 1; a < nObjs; a++) {
+      if(!MarkOfBvar(a) && LevelOfBvar(a) != VarMax()) {
+        RemoveBvar(a);
+      }
+    }
+    for(bvar a = nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+    CacheClear();
+  }
+
   void Man::Refresh() {
-    Resize();
+    if(Resize()) {
+      return;
+    }
+    Gbc();
   }
 
   size Man::CountNodes_rec(lit x) {
