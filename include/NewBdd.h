@@ -46,7 +46,7 @@ namespace NewBdd {
   private:
     int nVars;
     bvar nObjs;
-    size nObjsAlloc;
+    bvar nObjsAlloc;
     std::vector<var> vLevels;
     std::vector<lit> vObjs;
     bvar * pNexts;
@@ -64,7 +64,7 @@ namespace NewBdd {
     std::vector<var> Var2Level;
 
     size nMaxMem;
-    double nUniqueDensity;
+    double UniqueDensity;
     int nVerbose;
 
     lit Bvar2Lit(bvar a) {
@@ -150,7 +150,7 @@ namespace NewBdd {
     size CountNodes_rec(lit x);
 
   public:
-    Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double nUniqueDensity = 4) : nVars(nVars), nUniqueDensity(nUniqueDensity), nVerbose(nVerbose) {
+    Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), UniqueDensity(UniqueDensity), nVerbose(nVerbose) {
       if(nVars >= VarMax()) {
         throw std::length_error("Memout (var) in init");
       }
@@ -163,7 +163,10 @@ namespace NewBdd {
         throw std::length_error("Memout (maxmem) in init");
       }
       nObjsAlloc = 1ull << nObjsAllocLog;
-      if(!nObjsAlloc || nObjsAlloc > nMaxMem) {
+      if((size)nObjsAlloc > (size)BvarMax()) {
+        nObjsAlloc = BvarMax();
+      }
+      if(!nObjsAlloc || (size)nObjsAlloc > nMaxMem) {
         throw std::length_error("Memout (node) in init");
       }
       size nUnique = 1ull << nUniqueLog;
@@ -174,13 +177,19 @@ namespace NewBdd {
       if(!nCache || nCache > nMaxMem) {
         throw std::length_error("Memout (cache) in init");
       }
-      while(nObjsAlloc < (size)nVars + 1) {
+      while(nObjsAlloc < nVars + 1) {
+        if(nObjsAlloc == BvarMax()) {
+          throw std::length_error("Memout (node) in init");
+        }
         nObjsAlloc <<= 1;
-        if(!nObjsAlloc || nObjsAlloc > nMaxMem) {
+        if((size)nObjsAlloc > (size)BvarMax()) {
+          nObjsAlloc = BvarMax();
+        }
+        if((size)nObjsAlloc > nMaxMem) {
           throw std::length_error("Memout (node) in init");
         }
       }
-      while(nUnique < nMaxMem && nUnique * nUniqueDensity < nObjsAlloc / nVars) {
+      while(nUnique < nMaxMem && nUnique * UniqueDensity < (double)nObjsAlloc / nVars) {
         nUnique <<= 1;
         if(!nUnique) {
           throw std::length_error("Memout (unique) in init");
