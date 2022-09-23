@@ -103,4 +103,12 @@ namespace NewBdd {
     // return z;
     return And_rec(x, y);
   }
+
+  node BddMan::IthVar(int i) {
+    return node(this, Bvar2Lit(Var2Level[i] + 1));
+  }
+  node BddMan::And(node const & x, node const & y) {
+    return node(this, And(x.val, y.val));
+  }
+
 }

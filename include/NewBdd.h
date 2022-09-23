@@ -37,6 +37,8 @@ namespace NewBdd {
     return 12582917 * Arg0 + Arg1 + 4256249 * Arg2;
   }
 
+  class node;
+
   class BddMan {
   private:
     bvar nObjs;
@@ -120,6 +122,7 @@ namespace NewBdd {
     lit UniqueCreate(var i, lit x1, lit x0);
 
     lit And_rec(lit x, lit y);
+    lit And(lit x, lit y);
 
   public:
     BddMan(int nVars, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double nUniqueDensity = 4, int nVerbose = 3) : nVars(nVars), nUniqueDensity(nUniqueDensity), nVerbose(nVerbose) {
@@ -238,23 +241,20 @@ namespace NewBdd {
       return 1;
     }
 
-    lit IthVar(int i) {
-      return Var2Level[i] + 1;
-    }
-
-    lit And(lit x, lit y);
+    node IthVar(int i);
+    node And(node const & x, node const & y);
     
   };
   
   class node {
+    friend class BddMan;
+
   private:
     BddMan * man;
     lit val;
     
   public:
-    node(BddMan * man) : man(man) {}
-    node(BddMan * man, int i) : man(man) {
-      val = man->IthVar(i);
+    node(BddMan * man, lit val) : man(man), val(val) {
       man->IncRef(val);
     }
     node() {
@@ -287,12 +287,6 @@ namespace NewBdd {
     }
     bool operator!=(const node & other) const {
       return val != other.val;
-    }
-    node operator&(const node & other) const {
-      node x(man);
-      x.val = man->And(this->val, other.val);
-      man->IncRef(x.val);
-      return x;
     }
   };
 
