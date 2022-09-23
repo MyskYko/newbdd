@@ -147,6 +147,8 @@ namespace NewBdd {
     lit And_rec(lit x, lit y);
     lit And(lit x, lit y);
 
+    void Refresh();
+
     size CountNodes_rec(lit x);
 
   public:

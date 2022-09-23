@@ -13,13 +13,13 @@ namespace NewBdd {
       }
     }
     bvar next = *head;
-    //  if ( IsLimit() )
-    //   {
+    if(nObjs == nObjsAlloc) {
+      return LitMax();
+    }
     //     for ( ; nMinRemoved < (lit)nObjs; nMinRemoved++ )
     //       if ( BvarIsRemoved( nMinRemoved ) )
     //         break;
     //     if ( nMinRemoved == (lit)nObjs )
-    //       return LitInvalid();
     //     *q = nMinRemoved++;
     //   }
     // else
@@ -39,20 +39,20 @@ namespace NewBdd {
       return x1;
     }
     lit x;
-    //while(true) {
-    if(!LitIsCompl(x0)) {
-      x = UniqueCreateInt(l, x1, x0);
-    } else {
-      x = LitNot(UniqueCreateInt(l, LitNot(x1), LitNot(x0)));
+    while(true) {
+      if(!LitIsCompl(x0)) {
+        x = UniqueCreateInt(l, x1, x0);
+      } else {
+        x = LitNot(UniqueCreateInt(l, LitNot(x1), LitNot(x0)));
+      }
+      if(x == LitMax()) {
+        Refresh();
+        //           if ( Refresh() )
+        //             return x;
+      } else {
+        break;
+      }
     }
-  //       if ( LitIsInvalid( x ) )
-  //         {
-  //           if ( Refresh() )
-  //             return x;
-  //         }
-  //       else
-  //         break;
-  //     }
     return x;
   }
 
@@ -83,8 +83,6 @@ namespace NewBdd {
     return LitMax();
   }
   void Man::CacheInsert(lit x, lit y, lit z) {
-    // if ( LitIsInvalid( Res ) )
-    //   return Res;
     size i = (size)(Hash(x, y) & CacheMask) * 3;
     vCache[i] = x;
     vCache[i + 1] = y;
@@ -114,21 +112,22 @@ namespace NewBdd {
       x0 = Else(x), x1 = Then(x), y0 = Else(y), y1 = Then(y);
     }
     lit z1 = And_rec(x1, y1);
-    // if ( LitIsInvalid( z1 ) )
+    // if(z1 == LitMax()) {
     //   return z1;
+    // }
     IncRef(z1);
     lit z0 = And_rec(x0, y0);
-    // if( LitIsInvalid( z0 ) )
-    //   {
-    //     DecRef( z1 );
-    //     return z0;
-    //   }
+    // if(z0 == LitMax()) {
+    //   DecRef(z1);
+    //   return z0;
+    // }
     IncRef(z0);
     z = UniqueCreate(min(Level(x), Level(y)), z1, z0);
     DecRef(z1);
     DecRef(z0);
-    // if ( LitIsInvalid( z ) )
+    // if(z == LitMax()) {
     //   return z;
+    // }
     CacheInsert(x, y, z);
     return z;
   }
@@ -139,6 +138,18 @@ namespace NewBdd {
     //   z = And_rec( x, y );
     // return z;
     return And_rec(x, y);
+  }
+
+  void Man::Refresh() {
+    abort();
+  }
+
+  size Man::CountNodes_rec(lit x) {
+    if(x < 2 || Mark(x)) {
+      return 0;
+    }
+    SetMark(x);
+    return 1ull + CountNodes_rec(Else(x)) + CountNodes_rec(Then(x));
   }
 
   Node Man::Const0() {
@@ -160,13 +171,6 @@ namespace NewBdd {
     return Node(this, And(x.val, y.val));
   }
 
-  size Man::CountNodes_rec(lit x) {
-    if(x < 2 || Mark(x)) {
-      return 0;
-    }
-    SetMark(x);
-    return 1ull + CountNodes_rec(Else(x)) + CountNodes_rec(Then(x));
-  }
   size Man::CountNodes(vector<Node> const & vNodes) {
     size count = 0;
     for(size i = 0; i < vNodes.size(); i++) {
