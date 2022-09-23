@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cassert>
+#include <string>
 
 namespace NewBdd {
   
@@ -23,7 +24,7 @@ namespace NewBdd {
   static inline bvar BvarMax() {
     return std::numeric_limits<bvar>::max();
   }
-  static inline bvar LitMax() {
+  static inline lit LitMax() {
     return std::numeric_limits<lit>::max();
   }
   static inline ref RefMax() {
@@ -43,7 +44,9 @@ namespace NewBdd {
     friend class Node;
 
   private:
+    int nVars;
     bvar nObjs;
+    size nObjsAlloc;
     std::vector<var> vLevels;
     std::vector<lit> vObjs;
     bvar * pNexts;
@@ -55,14 +58,12 @@ namespace NewBdd {
 
     std::vector<lit> vCache;
     size CacheMask;
+    size nCacheLookup;
+    size nCacheHit;
 
     std::vector<var> Var2Level;
 
-    int nVars;
     size nMaxMem;
-    size nObjsAlloc;
-    size nUnique;
-    size nCache;
     double nUniqueDensity;
     int nVerbose;
 
@@ -140,6 +141,9 @@ namespace NewBdd {
     void SetMark_rec(lit x);
     void ResetMark_rec(lit x);
 
+    lit CacheLookup(lit x, lit y);
+    void CacheInsert(lit x, lit y, lit z);
+
     lit And_rec(lit x, lit y);
     lit And(lit x, lit y);
 
@@ -162,11 +166,11 @@ namespace NewBdd {
       if(!nObjsAlloc || nObjsAlloc > nMaxMem) {
         throw std::length_error("Memout (node) in init");
       }
-      nUnique = 1ull << nUniqueLog;
+      size nUnique = 1ull << nUniqueLog;
       if(!nUnique || nUnique > nMaxMem) {
         throw std::length_error("Memout (unique) in init");
       }
-      nCache = 1ull << nCacheLog;
+      size nCache = 1ull << nCacheLog;
       if(!nCache || nCache > nMaxMem) {
         throw std::length_error("Memout (cache) in init");
       }
@@ -206,6 +210,10 @@ namespace NewBdd {
       for(int i = 0; i < nVars; i++) {
         Var2Level[i] = i;
       }
+      nCacheLookup = 0;
+      nCacheHit = 0;
+      // nCall       = 0;
+      // HitRateOld  = 1;
       //   {
       //     var u = std::distance( vOrdering.begin(), std::find( vOrdering.begin(), vOrdering.end(), v ) );
       //     if( u == nVars )
@@ -220,10 +228,6 @@ namespace NewBdd {
       // fReo        = 0;
       // nReo        = 0;
       // MaxGrowth   = 0;
-      // nCacheHit   = 0;
-      // nCacheFind  = 0;
-      // nCall       = 0;
-      // HitRateOld  = 1;
       // nMinRemoved = nObjsAlloc;
       // pRefs       = NULL;
       // pEdges      = NULL;
@@ -241,19 +245,19 @@ namespace NewBdd {
     }
     ~Man() {
       if(nVerbose) {
-        std::cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << nCache << " cache." << std::endl;
-      }
-      free(pNexts);
-      std::cout << "Free {";
-      std::string delim;
-      for(int i = 0; i < nVars; i++) {
-        if(nVerbose) {
+        std::cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << CacheMask + 1 << " cache." << std::endl;
+        std::cout << "Free {";
+        std::string delim;
+        for(int i = 0; i < nVars; i++) {
           std::cout << delim << vUniqueMask[i] + 1;
           delim = ", ";
         }
+        std::cout << "} unique." << std::endl;
+      }
+      for(int i = 0; i < nVars; i++) {
         free(vpUnique[i]);
       }
-      std::cout << "} unique." << std::endl;
+      free(pNexts);
     }
     
     Node Const0();

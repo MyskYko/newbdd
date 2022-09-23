@@ -73,8 +73,25 @@ namespace NewBdd {
     ResetMark_rec(Then(x));
   }
 
+  lit Man::CacheLookup(lit x, lit y) {
+    nCacheLookup++;
+    size i = (size)(Hash(x, y) & CacheMask) * 3;
+    if(vCache[i] == x && vCache[i + 1] == y) {
+      nCacheHit++;
+      return vCache[i + 2];
+    }
+    return LitMax();
+  }
+  void Man::CacheInsert(lit x, lit y, lit z) {
+    // if ( LitIsInvalid( Res ) )
+    //   return Res;
+    size i = (size)(Hash(x, y) & CacheMask) * 3;
+    vCache[i] = x;
+    vCache[i + 1] = y;
+    vCache[i + 2] = z;
+  }
+
   lit Man::And_rec(lit x, lit y) {
-    //CacheCheck();
     if(x == 0 || y == 1 || x == y) {
       return x;
     }
@@ -84,9 +101,10 @@ namespace NewBdd {
     if(x > y) {
       swap(x, y);
     }
-    // lit z = CacheLookup( x, y );
-    // if ( !LitIsInvalid( z ) )
-    //   return z;
+    lit z = CacheLookup( x, y );
+    if(z != LitMax()) {
+      return z;
+    }
     lit x0, x1, y0, y1;
     if(Level(x) < Level(y)) {
       x0 = Else(x), x1 = Then(x), y0 = y1 = y;
@@ -106,12 +124,12 @@ namespace NewBdd {
     //     return z0;
     //   }
     IncRef(z0);
-    lit z = UniqueCreate(min(Level(x), Level(y)), z1, z0);
+    z = UniqueCreate(min(Level(x), Level(y)), z1, z0);
     DecRef(z1);
     DecRef(z0);
     // if ( LitIsInvalid( z ) )
     //   return z;
-    // return CacheInsert( x, y, z );
+    CacheInsert(x, y, z);
     return z;
   }
   lit Man::And(lit x, lit y) {
