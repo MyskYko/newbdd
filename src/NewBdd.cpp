@@ -78,10 +78,21 @@ namespace NewBdd {
   }
 
   lit Man::CacheLookup(lit x, lit y) {
-    nCacheLookup++;
+    if(++nCacheLookups > CacheThold) {
+      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
+      if(NewCacheHitRate > CacheHitRate) {
+        ResizeCache();
+      } else {
+        CacheThold <<= 1;
+        if(!CacheThold) {
+          CacheThold = SizeMax();
+        }
+      }
+      CacheHitRate = NewCacheHitRate;
+    }
     size i = (size)(Hash(x, y) & CacheMask) * 3;
     if(vCache[i] == x && vCache[i + 1] == y) {
-      nCacheHit++;
+      nCacheHits++;
       return vCache[i + 2];
     }
     return LitMax();
@@ -173,9 +184,6 @@ namespace NewBdd {
     //       throw "Reallocation failed";
     //     memset ( pEdges + nObjsAllocOld, 0, sizeof(edge) * nObjsAllocOld );
     //   }
-    // while ( nUnique < nObjsAlloc * UniqueMinRate )
-    //   if ( UniqueResize() )
-    //     break;
   }
 
   void Man::ResizeUnique(int i) {
@@ -217,6 +225,40 @@ namespace NewBdd {
     vUniqueTholds[i] <<= 1;
     if((size)vUniqueTholds[i] > (size)BvarMax()) {
       vUniqueTholds[i] = BvarMax();
+    }
+  }
+
+  void Man::ResizeCache() {
+    lit nCache, nCacheOld;
+    nCache = nCacheOld = vCache.size() / 3;
+    nCache <<= 1;
+    if(!nCache || (size)nCache > nMaxMem) {
+      CacheThold = SizeMax();
+      return;
+    }
+    if(nVerbose) {
+      std::cout << "Reallocate " << nCache << " cache." << std::endl;
+    }
+    vCache.resize((size)nCache * 3);
+    CacheMask = nCache - 1;
+    for(lit j = 0; j < nCacheOld; j++) {
+      size i = (size)j * 3;
+      if(!vCache[i] || !vCache[i + 1]) {
+        continue;
+      }
+      size hash = (size)(Hash(vCache[i], vCache[i + 1]) & CacheMask) * 3;
+      if(i != hash) {
+        vCache[hash] = vCache[i];
+        vCache[hash + 1] = vCache[i + 1];
+        vCache[hash + 2] = vCache[i + 2];
+        vCache[i] = 0;
+        vCache[i + 1] = 0;
+        vCache[i + 2] = 0;
+      }
+    }
+    CacheThold <<= 1;
+    if(!CacheThold) {
+      CacheThold = SizeMax();
     }
   }
 

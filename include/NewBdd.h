@@ -30,6 +30,9 @@ namespace NewBdd {
   static inline ref RefMax() {
     return std::numeric_limits<ref>::max();
   }
+  static inline size SizeMax() {
+    return std::numeric_limits<size>::max();
+  }
 
   static inline lit Hash(lit Arg0, lit Arg1) {
     return Arg0 + 4256249 * Arg1;
@@ -60,8 +63,10 @@ namespace NewBdd {
 
     std::vector<lit> vCache;
     lit CacheMask;
-    size nCacheLookup;
-    size nCacheHit;
+    size nCacheLookups;
+    size nCacheHits;
+    size CacheThold;
+    double CacheHitRate;
 
     std::vector<var> Var2Level;
 
@@ -150,6 +155,7 @@ namespace NewBdd {
 
     void Resize();
     void ResizeUnique(int i);
+    void ResizeCache();
     void Refresh();
 
     size CountNodes_rec(lit x);
@@ -225,10 +231,10 @@ namespace NewBdd {
       for(int i = 0; i < nVars; i++) {
         Var2Level[i] = i;
       }
-      nCacheLookup = 0;
-      nCacheHit = 0;
-      // nCall       = 0;
-      // HitRateOld  = 1;
+      nCacheLookups = 0;
+      nCacheHits = 0;
+      CacheThold = nCache;
+      CacheHitRate = 1;
       //   {
       //     var u = std::distance( vOrdering.begin(), std::find( vOrdering.begin(), vOrdering.end(), v ) );
       //     if( u == nVars )
