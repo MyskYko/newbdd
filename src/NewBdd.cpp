@@ -1,5 +1,7 @@
 #include "NewBdd.h"
 
+using namespace std;
+
 namespace NewBdd {
 
   lit Man::UniqueCreateInt(var l, lit x1, lit x0) {
@@ -28,7 +30,7 @@ namespace NewBdd {
     SetElseOfBvar(*q, x0);
     pNexts[*q] = next;
     if(nVerbose >= 3) {
-      std::cout << "Create node " << *q << " : Level = " << l << " Then = " << x1 << " Else = " << x0 << std::endl;
+      cout << "Create node " << *q << " : Level = " << l << " Then = " << x1 << " Else = " << x0 << endl;
     }
     return Bvar2Lit(*q);
   }
@@ -38,7 +40,7 @@ namespace NewBdd {
     }
     lit x;
     //while(true) {
-    if(LitIsCompl(x0)) {
+    if(!LitIsCompl(x0)) {
       x = UniqueCreateInt(l, x1, x0);
     } else {
       x = LitNot(UniqueCreateInt(l, LitNot(x1), LitNot(x0)));
@@ -54,6 +56,23 @@ namespace NewBdd {
     return x;
   }
 
+  void Man::SetMark_rec(lit x) {
+    if(x < 2 || Mark(x)) {
+      return;
+    }
+    SetMark(x);
+    SetMark_rec(Else(x));
+    SetMark_rec(Then(x));
+  }
+  void Man::ResetMark_rec(lit x) {
+    if(x < 2 || !Mark(x)) {
+      return;
+    }
+    ResetMark(x);
+    ResetMark_rec(Else(x));
+    ResetMark_rec(Then(x));
+  }
+
   lit Man::And_rec(lit x, lit y) {
     //CacheCheck();
     if(x == 0 || y == 1 || x == y) {
@@ -63,7 +82,7 @@ namespace NewBdd {
       return y;
     }
     if(x > y) {
-      std::swap(x, y);
+      swap(x, y);
     }
     // lit z = CacheLookup( x, y );
     // if ( !LitIsInvalid( z ) )
@@ -87,7 +106,7 @@ namespace NewBdd {
     //     return z0;
     //   }
     IncRef(z0);
-    lit z = UniqueCreate(std::min(Level(x), Level(y)), z1, z0);
+    lit z = UniqueCreate(min(Level(x), Level(y)), z1, z0);
     DecRef(z1);
     DecRef(z0);
     // if ( LitIsInvalid( z ) )
@@ -121,6 +140,24 @@ namespace NewBdd {
   }
   Node Man::And(Node const & x, Node const & y) {
     return Node(this, And(x.val, y.val));
+  }
+
+  size Man::CountNodes_rec(lit x) {
+    if(x < 2 || Mark(x)) {
+      return 0;
+    }
+    SetMark(x);
+    return 1ull + CountNodes_rec(Else(x)) + CountNodes_rec(Then(x));
+  }
+  size Man::CountNodes(vector<Node> const & vNodes) {
+    size count = 0;
+    for(size i = 0; i < vNodes.size(); i++) {
+      count += CountNodes_rec(vNodes[i].val);
+    }
+    for(size i = 0; i < vNodes.size(); i++) {
+      ResetMark_rec(vNodes[i].val);
+    }
+    return count + 1;
   }
 
 }

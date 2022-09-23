@@ -15,7 +15,7 @@ namespace NewBdd {
   typedef int bvar;
   typedef unsigned lit;
   typedef unsigned short ref;
-  typedef uint64_t size;
+  typedef unsigned long long size;
 
   static inline var VarMax() {
     return std::numeric_limits<var>::max();
@@ -40,6 +40,8 @@ namespace NewBdd {
   class Node;
 
   class Man {
+    friend class Node;
+
   private:
     bvar nObjs;
     std::vector<var> vLevels;
@@ -73,19 +75,20 @@ namespace NewBdd {
     bvar Lit2Bvar(lit x) {
       return x >> 1;
     }
+
     lit LitRegular(lit x) {
       return x & ~1;
     }
     lit LitIrregular(lit x) {
       return x | 1;
     }
-
     lit LitNot(lit x) {
       return x ^ 1;
     }
     lit LitNotCond(lit x, bool c) {
       return x ^ (int)c;
     }
+
     bool LitIsCompl(lit x) {
       return x & 1;
     }
@@ -97,6 +100,16 @@ namespace NewBdd {
     }
     lit Else(lit x) {
       return LitNotCond(vObjs[LitIrregular(x)], LitIsCompl(x));
+    }
+    bool Mark(lit x) {
+      return vMarks[Lit2Bvar(x)];
+    }
+
+    void SetMark(lit x) {
+      vMarks[Lit2Bvar(x)] = true;
+    }
+    void ResetMark(lit x) {
+      vMarks[Lit2Bvar(x)] = false;
     }
 
     var LevelOfBvar(bvar a) {
@@ -121,8 +134,16 @@ namespace NewBdd {
     lit UniqueCreateInt(var i, lit x1, lit x0);
     lit UniqueCreate(var i, lit x1, lit x0);
 
+    void IncRef(lit a) {}
+    void DecRef(lit a) {}
+
+    void SetMark_rec(lit x);
+    void ResetMark_rec(lit x);
+
     lit And_rec(lit x, lit y);
     lit And(lit x, lit y);
+
+    size CountNodes_rec(lit x);
 
   public:
     Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double nUniqueDensity = 4) : nVars(nVars), nUniqueDensity(nUniqueDensity), nVerbose(nVerbose) {
@@ -228,15 +249,14 @@ namespace NewBdd {
       }
     }
     
-    void IncRef(lit a) {}
-    void DecRef(lit a) {}
-
     Node Const0();
     Node Const1();
     Node IthVar(int i);
     Node Not(Node const & x);
     Node NotCond(Node const & x, bool c);
     Node And(Node const & x, Node const & y);
+
+    size CountNodes(std::vector<Node> const & vNodes);
     
   };
   
