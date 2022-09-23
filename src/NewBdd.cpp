@@ -56,10 +56,10 @@ namespace NewBdd {
 
   lit Man::And_rec(lit x, lit y) {
     //CacheCheck();
-    if(x == Const0() || y == Const1() || x == y) {
+    if(x == 0 || y == 1 || x == y) {
       return x;
     }
-    if(x == Const1() || y == Const0()) {
+    if(x == 1 || y == 0) {
       return y;
     }
     if(x > y) {
@@ -104,8 +104,20 @@ namespace NewBdd {
     return And_rec(x, y);
   }
 
+  Node Man::Const0() {
+    return Node(this, 0);
+  }
+  Node Man::Const1() {
+    return Node(this, 1);
+  }
   Node Man::IthVar(int i) {
     return Node(this, Bvar2Lit(Var2Level[i] + 1));
+  }
+  Node Man::Not(Node const & x) {
+    return Node(this, LitNot(x.val));
+  }
+  Node Man::NotCond(Node const & x, bool c) {
+    return c? Not(x): x;
   }
   Node Man::And(Node const & x, Node const & y) {
     return Node(this, And(x.val, y.val));

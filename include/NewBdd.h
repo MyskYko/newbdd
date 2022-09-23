@@ -125,7 +125,7 @@ namespace NewBdd {
     lit And(lit x, lit y);
 
   public:
-    Man(int nVars, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double nUniqueDensity = 4, int nVerbose = 3) : nVars(nVars), nUniqueDensity(nUniqueDensity), nVerbose(nVerbose) {
+    Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double nUniqueDensity = 4) : nVars(nVars), nUniqueDensity(nUniqueDensity), nVerbose(nVerbose) {
       if(nVars >= VarMax()) {
         throw std::length_error("Memout (var) in init");
       }
@@ -177,9 +177,9 @@ namespace NewBdd {
       vCache.resize(nCache * 3);
       CacheMask = nCache - 1;
       nObjs = 1;
-      vLevels[Const()] = VarMax();
+      vLevels[0] = VarMax();
       for(int i = 0; i < nVars; i++) {
-        UniqueCreateInt(i, Const1(), Const0());
+        UniqueCreateInt(i, 1, 0);
       }
       Var2Level.resize(nVars);
       for(int i = 0; i < nVars; i++) {
@@ -231,17 +231,11 @@ namespace NewBdd {
     void IncRef(lit a) {}
     void DecRef(lit a) {}
 
-    bvar Const() {
-      return 0;
-    }
-    lit Const0() {
-      return 0;
-    }
-    lit Const1() {
-      return 1;
-    }
-
+    Node Const0();
+    Node Const1();
     Node IthVar(int i);
+    Node Not(Node const & x);
+    Node NotCond(Node const & x, bool c);
     Node And(Node const & x, Node const & y);
     
   };
