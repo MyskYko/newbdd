@@ -17,6 +17,7 @@ namespace NewBdd {
   typedef unsigned lit;
   typedef unsigned short ref;
   typedef unsigned long long size;
+  typedef unsigned edge;
 
   static inline var VarMax() {
     return std::numeric_limits<var>::max();
@@ -56,6 +57,7 @@ namespace NewBdd {
     std::vector<bvar> vNexts;
     std::vector<bool> vMarks;
     std::vector<ref> vRefs;
+    std::vector<edge> vEdges;
 
     std::vector<std::vector<bvar> > vvUnique;
     std::vector<lit> vUniqueMasks;
@@ -133,6 +135,12 @@ namespace NewBdd {
         vRefs[Lit2Bvar(x)]--;
       }
     }
+    void IncEdge(lit x) {
+      vEdges[Lit2Bvar(x)]++;
+    }
+    void DecEdge(lit x) {
+      vEdges[Lit2Bvar(x)]--;
+    }
 
     var LevelOfBvar(bvar a) {
       return vLevels[a];
@@ -159,11 +167,14 @@ namespace NewBdd {
       vObjs[(a << 1) ^ 1] = x;
     }
  
-    lit UniqueCreateInt(var i, lit x1, lit x0);
-    lit UniqueCreate(var i, lit x1, lit x0);
-
     void SetMark_rec(lit x);
     void ResetMark_rec(lit x);
+
+    void CountEdges_rec(lit x);
+    void CountEdges();
+
+    lit UniqueCreateInt(var i, lit x1, lit x0);
+    lit UniqueCreate(var i, lit x1, lit x0);
 
     lit CacheLookup(lit x, lit y);
     void CacheInsert(lit x, lit y, lit z);
@@ -184,7 +195,7 @@ namespace NewBdd {
     size CountNodes_rec(lit x);
 
   public:
-    Man(int nVars, int nVerbose = 0, bool fGbc = true, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), nVerbose(nVerbose) {
+    Man(int nVars, int nVerbose = 0, bool fReo = true, bool fGbc = true, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), nVerbose(nVerbose) {
       if(nVars >= VarMax()) {
         throw std::length_error("Memout (var) in init");
       }
@@ -303,7 +314,18 @@ namespace NewBdd {
         std::cout << "} unique." << std::endl;
       }
     }
-    
+
+    int GetNumVars() {
+      return nVars;
+    }
+    int GetNumObjs() {
+      return nObjs;
+    }
+    int Var(Node const & x);
+    int Id(Node const & x);
+    bool IsCompl(Node const & x);
+    Node Then(Node const & x);
+    Node Else(Node const & x);
     Node Const0();
     Node Const1();
     Node IthVar(int i);

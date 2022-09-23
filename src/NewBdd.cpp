@@ -6,6 +6,54 @@ using namespace std;
 
 namespace NewBdd {
 
+  void Man::SetMark_rec(lit x) {
+    if(x < 2 || Mark(x)) {
+      return;
+    }
+    SetMark(x);
+    SetMark_rec(Else(x));
+    SetMark_rec(Then(x));
+  }
+  void Man::ResetMark_rec(lit x) {
+    if(x < 2 || !Mark(x)) {
+      return;
+    }
+    ResetMark(x);
+    ResetMark_rec(Else(x));
+    ResetMark_rec(Then(x));
+  }
+
+  void Man::CountEdges_rec(lit x) {
+    if(x < 2) {
+      return;
+    }
+    IncEdge(x);
+    if(Mark(x)) {
+      return;
+    }
+    SetMark(x);
+    CountEdges_rec(Else(x));
+    CountEdges_rec(Then(x));
+  }
+
+  void Man::CountEdges() {
+    vEdges.clear();
+    vEdges.resize(nObjsAlloc);
+    for(bvar a = nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        CountEdges_rec(Bvar2Lit(a));
+      }
+    }
+    for(int i = 0; i < nVars; i++) {
+      vEdges[i + 1]++;
+    }
+    for(bvar a = nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+  }
+
   lit Man::UniqueCreateInt(var i, lit x1, lit x0) {
     vector<bvar>::iterator p, q;
     p = q = vvUnique[i].begin() + (Hash(x1, x0) & vUniqueMasks[i]);
@@ -62,23 +110,6 @@ namespace NewBdd {
       }
     }
     return x;
-  }
-
-  void Man::SetMark_rec(lit x) {
-    if(x < 2 || Mark(x)) {
-      return;
-    }
-    SetMark(x);
-    SetMark_rec(Else(x));
-    SetMark_rec(Then(x));
-  }
-  void Man::ResetMark_rec(lit x) {
-    if(x < 2 || !Mark(x)) {
-      return;
-    }
-    ResetMark(x);
-    ResetMark_rec(Else(x));
-    ResetMark_rec(Then(x));
   }
 
   lit Man::CacheLookup(lit x, lit y) {
@@ -326,6 +357,26 @@ namespace NewBdd {
     return 1ull + CountNodes_rec(Else(x)) + CountNodes_rec(Then(x));
   }
 
+  int Man::Var(Node const & x) {
+    for(int i = 0; i < nVars; i++) {
+      if(Var2Level[i] == Level(x.val)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  int Man::Id(Node const & x) {
+    return Lit2Bvar(x.val);
+  }
+  bool Man::IsCompl(Node const & x) {
+    return LitIsCompl(x.val);
+  }
+  Node Man::Then(Node const & x) {
+    return Node(this, Then(x.val));
+  }
+  Node Man::Else(Node const & x) {
+    return Node(this, Else(x.val));
+  }
   Node Man::Const0() {
     return Node(this, 0);
   }
