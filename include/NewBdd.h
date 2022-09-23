@@ -54,18 +54,18 @@ namespace NewBdd {
     std::vector<ref> vRefs;
 
     std::vector<std::vector<bvar> > vvUnique;
-    std::vector<size> vUniqueMask;
-    std::vector<size> vUniqueCounts;
+    std::vector<lit> vUniqueMasks;
+    std::vector<bvar> vUniqueCounts;
+    std::vector<bvar> vUniqueTholds;
 
     std::vector<lit> vCache;
-    size CacheMask;
+    lit CacheMask;
     size nCacheLookup;
     size nCacheHit;
 
     std::vector<var> Var2Level;
 
     size nMaxMem;
-    double UniqueDensity;
     int nVerbose;
 
     lit Bvar2Lit(bvar a) {
@@ -149,12 +149,13 @@ namespace NewBdd {
     lit And(lit x, lit y);
 
     void Resize();
+    void ResizeUnique(int i);
     void Refresh();
 
     size CountNodes_rec(lit x);
 
   public:
-    Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), UniqueDensity(UniqueDensity), nVerbose(nVerbose) {
+    Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), nVerbose(nVerbose) {
       if(nVars >= VarMax()) {
         throw std::length_error("Memout (var) in init");
       }
@@ -166,19 +167,19 @@ namespace NewBdd {
       if(!nMaxMem) {
         throw std::length_error("Memout (maxmem) in init");
       }
-      nObjsAlloc = 1ull << nObjsAllocLog;
+      nObjsAlloc = 1 << nObjsAllocLog;
       if((size)nObjsAlloc > (size)BvarMax()) {
         nObjsAlloc = BvarMax();
       }
       if(!nObjsAlloc || (size)nObjsAlloc > nMaxMem) {
         throw std::length_error("Memout (node) in init");
       }
-      size nUnique = 1ull << nUniqueLog;
-      if(!nUnique || nUnique > nMaxMem) {
+      lit nUnique = 1 << nUniqueLog;
+      if(!nUnique || (size)nUnique > nMaxMem) {
         throw std::length_error("Memout (unique) in init");
       }
-      size nCache = 1ull << nCacheLog;
-      if(!nCache || nCache > nMaxMem) {
+      lit nCache = 1 << nCacheLog;
+      if(!nCache || (size)nCache > nMaxMem) {
         throw std::length_error("Memout (cache) in init");
       }
       while(nObjsAlloc < nVars + 1) {
@@ -193,12 +194,6 @@ namespace NewBdd {
           throw std::length_error("Memout (node) in init");
         }
       }
-      while(nUnique < nMaxMem && nUnique * UniqueDensity < (double)nObjsAlloc / nVars) {
-        nUnique <<= 1;
-        if(!nUnique) {
-          throw std::length_error("Memout (unique) in init");
-        }
-      }
       if(nVerbose) {
         std::cout << "Allocate " << nObjsAlloc << " nodes, " << nUnique << " unique, and " << nCache << " cache." << std::endl;
       }
@@ -207,13 +202,19 @@ namespace NewBdd {
       vNexts.resize(nObjsAlloc);
       vMarks.resize(nObjsAlloc);
       vvUnique.resize(nVars);
-      vUniqueMask.resize(nVars);
+      vUniqueMasks.resize(nVars);
       vUniqueCounts.resize(nVars);
+      vUniqueTholds.resize(nVars);
       for(int i = 0; i < nVars; i++) {
         vvUnique[i].resize(nUnique);
-        vUniqueMask[i] = nUnique - 1;
+        vUniqueMasks[i] = nUnique - 1;
+        if(nUnique * UniqueDensity > (double)BvarMax()) {
+          vUniqueTholds[i] = BvarMax();
+        } else {
+          vUniqueTholds[i] = nUnique * UniqueDensity;
+        }
       }
-      vCache.resize(nCache * 3);
+      vCache.resize((size)nCache * 3);
       CacheMask = nCache - 1;
       nObjs = 1;
       vLevels[0] = VarMax();
@@ -263,7 +264,7 @@ namespace NewBdd {
         std::cout << "Free {";
         std::string delim;
         for(int i = 0; i < nVars; i++) {
-          std::cout << delim << vvUnique.size();
+          std::cout << delim << vvUnique[i].size();
           delim = ", ";
         }
         std::cout << "} unique." << std::endl;

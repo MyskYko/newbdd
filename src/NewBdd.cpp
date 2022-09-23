@@ -8,7 +8,7 @@ namespace NewBdd {
 
   lit Man::UniqueCreateInt(var i, lit x1, lit x0) {
     vector<bvar>::iterator p, q;
-    p = q = vvUnique[i].begin() + (Hash(x1, x0) & vUniqueMask[i]);
+    p = q = vvUnique[i].begin() + (Hash(x1, x0) & vUniqueMasks[i]);
     for(; *q; q = vNexts.begin() + *q) {
       if(LevelOfBvar(*q) == i && ThenOfBvar(*q) == x1 && ElseOfBvar(*q) == x0) {
         return Bvar2Lit(*q);
@@ -25,15 +25,18 @@ namespace NewBdd {
     //     *p = nMinRemoved++;
     //   }
     // else
-    *p = nObjs++;
-    SetLevelOfBvar(*p, i);
-    SetThenOfBvar(*p, x1);
-    SetElseOfBvar(*p, x0);
-    vNexts[*p] = next;
+    *p = nObjs;
+    SetLevelOfBvar(nObjs, i);
+    SetThenOfBvar(nObjs, x1);
+    SetElseOfBvar(nObjs, x0);
+    vNexts[nObjs] = next;
     if(nVerbose >= 3) {
       cout << "Create node " << *p << " : Level = " << i << " Then = " << x1 << " Else = " << x0 << endl;
     }
-    return Bvar2Lit(*p);
+    if(++vUniqueCounts[i] > vUniqueTholds[i]) {
+      ResizeUnique(i);
+    }
+    return Bvar2Lit(nObjs++);
   }
   lit Man::UniqueCreate(var i, lit x1, lit x0) {
     if(x1 == x0) {
@@ -146,11 +149,11 @@ namespace NewBdd {
     if((size)nObjsAlloc > (size)BvarMax()) {
       nObjsAlloc = BvarMax();
     }
-    if(!nObjsAlloc || (size)nObjsAlloc > nMaxMem) {
+    if((size)nObjsAlloc > nMaxMem) {
       throw length_error("Memout (node) in resize");
     }
     if(nVerbose) {
-      cout << "\tReallocate " << nObjsAlloc << " nodes." << endl;
+      cout << "Reallocate " << nObjsAlloc << " nodes." << endl;
     }
     vLevels.resize(nObjsAlloc);
     vObjs.resize((size)nObjsAlloc * 2);
@@ -173,6 +176,48 @@ namespace NewBdd {
     // while ( nUnique < nObjsAlloc * UniqueMinRate )
     //   if ( UniqueResize() )
     //     break;
+  }
+
+  void Man::ResizeUnique(int i) {
+    lit nUnique, nUniqueOld;
+    nUnique = nUniqueOld = vvUnique[i].size();
+    nUnique <<= 1;
+    if(!nUnique || (size)nUnique > nMaxMem) {
+      vUniqueTholds[i] = BvarMax();
+      return;
+    }
+    if(nVerbose) {
+      std::cout << "Reallocate " << nUnique << " unique." << std::endl;
+    }
+    vvUnique[i].resize(nUnique);
+    vUniqueMasks[i] = nUnique - 1;
+    for(lit j = 0; j < nUniqueOld; j++) {
+      vector<bvar>::iterator q, tail, tail1, tail2;
+      q = tail1 = vvUnique[i].begin() + j;
+      tail2 = q + nUniqueOld;
+      while(*q) {
+        lit hash = Hash(ThenOfBvar(*q), ElseOfBvar(*q)) & vUniqueMasks[i];
+        if(hash == j) {
+          tail = tail1;
+        } else {
+          tail = tail2;
+        }
+        if(tail != q) {
+          *tail = *q;
+          *q = 0;
+        }
+        q = vNexts.begin() + *tail;
+        if(tail == tail1) {
+          tail1 = q;
+        } else {
+          tail2 = q;
+        }
+      }
+    }
+    vUniqueTholds[i] <<= 1;
+    if((size)vUniqueTholds[i] > (size)BvarMax()) {
+      vUniqueTholds[i] = BvarMax();
+    }
   }
 
   void Man::Refresh() {
