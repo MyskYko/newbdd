@@ -241,12 +241,19 @@ namespace NewBdd {
     }
     ~Man() {
       if(nVerbose) {
-        std::cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes)." << std::endl;
+        std::cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << nCache << " cache." << std::endl;
       }
       free(pNexts);
+      std::cout << "Free {";
+      std::string delim;
       for(int i = 0; i < nVars; i++) {
+        if(nVerbose) {
+          std::cout << delim << vUniqueMask[i] + 1;
+          delim = ", ";
+        }
         free(vpUnique[i]);
       }
+      std::cout << "} unique." << std::endl;
     }
     
     Node Const0();
