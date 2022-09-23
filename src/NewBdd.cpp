@@ -2,7 +2,7 @@
 
 namespace NewBdd {
 
-  lit BddMan::UniqueCreateInt(var l, lit x1, lit x0) {
+  lit Man::UniqueCreateInt(var l, lit x1, lit x0) {
     bvar * head, * q;
     head = q = vpUnique[l] + (Hash(x1, x0) & vUniqueMask[l]);
     for(; *q; q = pNexts + *q) {
@@ -32,7 +32,7 @@ namespace NewBdd {
     }
     return Bvar2Lit(*q);
   }
-  lit BddMan::UniqueCreate(var l, lit x1, lit x0) {
+  lit Man::UniqueCreate(var l, lit x1, lit x0) {
     if(x1 == x0) {
       return x1;
     }
@@ -54,7 +54,7 @@ namespace NewBdd {
     return x;
   }
 
-  lit BddMan::And_rec(lit x, lit y) {
+  lit Man::And_rec(lit x, lit y) {
     //CacheCheck();
     if(x == Const0() || y == Const1() || x == y) {
       return x;
@@ -95,7 +95,7 @@ namespace NewBdd {
     // return CacheInsert( x, y, z );
     return z;
   }
-  lit BddMan::And(lit x, lit y) {
+  lit Man::And(lit x, lit y) {
     // nRefresh = 0;
     // lit z = LitInvalid();
     // while( LitIsInvalid( z ) )
@@ -104,11 +104,11 @@ namespace NewBdd {
     return And_rec(x, y);
   }
 
-  node BddMan::IthVar(int i) {
-    return node(this, Bvar2Lit(Var2Level[i] + 1));
+  Node Man::IthVar(int i) {
+    return Node(this, Bvar2Lit(Var2Level[i] + 1));
   }
-  node BddMan::And(node const & x, node const & y) {
-    return node(this, And(x.val, y.val));
+  Node Man::And(Node const & x, Node const & y) {
+    return Node(this, And(x.val, y.val));
   }
 
 }

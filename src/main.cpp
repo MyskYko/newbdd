@@ -1,6 +1,6 @@
 #include "NewBdd.h"
 
 int main() {
-  NewBdd::BddMan(20);
+  NewBdd::Man(20);
   return 0;
 }

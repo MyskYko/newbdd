@@ -37,9 +37,9 @@ namespace NewBdd {
     return 12582917 * Arg0 + Arg1 + 4256249 * Arg2;
   }
 
-  class node;
+  class Node;
 
-  class BddMan {
+  class Man {
   private:
     bvar nObjs;
     std::vector<var> vLevels;
@@ -125,7 +125,7 @@ namespace NewBdd {
     lit And(lit x, lit y);
 
   public:
-    BddMan(int nVars, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double nUniqueDensity = 4, int nVerbose = 3) : nVars(nVars), nUniqueDensity(nUniqueDensity), nVerbose(nVerbose) {
+    Man(int nVars, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double nUniqueDensity = 4, int nVerbose = 3) : nVars(nVars), nUniqueDensity(nUniqueDensity), nVerbose(nVerbose) {
       if(nVars >= VarMax()) {
         throw std::length_error("Memout (var) in init");
       }
@@ -218,7 +218,7 @@ namespace NewBdd {
       //   for ( var v = 0; v < nVars; v++ )
       //     vOrdering.push_back( v );
     }
-    ~BddMan() {
+    ~Man() {
       if(nVerbose) {
         std::cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes)." << std::endl;
       }
@@ -241,36 +241,36 @@ namespace NewBdd {
       return 1;
     }
 
-    node IthVar(int i);
-    node And(node const & x, node const & y);
+    Node IthVar(int i);
+    Node And(Node const & x, Node const & y);
     
   };
   
-  class node {
-    friend class BddMan;
+  class Node {
+    friend class Man;
 
   private:
-    BddMan * man;
+    Man * man;
     lit val;
     
   public:
-    node(BddMan * man, lit val) : man(man), val(val) {
+    Node(Man * man, lit val) : man(man), val(val) {
       man->IncRef(val);
     }
-    node() {
+    Node() {
       man = NULL;
     }
-    node(const node & right) {
+    Node(const Node & right) {
       man = right.man;
       val = right.val;
       man->IncRef(val);
     }
-    ~node() {
+    ~Node() {
       if(man) {
         man->DecRef(val);
       }
     }
-    node & operator=(const node & right) {
+    Node & operator=(const Node & right) {
       if(this == &right) {
         return *this;
       }
@@ -282,10 +282,10 @@ namespace NewBdd {
       man->IncRef(val);
       return *this;
     }
-    bool operator==(const node & other) const {
+    bool operator==(const Node & other) const {
       return val == other.val;
     }
-    bool operator!=(const node & other) const {
+    bool operator!=(const Node & other) const {
       return val != other.val;
     }
   };
