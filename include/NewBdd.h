@@ -147,6 +147,7 @@ namespace NewBdd {
     lit And_rec(lit x, lit y);
     lit And(lit x, lit y);
 
+    void Resize();
     void Refresh();
 
     size CountNodes_rec(lit x);
@@ -201,7 +202,7 @@ namespace NewBdd {
         std::cout << "Allocate " << nObjsAlloc << " nodes, " << nUnique << " unique, and " << nCache << " cache." << std::endl;
       }
       vLevels.resize(nObjsAlloc);
-      vObjs.resize(nObjsAlloc * 2);
+      vObjs.resize((size)nObjsAlloc * 2);
       pNexts = (bvar *)calloc(nObjsAlloc, sizeof(bvar));
       vMarks.resize(nObjsAlloc);
       vpUnique.resize(nVars);

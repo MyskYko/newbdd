@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "NewBdd.h"
 
 using namespace std;
@@ -45,7 +47,7 @@ namespace NewBdd {
       } else {
         x = LitNot(UniqueCreateInt(l, LitNot(x1), LitNot(x0)));
       }
-      if(x == LitMax()) {
+      if((x | 1) == LitMax()) {
         Refresh();
         //           if ( Refresh() )
         //             return x;
@@ -140,8 +142,47 @@ namespace NewBdd {
     return And_rec(x, y);
   }
 
+  void Man::Resize() {
+    bvar nObjsAllocOld = nObjsAlloc;
+    nObjsAlloc <<= 1;
+    if((size)nObjsAlloc > (size)BvarMax()) {
+      nObjsAlloc = BvarMax();
+    }
+    if(!nObjsAlloc || (size)nObjsAlloc > nMaxMem) {
+      throw length_error("Memout (node) in resize");
+    }
+    if(nVerbose) {
+      cout << "\tReallocate " << nObjsAlloc << " nodes." << endl;
+    }
+    vLevels.resize(nObjsAlloc);
+    vObjs.resize((size)nObjsAlloc * 2);
+    pNexts = (bvar *)realloc(pNexts, sizeof(bvar) * nObjsAlloc);
+    if(!pNexts) {
+      throw length_error("Memout (unique) in resize");
+    }
+    memset(pNexts + nObjsAllocOld, 0, sizeof(bvar) * nObjsAllocOld);
+    vMarks.resize(nObjsAlloc);
+    // if ( pRefs )
+    //   {
+    //     pRefs       = (ref *)realloc( pRefs, sizeof(ref) * nObjsAlloc );
+    //     if ( !pRefs )
+    //       throw "Reallocation failed";
+    //     memset( pRefs + nObjsAllocOld, 0, sizeof(ref) * nObjsAllocOld );
+    //   }
+    // if ( pEdges )
+    //   {
+    //     pEdges = (edge *)realloc( pEdges, sizeof(edge) * nObjsAlloc );
+    //     if ( !pEdges )
+    //       throw "Reallocation failed";
+    //     memset ( pEdges + nObjsAllocOld, 0, sizeof(edge) * nObjsAllocOld );
+    //   }
+    // while ( nUnique < nObjsAlloc * UniqueMinRate )
+    //   if ( UniqueResize() )
+    //     break;
+  }
+
   void Man::Refresh() {
-    abort();
+    Resize();
   }
 
   size Man::CountNodes_rec(lit x) {
