@@ -305,20 +305,20 @@ namespace NewBdd {
 
   void Man::RemoveBvar(bvar a) {
     var v = VarOfBvar(a);
+    SetVarOfBvar(a, VarMax());
+    if(MinBvarRemoved > a) {
+      MinBvarRemoved = a;
+    }
     vector<bvar>::iterator q = vvUnique[v].begin() + (Hash(ThenOfBvar(a), ElseOfBvar(a)) & vUniqueMasks[v]);
     for(; *q; q = vNexts.begin() + *q) {
       if(*q == a) {
         break;
       }
     }
-    vector<bvar>::iterator next = vNexts.begin() + *q;
-    *q = *next;
-    *next = 0;
+    bvar next = vNexts[*q];
+    vNexts[*q] = 0;
+    *q = next;
     vUniqueCounts[v]--;
-    SetVarOfBvar(a, VarMax());
-    if(MinBvarRemoved > a) {
-      MinBvarRemoved = a;
-    }
   }
 
   void Man::Gbc() {
@@ -351,7 +351,18 @@ namespace NewBdd {
     for(vector<bvar>::iterator p = vvUnique[v1].begin(); p != vvUnique[v1].end(); p++) {
       vector<bvar>::iterator q = p;
       while(*q) {
-        if(EdgeOfBvar(*q) && (Var(ThenOfBvar(*q)) == v2 || Var(ElseOfBvar(*q)) == v2)) {
+        if(!EdgeOfBvar(*q)) {
+          SetVarOfBvar(*q, VarMax());
+          if(MinBvarRemoved > *q) {
+            MinBvarRemoved = *q;
+          }
+          bvar next = vNexts[*q];
+          vNexts[*q] = 0;
+          *q = next;
+          vUniqueCounts[v1]--;
+          continue;
+        }
+        if(Var(ThenOfBvar(*q)) == v2 || Var(ElseOfBvar(*q)) == v2) {
           DecEdge(ThenOfBvar(*q));
           DecEdge(ElseOfBvar(*q));
           bvar next = vNexts[*q];
