@@ -52,7 +52,7 @@ namespace NewBdd {
     bvar nObjs;
     bvar nObjsAlloc;
     bvar MinBvarRemoved;
-    std::vector<var> vLevels;
+    std::vector<var> vVars;
     std::vector<lit> vObjs;
     std::vector<bvar> vNexts;
     std::vector<bool> vMarks;
@@ -72,6 +72,7 @@ namespace NewBdd {
     double CacheHitRate;
 
     std::vector<var> Var2Level;
+    std::vector<var> Level2Var;
 
     size nMaxMem;
     int nVerbose;
@@ -102,8 +103,11 @@ namespace NewBdd {
     bool LitIsCompl(lit x) {
       return x & 1;
     }
+    var Var(lit x) {
+      return vVars[Lit2Bvar(x)];
+    }
     var Level(lit x) {
-      return vLevels[Lit2Bvar(x)];
+      return Var2Level[Var(x)];
     }
     lit Then(lit x) {
       return LitNotCond(vObjs[LitRegular(x)], LitIsCompl(x));
@@ -145,8 +149,8 @@ namespace NewBdd {
       vEdges[Lit2Bvar(x)]--;
     }
 
-    var LevelOfBvar(bvar a) {
-      return vLevels[a];
+    var VarOfBvar(bvar a) {
+      return vVars[a];
     }
     lit ThenOfBvar(bvar a) {
       return vObjs[a << 1];
@@ -163,8 +167,8 @@ namespace NewBdd {
     edge EdgeOfBvar(bvar a) {
       return vEdges[a];
     }
-    void SetLevelOfBvar(bvar a, var i) {
-      vLevels[a] = i;
+    void SetVarOfBvar(bvar a, var i) {
+      vVars[a] = i;
     }
     void SetThenOfBvar(bvar a, lit x) {
       vObjs[a << 1] = x;
@@ -243,7 +247,7 @@ namespace NewBdd {
       if(nVerbose) {
         std::cout << "Allocate " << nObjsAlloc << " nodes, " << nUnique << " unique, and " << nCache << " cache." << std::endl;
       }
-      vLevels.resize(nObjsAlloc);
+      vVars.resize(nObjsAlloc);
       vObjs.resize((size)nObjsAlloc * 2);
       vNexts.resize(nObjsAlloc);
       vMarks.resize(nObjsAlloc);
@@ -266,13 +270,15 @@ namespace NewBdd {
       vCache.resize((size)nCache * 3);
       CacheMask = nCache - 1;
       nObjs = 1;
-      vLevels[0] = VarMax();
+      vVars[0] = VarMax();
       for(int i = 0; i < nVars; i++) {
         UniqueCreateInt(i, 1, 0);
       }
       Var2Level.resize(nVars);
+      Level2Var.resize(nVars);
       for(int i = 0; i < nVars; i++) {
         Var2Level[i] = i;
+        Level2Var[i] = i;
       }
       nCacheLookups = 0;
       nCacheHits = 0;

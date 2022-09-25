@@ -58,7 +58,7 @@ namespace NewBdd {
     vector<bvar>::iterator p, q;
     p = q = vvUnique[i].begin() + (Hash(x1, x0) & vUniqueMasks[i]);
     for(; *q; q = vNexts.begin() + *q) {
-      if(LevelOfBvar(*q) == i && ThenOfBvar(*q) == x1 && ElseOfBvar(*q) == x0) {
+      if(VarOfBvar(*q) == i && ThenOfBvar(*q) == x1 && ElseOfBvar(*q) == x0) {
         return Bvar2Lit(*q);
       }
     }
@@ -67,7 +67,7 @@ namespace NewBdd {
       *p = nObjs++;
     } else {
       for(; MinBvarRemoved < nObjs; MinBvarRemoved++) {
-        if(LevelOfBvar(MinBvarRemoved) == VarMax()) {
+        if(VarOfBvar(MinBvarRemoved) == VarMax()) {
           break;
         }
       }
@@ -76,12 +76,12 @@ namespace NewBdd {
       }
       *p = MinBvarRemoved++;
     }
-    SetLevelOfBvar(*p, i);
+    SetVarOfBvar(*p, i);
     SetThenOfBvar(*p, x1);
     SetElseOfBvar(*p, x0);
     vNexts[*p] = next;
     if(nVerbose >= 3) {
-      cout << "Create node " << *p << " : Level = " << i << " Then = " << x1 << " Else = " << x0 << endl;
+      cout << "Create node " << *p << " : Var = " << i << " Then = " << x1 << " Else = " << x0 << endl;
     }
     if(++vUniqueCounts[i] > vUniqueTholds[i]) {
       bvar a = *p;
@@ -153,13 +153,14 @@ namespace NewBdd {
     if(z != LitMax()) {
       return z;
     }
+    var v;
     lit x0, x1, y0, y1;
     if(Level(x) < Level(y)) {
-      x0 = Else(x), x1 = Then(x), y0 = y1 = y;
+      v = Var(x), x0 = Else(x), x1 = Then(x), y0 = y1 = y;
     } else if(Level(x) > Level(y)) {
-      x0 = x1 = x, y0 = Else(y), y1 = Then(y);
+      v = Var(y), x0 = x1 = x, y0 = Else(y), y1 = Then(y);
     } else {
-      x0 = Else(x), x1 = Then(x), y0 = Else(y), y1 = Then(y);
+      v = Var(x), x0 = Else(x), x1 = Then(x), y0 = Else(y), y1 = Then(y);
     }
     lit z1 = And_rec(x1, y1);
     // if(z1 == LitMax()) {
@@ -172,7 +173,7 @@ namespace NewBdd {
     //   return z0;
     // }
     IncRef(z0);
-    z = UniqueCreate(min(Level(x), Level(y)), z1, z0);
+    z = UniqueCreate(v, z1, z0);
     DecRef(z1);
     DecRef(z0);
     // if(z == LitMax()) {
@@ -203,7 +204,7 @@ namespace NewBdd {
     if(nVerbose >= 2) {
       cout << "Reallocate " << nObjsAlloc << " nodes." << endl;
     }
-    vLevels.resize(nObjsAlloc);
+    vVars.resize(nObjsAlloc);
     vObjs.resize((size)nObjsAlloc * 2);
     vNexts.resize(nObjsAlloc);
     vMarks.resize(nObjsAlloc);
@@ -303,7 +304,7 @@ namespace NewBdd {
   }
 
   void Man::RemoveBvar(bvar a) {
-    int i = LevelOfBvar(a);
+    int i = VarOfBvar(a);
     vector<bvar>::iterator q = vvUnique[i].begin() + (Hash(ThenOfBvar(a), ElseOfBvar(a)) & vUniqueMasks[i]);
     for(; *q; q = vNexts.begin() + *q) {
       if(*q == a) {
@@ -314,7 +315,7 @@ namespace NewBdd {
     *q = *next;
     *next = 0;
     vUniqueCounts[i]--;
-    SetLevelOfBvar(a, VarMax());
+    SetVarOfBvar(a, VarMax());
     if(MinBvarRemoved > a) {
       MinBvarRemoved = a;
     }
@@ -330,7 +331,7 @@ namespace NewBdd {
       }
     }
     for(bvar a = nVars + 1; a < nObjs; a++) {
-      if(!MarkOfBvar(a) && LevelOfBvar(a) != VarMax()) {
+      if(!MarkOfBvar(a) && VarOfBvar(a) != VarMax()) {
         RemoveBvar(a);
       }
     }
@@ -344,18 +345,20 @@ namespace NewBdd {
 
   void Man::Swap(int i) {
     CountEdges();
+    var v1 = Level2Var[i];
+    var v2 = Level2Var[i + 1];
     int f = 0;
-    for(vector<bvar>::iterator p = vvUnique[i].begin(); p != vvUnique[i].end(); p++) {
+    for(vector<bvar>::iterator p = vvUnique[v1].begin(); p != vvUnique[v1].end(); p++) {
       vector<bvar>::iterator q = p;
       while(*q) {
-        if(EdgeOfBvar(*q) && (Level(ThenOfBvar(*q)) == i + 1 || Level(ElseOfBvar(*q)) == i + 1)) {
+        if(EdgeOfBvar(*q) && (Var(ThenOfBvar(*q)) == v2 || Var(ElseOfBvar(*q)) == v2)) {
           DecEdge(ThenOfBvar(*q));
           DecEdge(ElseOfBvar(*q));
           bvar next = vNexts[*q];
           vNexts[*q] = f;
           f = *q;
           *q = next;
-          vUniqueCounts[i]--;
+          vUniqueCounts[v1]--;
           continue;
         }
         q = vNexts.begin() + *q;
@@ -365,13 +368,13 @@ namespace NewBdd {
       lit f0 = ElseOfBvar(f);
       lit f1 = ThenOfBvar(f);
       lit f00, f01, f10, f11;
-      if(Level(f0) == i + 1) {
+      if(Var(f0) == v2) {
         f00 = Else(f0);
         f01 = Then(f0);
       } else {
         f00 = f01 = f0;
       }
-      if(Level(f1) == i + 1) {
+      if(Var(f1) == v2) {
         f10 = Else(f1);
         f11 = Then(f1);
       } else {
@@ -380,7 +383,7 @@ namespace NewBdd {
       if(f10 == f00) {
         f0 = f10;
       } else {
-        f0 = UniqueCreate(i, f10, f00);
+        f0 = UniqueCreate(v1, f10, f00);
         if(!Edge(f0)) {
           IncEdge(f10);
           IncEdge(f00);
@@ -391,7 +394,7 @@ namespace NewBdd {
       if(f11 == f01) {
         f1 = f11;
       } else {
-        f1 = UniqueCreate(i, f11, f01);
+        f1 = UniqueCreate(v1, f11, f01);
         if(!Edge(f1)) {
           IncEdge(f11);
           IncEdge(f01);
@@ -400,14 +403,14 @@ namespace NewBdd {
       IncEdge(f1);
       DecRef(f0);
       // change
-      SetLevelOfBvar(f, i + 1);
+      SetVarOfBvar(f, v2);
       SetElseOfBvar(f, f0);
       SetThenOfBvar(f, f1);
-      vector<bvar>::iterator q = vvUnique[i + 1].begin() + (Hash(f1, f0) & vUniqueMasks[i + 1]);
+      vector<bvar>::iterator q = vvUnique[v2].begin() + (Hash(f1, f0) & vUniqueMasks[v2]);
       lit next = vNexts[f];
       vNexts[f] = *q;
       *q = f;
-      vUniqueCounts[i + 1]++;
+      vUniqueCounts[v2]++;
       // next target
       f = next;
     }
@@ -430,12 +433,7 @@ namespace NewBdd {
   }
 
   int Man::Var(Node const & x) {
-    for(int i = 0; i < nVars; i++) {
-      if(Var2Level[i] == Level(x.val)) {
-        return i;
-      }
-    }
-    return -1;
+    return Var(x.val);
   }
   int Man::Id(Node const & x) {
     return Lit2Bvar(x.val);
