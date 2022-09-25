@@ -183,8 +183,8 @@ namespace NewBdd {
     void CountEdges_rec(lit x);
     void CountEdges();
 
-    lit UniqueCreateInt(var i, lit x1, lit x0);
-    lit UniqueCreate(var i, lit x1, lit x0);
+    lit UniqueCreateInt(var v, lit x1, lit x0);
+    lit UniqueCreate(var v, lit x1, lit x0);
 
     lit CacheLookup(lit x, lit y);
     void CacheInsert(lit x, lit y, lit z);
@@ -193,7 +193,7 @@ namespace NewBdd {
     lit And(lit x, lit y);
 
     bool Resize();
-    void ResizeUnique(int i);
+    void ResizeUnique(var v);
     void ResizeCache();
 
     void CacheClear();

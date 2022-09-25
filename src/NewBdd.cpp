@@ -54,11 +54,11 @@ namespace NewBdd {
     }
   }
 
-  lit Man::UniqueCreateInt(var i, lit x1, lit x0) {
+  lit Man::UniqueCreateInt(var v, lit x1, lit x0) {
     vector<bvar>::iterator p, q;
-    p = q = vvUnique[i].begin() + (Hash(x1, x0) & vUniqueMasks[i]);
+    p = q = vvUnique[v].begin() + (Hash(x1, x0) & vUniqueMasks[v]);
     for(; *q; q = vNexts.begin() + *q) {
-      if(VarOfBvar(*q) == i && ThenOfBvar(*q) == x1 && ElseOfBvar(*q) == x0) {
+      if(VarOfBvar(*q) == v && ThenOfBvar(*q) == x1 && ElseOfBvar(*q) == x0) {
         return Bvar2Lit(*q);
       }
     }
@@ -76,30 +76,30 @@ namespace NewBdd {
       }
       *p = MinBvarRemoved++;
     }
-    SetVarOfBvar(*p, i);
+    SetVarOfBvar(*p, v);
     SetThenOfBvar(*p, x1);
     SetElseOfBvar(*p, x0);
     vNexts[*p] = next;
     if(nVerbose >= 3) {
-      cout << "Create node " << *p << " : Var = " << i << " Then = " << x1 << " Else = " << x0 << endl;
+      cout << "Create node " << *p << " : Var = " << v << " Then = " << x1 << " Else = " << x0 << endl;
     }
-    if(++vUniqueCounts[i] > vUniqueTholds[i]) {
+    if(++vUniqueCounts[v] > vUniqueTholds[v]) {
       bvar a = *p;
-      ResizeUnique(i);
+      ResizeUnique(v);
       return Bvar2Lit(a);
     }
     return Bvar2Lit(*p);
   }
-  lit Man::UniqueCreate(var i, lit x1, lit x0) {
+  lit Man::UniqueCreate(var v, lit x1, lit x0) {
     if(x1 == x0) {
       return x1;
     }
     lit x;
     while(true) {
       if(!LitIsCompl(x0)) {
-        x = UniqueCreateInt(i, x1, x0);
+        x = UniqueCreateInt(v, x1, x0);
       } else {
-        x = LitNot(UniqueCreateInt(i, LitNot(x1), LitNot(x0)));
+        x = LitNot(UniqueCreateInt(v, LitNot(x1), LitNot(x0)));
       }
       if((x | 1) == LitMax()) {
         Refresh();
@@ -221,26 +221,26 @@ namespace NewBdd {
     //   }
   }
 
-  void Man::ResizeUnique(int i) {
+  void Man::ResizeUnique(var v) {
     lit nUnique, nUniqueOld;
-    nUnique = nUniqueOld = vvUnique[i].size();
+    nUnique = nUniqueOld = vvUnique[v].size();
     nUnique <<= 1;
     if(!nUnique || (size)nUnique > nMaxMem) {
-      vUniqueTholds[i] = BvarMax();
+      vUniqueTholds[v] = BvarMax();
       return;
     }
     if(nVerbose >= 2) {
       cout << "Reallocate " << nUnique << " unique." << endl;
     }
-    vvUnique[i].resize(nUnique);
-    vUniqueMasks[i] = nUnique - 1;
-    for(lit j = 0; j < nUniqueOld; j++) {
+    vvUnique[v].resize(nUnique);
+    vUniqueMasks[v] = nUnique - 1;
+    for(lit i = 0; i < nUniqueOld; i++) {
       vector<bvar>::iterator q, tail, tail1, tail2;
-      q = tail1 = vvUnique[i].begin() + j;
+      q = tail1 = vvUnique[v].begin() + i;
       tail2 = q + nUniqueOld;
       while(*q) {
-        lit hash = Hash(ThenOfBvar(*q), ElseOfBvar(*q)) & vUniqueMasks[i];
-        if(hash == j) {
+        lit hash = Hash(ThenOfBvar(*q), ElseOfBvar(*q)) & vUniqueMasks[v];
+        if(hash == i) {
           tail = tail1;
         } else {
           tail = tail2;
@@ -257,9 +257,9 @@ namespace NewBdd {
         }
       }
     }
-    vUniqueTholds[i] <<= 1;
-    if((size)vUniqueTholds[i] > (size)BvarMax()) {
-      vUniqueTholds[i] = BvarMax();
+    vUniqueTholds[v] <<= 1;
+    if((size)vUniqueTholds[v] > (size)BvarMax()) {
+      vUniqueTholds[v] = BvarMax();
     }
   }
 
@@ -304,8 +304,8 @@ namespace NewBdd {
   }
 
   void Man::RemoveBvar(bvar a) {
-    int i = VarOfBvar(a);
-    vector<bvar>::iterator q = vvUnique[i].begin() + (Hash(ThenOfBvar(a), ElseOfBvar(a)) & vUniqueMasks[i]);
+    var v = VarOfBvar(a);
+    vector<bvar>::iterator q = vvUnique[v].begin() + (Hash(ThenOfBvar(a), ElseOfBvar(a)) & vUniqueMasks[v]);
     for(; *q; q = vNexts.begin() + *q) {
       if(*q == a) {
         break;
@@ -314,7 +314,7 @@ namespace NewBdd {
     vector<bvar>::iterator next = vNexts.begin() + *q;
     *q = *next;
     *next = 0;
-    vUniqueCounts[i]--;
+    vUniqueCounts[v]--;
     SetVarOfBvar(a, VarMax());
     if(MinBvarRemoved > a) {
       MinBvarRemoved = a;
@@ -454,7 +454,7 @@ namespace NewBdd {
     return Node(this, 1);
   }
   Node Man::IthVar(int i) {
-    return Node(this, Bvar2Lit(Var2Level[i] + 1));
+    return Node(this, Bvar2Lit(i + 1));
   }
   Node Man::Not(Node const & x) {
     return Node(this, LitNot(x.val));
