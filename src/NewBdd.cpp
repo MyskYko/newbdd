@@ -342,6 +342,78 @@ namespace NewBdd {
     CacheClear();
   }
 
+  void Man::Swap(int i) {
+    CountEdges();
+    int f = 0;
+    for(vector<bvar>::iterator p = vvUnique[i].begin(); p != vvUnique[i].end(); p++) {
+      vector<bvar>::iterator q = p;
+      while(*q) {
+        if(EdgeOfBvar(*q) && (Level(ThenOfBvar(*q)) == i + 1 || Level(ElseOfBvar(*q)) == i + 1)) {
+          DecEdge(ThenOfBvar(*q));
+          DecEdge(ElseOfBvar(*q));
+          bvar next = vNexts[*q];
+          vNexts[*q] = f;
+          f = *q;
+          *q = next;
+          vUniqueCounts[i]--;
+          continue;
+        }
+        q = vNexts.begin() + *q;
+      }
+    }
+    while(f) {
+      lit f0 = ElseOfBvar(f);
+      lit f1 = ThenOfBvar(f);
+      lit f00, f01, f10, f11;
+      if(Level(f0) == i + 1) {
+        f00 = Else(f0);
+        f01 = Then(f0);
+      } else {
+        f00 = f01 = f0;
+      }
+      if(Level(f1) == i + 1) {
+        f10 = Else(f1);
+        f11 = Then(f1);
+      } else {
+        f10 = f11 = f1;
+      }
+      if(f10 == f00) {
+        f0 = f10;
+      } else {
+        f0 = UniqueCreate(i, f10, f00);
+        if(!Edge(f0)) {
+          IncEdge(f10);
+          IncEdge(f00);
+        }
+      }
+      IncEdge(f0);
+      IncRef(f0);
+      if(f11 == f01) {
+        f1 = f11;
+      } else {
+        f1 = UniqueCreate(i, f11, f01);
+        if(!Edge(f1)) {
+          IncEdge(f11);
+          IncEdge(f01);
+        }
+      }
+      IncEdge(f1);
+      DecRef(f0);
+      // change
+      SetLevelOfBvar(f, i + 1);
+      SetElseOfBvar(f, f0);
+      SetThenOfBvar(f, f1);
+      vector<bvar>::iterator q = vvUnique[i + 1].begin() + (Hash(f1, f0) & vUniqueMasks[i + 1]);
+      lit next = vNexts[f];
+      vNexts[f] = *q;
+      *q = f;
+      vUniqueCounts[i + 1]++;
+      // next target
+      f = next;
+    }
+    CacheClear();
+  }
+
   void Man::Refresh() {
     if(Resize()) {
       return;

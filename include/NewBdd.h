@@ -117,6 +117,9 @@ namespace NewBdd {
     ref Ref(lit x) {
       return vRefs[Lit2Bvar(x)];
     }
+    edge Edge(lit x) {
+      return vEdges[Lit2Bvar(x)];
+    }
 
     void SetMark(lit x) {
       vMarks[Lit2Bvar(x)] = true;
@@ -156,6 +159,9 @@ namespace NewBdd {
     }
     ref RefOfBvar(bvar a) {
       return vRefs[a];
+    }
+    edge EdgeOfBvar(bvar a) {
+      return vEdges[a];
     }
     void SetLevelOfBvar(bvar a, var i) {
       vLevels[a] = i;
@@ -334,7 +340,10 @@ namespace NewBdd {
     Node And(Node const & x, Node const & y);
 
     size CountNodes(std::vector<Node> const & vNodes);
-    
+
+    void Swap(int i);
+
+
   };
   
   class Node {
