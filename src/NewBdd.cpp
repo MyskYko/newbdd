@@ -214,6 +214,16 @@ namespace NewBdd {
     return z;
   }
   lit Man::And(lit x, lit y) {
+    if(nObjs > nReo) {
+      Sift();
+      if(nObjs == BvarMax()) {
+        nReo = BvarMax();
+      } else {
+        while(nReo < nObjs) {
+          nReo <<= 1;
+        }
+      }
+    }
     // nRefresh = 0;
     // lit z = LitInvalid();
     // while( LitIsInvalid( z ) )

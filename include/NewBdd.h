@@ -71,6 +71,7 @@ namespace NewBdd {
     size CacheThold;
     double CacheHitRate;
 
+    bvar nReo;
     std::vector<var> Var2Level;
     std::vector<var> Level2Var;
 
@@ -211,7 +212,7 @@ namespace NewBdd {
     size CountNodes_rec(lit x);
 
   public:
-    Man(int nVars, int nVerbose = 0, bool fReo = true, bool fGbc = true, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), nVerbose(nVerbose) {
+    Man(int nVars, int nVerbose = 0, int nReoLog = 12, bool fGbc = true, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), nVerbose(nVerbose) {
       if(nVars >= VarMax()) {
         throw std::length_error("Memout (var) in init");
       }
@@ -238,6 +239,14 @@ namespace NewBdd {
       if(!nCache || (size)nCache > nMaxMem) {
         throw std::length_error("Memout (cache) in init");
       }
+      if(nReo < 0) {
+        nReo = BvarMax();
+      } else {
+        nReo = 1 << nReoLog;
+        if(!nReo || (size)nReo > (size)BvarMax()) {
+          nReo = BvarMax();
+        }
+      }
       while(nObjsAlloc < nVars + 1) {
         if(nObjsAlloc == BvarMax()) {
           throw std::length_error("Memout (node) in init");
@@ -257,7 +266,7 @@ namespace NewBdd {
       vObjs.resize((size)nObjsAlloc * 2);
       vNexts.resize(nObjsAlloc);
       vMarks.resize(nObjsAlloc);
-      if(fGbc) {
+      if(fGbc || nReo != BvarMax()) {
         vRefs.resize(nObjsAlloc);
       }
       vvUnique.resize(nVars);
