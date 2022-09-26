@@ -1,13 +1,7 @@
 #ifndef NEW_BDD_MAN_H
 #define NEW_BDD_MAN_H
 
-#include <cstddef>
 #include <vector>
-#include <stdexcept>
-#include <iostream>
-#include <cstdlib>
-#include <cassert>
-#include <string>
 
 #include "NewBdd.h"
 

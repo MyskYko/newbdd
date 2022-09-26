@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "NewBddMan.h"
 
 using namespace std;
