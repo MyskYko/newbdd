@@ -138,19 +138,19 @@ namespace NewBdd {
     }
   }
 
-  int Man::GetNumVars() {
+  int Man::GetNumVars() const {
     return nVars;
   }
-  int Man::GetNumObjs() {
+  int Man::GetNumObjs() const {
     return nObjs;
   }
-  int Man::Var(Node const & x) {
+  int Man::Var(Node const & x) const {
     return Var(x.val);
   }
-  int Man::Id(Node const & x) {
+  int Man::Id(Node const & x) const {
     return Lit2Bvar(x.val);
   }
-  bool Man::IsCompl(Node const & x) {
+  bool Man::IsCompl(Node const & x) const {
     return LitIsCompl(x.val);
   }
   Node Man::Then(Node const & x) {

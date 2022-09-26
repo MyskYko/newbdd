@@ -50,11 +50,11 @@ namespace NewBdd {
 
     void SetParameters(int nGbc_ = 0, int nReoLog = -1);
 
-    int GetNumVars();
-    int GetNumObjs();
-    int Var(Node const & x);
-    int Id(Node const & x);
-    bool IsCompl(Node const & x);
+    int GetNumVars() const;
+    int GetNumObjs() const;
+    int Var(Node const & x) const;
+    int Id(Node const & x) const;
+    bool IsCompl(Node const & x) const;
     Node Then(Node const & x);
     Node Else(Node const & x);
     Node Const0();
@@ -99,23 +99,23 @@ namespace NewBdd {
     size nMaxMem;
     int nVerbose;
 
-    inline lit Bvar2Lit(bvar a);
-    inline lit Bvar2Lit(bvar a, bool c);
-    inline bvar Lit2Bvar(lit x);
+    inline lit Bvar2Lit(bvar a) const;
+    inline lit Bvar2Lit(bvar a, bool c) const;
+    inline bvar Lit2Bvar(lit x) const;
 
-    inline lit LitRegular(lit x);
-    inline lit LitIrregular(lit x);
-    inline lit LitNot(lit x);
-    inline lit LitNotCond(lit x, bool c);
+    inline lit LitRegular(lit x) const;
+    inline lit LitIrregular(lit x) const;
+    inline lit LitNot(lit x) const;
+    inline lit LitNotCond(lit x, bool c) const;
 
-    inline bool LitIsCompl(lit x);
-    inline var Var(lit x);
-    inline var Level(lit x);
-    inline lit Then(lit x);
-    inline lit Else(lit x);
-    inline bool Mark(lit x);
-    inline ref Ref(lit x);
-    inline edge Edge(lit x);
+    inline bool LitIsCompl(lit x) const;
+    inline var Var(lit x) const;
+    inline var Level(lit x) const;
+    inline lit Then(lit x) const;
+    inline lit Else(lit x) const;
+    inline bool Mark(lit x) const;
+    inline ref Ref(lit x) const;
+    inline edge Edge(lit x) const;
 
     inline void SetMark(lit x);
     inline void ResetMark(lit x);
@@ -124,12 +124,12 @@ namespace NewBdd {
     inline void IncEdge(lit x);
     inline void DecEdge(lit x);
 
-    inline var VarOfBvar(bvar a);
-    inline lit ThenOfBvar(bvar a);
-    inline lit ElseOfBvar(bvar a);
-    inline bool MarkOfBvar(bvar a);
-    inline ref RefOfBvar(bvar a);
-    inline edge EdgeOfBvar(bvar a);
+    inline var VarOfBvar(bvar a) const;
+    inline lit ThenOfBvar(bvar a) const;
+    inline lit ElseOfBvar(bvar a) const;
+    inline bool MarkOfBvar(bvar a) const;
+    inline ref RefOfBvar(bvar a) const;
+    inline edge EdgeOfBvar(bvar a) const;
 
     inline void SetVarOfBvar(bvar a, var v);
     inline void SetThenOfBvar(bvar a, lit x);
@@ -169,51 +169,51 @@ namespace NewBdd {
 
   };
   
-  inline lit Man::Bvar2Lit(bvar a) {
+  inline lit Man::Bvar2Lit(bvar a) const {
     return a << 1;
   }
-  inline lit Man::Bvar2Lit(bvar a, bool c) {
+  inline lit Man::Bvar2Lit(bvar a, bool c) const {
     return (a << 1) ^ (int)c;
   }
-  inline bvar Man::Lit2Bvar(lit x) {
+  inline bvar Man::Lit2Bvar(lit x) const {
     return x >> 1;
   }
 
-  inline lit Man::LitRegular(lit x) {
+  inline lit Man::LitRegular(lit x) const {
     return x & ~1;
   }
-  inline lit Man::LitIrregular(lit x) {
+  inline lit Man::LitIrregular(lit x) const {
     return x | 1;
   }
-  inline lit Man::LitNot(lit x) {
+  inline lit Man::LitNot(lit x) const {
     return x ^ 1;
   }
-  inline lit Man::LitNotCond(lit x, bool c) {
+  inline lit Man::LitNotCond(lit x, bool c) const {
     return x ^ (int)c;
   }
 
-  inline bool Man::LitIsCompl(lit x) {
+  inline bool Man::LitIsCompl(lit x) const {
     return x & 1;
   }
-  inline var Man::Var(lit x) {
+  inline var Man::Var(lit x) const {
     return vVars[Lit2Bvar(x)];
   }
-  inline var Man::Level(lit x) {
+  inline var Man::Level(lit x) const {
     return Var2Level[Var(x)];
   }
-  inline lit Man::Then(lit x) {
+  inline lit Man::Then(lit x) const {
     return LitNotCond(vObjs[LitRegular(x)], LitIsCompl(x));
   }
-  inline lit Man::Else(lit x) {
+  inline lit Man::Else(lit x) const {
     return LitNotCond(vObjs[LitIrregular(x)], LitIsCompl(x));
   }
-  inline bool Man::Mark(lit x) {
+  inline bool Man::Mark(lit x) const {
     return vMarks[Lit2Bvar(x)];
   }
-  inline ref Man::Ref(lit x) {
+  inline ref Man::Ref(lit x) const {
     return vRefs[Lit2Bvar(x)];
   }
-  inline edge Man::Edge(lit x) {
+  inline edge Man::Edge(lit x) const {
     return vEdges[Lit2Bvar(x)];
   }
 
@@ -240,22 +240,22 @@ namespace NewBdd {
     vEdges[Lit2Bvar(x)]--;
   }
 
-  inline var Man::VarOfBvar(bvar a) {
+  inline var Man::VarOfBvar(bvar a) const {
     return vVars[a];
   }
-  inline lit Man::ThenOfBvar(bvar a) {
+  inline lit Man::ThenOfBvar(bvar a) const {
     return vObjs[a << 1];
   }
-  inline lit Man::ElseOfBvar(bvar a) {
+  inline lit Man::ElseOfBvar(bvar a) const {
     return vObjs[(a << 1) ^ 1];
   }
-  inline bool Man::MarkOfBvar(bvar a) {
+  inline bool Man::MarkOfBvar(bvar a) const {
     return vMarks[a];
   }
-  inline ref Man::RefOfBvar(bvar a) {
+  inline ref Man::RefOfBvar(bvar a) const {
     return vRefs[a];
   }
-  inline edge Man::EdgeOfBvar(bvar a) {
+  inline edge Man::EdgeOfBvar(bvar a) const {
     return vEdges[a];
   }
 
