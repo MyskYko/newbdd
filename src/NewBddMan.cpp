@@ -115,6 +115,11 @@ namespace NewBdd {
       cout << "Create node " << *p << " : Var = " << v << " Then = " << x1 << " Else = " << x0 << endl;
     }
     vUniqueCounts[v]++;
+    if(vUniqueCounts[v] > vUniqueTholds[v]) {
+      bvar a = *p;
+      ResizeUnique(v);
+      return Bvar2Lit(a);
+    }
     return Bvar2Lit(*p);
   }
   lit Man::UniqueCreate(var v, lit x1, lit x0) {
@@ -516,11 +521,6 @@ namespace NewBdd {
         while(nReo < nObjs) {
           nReo <<= 1;
         }
-      }
-    }
-    for(var v = 0; v < nVars; v++) {
-      while(vUniqueCounts[v] > vUniqueTholds[v]) {
-        ResizeUnique(v);
       }
     }
     if(nCacheLookups > CacheThold) {
