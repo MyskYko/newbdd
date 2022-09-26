@@ -114,11 +114,7 @@ namespace NewBdd {
     if(nVerbose >= 3) {
       cout << "Create node " << *p << " : Var = " << v << " Then = " << x1 << " Else = " << x0 << endl;
     }
-    if(++vUniqueCounts[v] > vUniqueTholds[v]) {
-      bvar a = *p;
-      ResizeUnique(v);
-      return Bvar2Lit(a);
-    }
+    vUniqueCounts[v]++;
     return Bvar2Lit(*p);
   }
   lit Man::UniqueCreate(var v, lit x1, lit x0) {
@@ -134,8 +130,6 @@ namespace NewBdd {
       }
       if((x | 1) == LitMax()) {
         Refresh();
-        //           if ( Refresh() )
-        //             return x;
       } else {
         break;
       }
@@ -144,18 +138,7 @@ namespace NewBdd {
   }
 
   lit Man::CacheLookup(lit x, lit y) {
-    if(++nCacheLookups > CacheThold) {
-      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
-      if(NewCacheHitRate > CacheHitRate) {
-        ResizeCache();
-      } else {
-        CacheThold <<= 1;
-        if(!CacheThold) {
-          CacheThold = SizeMax();
-        }
-      }
-      CacheHitRate = NewCacheHitRate;
-    }
+    nCacheLookups++;
     size i = (size)(Hash(x, y) & CacheMask) * 3;
     if(vCache[i] == x && vCache[i + 1] == y) {
       nCacheHits++;
@@ -194,22 +177,12 @@ namespace NewBdd {
       v = Var(x), x0 = Else(x), x1 = Then(x), y0 = Else(y), y1 = Then(y);
     }
     lit z1 = And_rec(x1, y1);
-    // if(z1 == LitMax()) {
-    //   return z1;
-    // }
     IncRef(z1);
     lit z0 = And_rec(x0, y0);
-    // if(z0 == LitMax()) {
-    //   DecRef(z1);
-    //   return z0;
-    // }
     IncRef(z0);
     z = UniqueCreate(v, z1, z0);
     DecRef(z1);
     DecRef(z0);
-    // if(z == LitMax()) {
-    //   return z;
-    // }
     CacheInsert(x, y, z);
     return z;
   }
@@ -224,11 +197,25 @@ namespace NewBdd {
         }
       }
     }
-    // nRefresh = 0;
-    // lit z = LitInvalid();
-    // while( LitIsInvalid( z ) )
-    //   z = And_rec( x, y );
-    // return z;
+    for(var v = 0; v < nVars; v++) {
+      while(vUniqueCounts[v] > vUniqueTholds[v]) {
+        ResizeUnique(v);
+      }
+    }
+    if(nCacheLookups > CacheThold) {
+      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
+      if(NewCacheHitRate > CacheHitRate) {
+        ResizeCache();
+      } else {
+        while(nCacheLookups > CacheThold) {
+          CacheThold <<= 1;
+          if(!CacheThold) {
+            CacheThold = SizeMax();
+          }
+        }
+      }
+      CacheHitRate = NewCacheHitRate;
+    }
     return And_rec(x, y);
   }
 
@@ -328,9 +315,11 @@ namespace NewBdd {
         vCache[i + 2] = 0;
       }
     }
-    CacheThold <<= 1;
-    if(!CacheThold) {
-      CacheThold = SizeMax();
+    while(nCacheLookups > CacheThold) {
+      CacheThold <<= 1;
+      if(!CacheThold) {
+        CacheThold = SizeMax();
+      }
     }
   }
 
