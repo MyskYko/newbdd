@@ -1,5 +1,3 @@
-#include <cstring>
-
 #include "NewBdd.h"
 
 using namespace std;
@@ -545,51 +543,6 @@ namespace NewBdd {
     }
     SetMark(x);
     return 1ull + CountNodes_rec(Else(x)) + CountNodes_rec(Then(x));
-  }
-
-  int Man::Var(Node const & x) {
-    return Var(x.val);
-  }
-  int Man::Id(Node const & x) {
-    return Lit2Bvar(x.val);
-  }
-  bool Man::IsCompl(Node const & x) {
-    return LitIsCompl(x.val);
-  }
-  Node Man::Then(Node const & x) {
-    return Node(this, Then(x.val));
-  }
-  Node Man::Else(Node const & x) {
-    return Node(this, Else(x.val));
-  }
-  Node Man::Const0() {
-    return Node(this, 0);
-  }
-  Node Man::Const1() {
-    return Node(this, 1);
-  }
-  Node Man::IthVar(int i) {
-    return Node(this, Bvar2Lit(i + 1));
-  }
-  Node Man::Not(Node const & x) {
-    return Node(this, LitNot(x.val));
-  }
-  Node Man::NotCond(Node const & x, bool c) {
-    return c? Not(x): x;
-  }
-  Node Man::And(Node const & x, Node const & y) {
-    return Node(this, And(x.val, y.val));
-  }
-
-  size Man::CountNodes(vector<Node> const & vNodes) {
-    size count = 0;
-    for(size i = 0; i < vNodes.size(); i++) {
-      count += CountNodes_rec(vNodes[i].val);
-    }
-    for(size i = 0; i < vNodes.size(); i++) {
-      ResetMark_rec(vNodes[i].val);
-    }
-    return count + 1;
   }
 
 }

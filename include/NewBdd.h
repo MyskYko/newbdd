@@ -38,14 +38,33 @@ namespace NewBdd {
   static inline lit Hash(lit Arg0, lit Arg1) {
     return Arg0 + 4256249 * Arg1;
   }
-  static inline lit Hash(lit Arg0, lit Arg1, lit Arg2) {
-    return 12582917 * Arg0 + Arg1 + 4256249 * Arg2;
-  }
 
   class Node;
 
   class Man {
+  public:
     friend class Node;
+
+    Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4);
+    ~Man();
+
+    void SetParameters(int nGbc_ = 0, int nReoLog = -1);
+
+    int GetNumVars();
+    int GetNumObjs();
+    int Var(Node const & x);
+    int Id(Node const & x);
+    bool IsCompl(Node const & x);
+    Node Then(Node const & x);
+    Node Else(Node const & x);
+    Node Const0();
+    Node Const1();
+    Node IthVar(int i);
+    Node Not(Node const & x);
+    Node NotCond(Node const & x, bool c);
+    Node And(Node const & x, Node const & y);
+
+    size CountNodes(std::vector<Node> const & vNodes);
 
   private:
     int nVars;
@@ -208,167 +227,11 @@ namespace NewBdd {
     bool Gbc();
 
     bvar Swap(var i);
+    void Sift();
 
     void CheckTholds();
 
     size CountNodes_rec(lit x);
-
-  public:
-    Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), nVerbose(nVerbose) {
-      if(nVars >= VarMax()) {
-        throw std::length_error("Memout (var) in init");
-      }
-      if(nMaxMemLog > 0) {
-        nMaxMem = 1ull << nMaxMemLog;
-      } else {
-        nMaxMem = (lit)BvarMax() + 1;
-      }
-      if(!nMaxMem) {
-        throw std::length_error("Memout (maxmem) in init");
-      }
-      nObjsAlloc = 1 << nObjsAllocLog;
-      if((size)nObjsAlloc > (size)BvarMax()) {
-        nObjsAlloc = BvarMax();
-      }
-      if(!nObjsAlloc || (size)nObjsAlloc > nMaxMem) {
-        throw std::length_error("Memout (node) in init");
-      }
-      lit nUnique = 1 << nUniqueLog;
-      if(!nUnique || (size)nUnique > nMaxMem) {
-        throw std::length_error("Memout (unique) in init");
-      }
-      lit nCache = 1 << nCacheLog;
-      if(!nCache || (size)nCache > nMaxMem) {
-        throw std::length_error("Memout (cache) in init");
-      }
-      while(nObjsAlloc < nVars + 1) {
-        if(nObjsAlloc == BvarMax()) {
-          throw std::length_error("Memout (node) in init");
-        }
-        nObjsAlloc <<= 1;
-        if((size)nObjsAlloc > (size)BvarMax()) {
-          nObjsAlloc = BvarMax();
-        }
-        if((size)nObjsAlloc > nMaxMem) {
-          throw std::length_error("Memout (node) in init");
-        }
-      }
-      if(nVerbose) {
-        std::cout << "Allocate " << nObjsAlloc << " nodes, " << nUnique << " unique, and " << nCache << " cache." << std::endl;
-      }
-      vVars.resize(nObjsAlloc);
-      vObjs.resize((size)nObjsAlloc * 2);
-      vNexts.resize(nObjsAlloc);
-      vMarks.resize(nObjsAlloc);
-      vvUnique.resize(nVars);
-      vUniqueMasks.resize(nVars);
-      vUniqueCounts.resize(nVars);
-      vUniqueTholds.resize(nVars);
-      for(int i = 0; i < nVars; i++) {
-        vvUnique[i].resize(nUnique);
-        vUniqueMasks[i] = nUnique - 1;
-        if(nUnique * UniqueDensity > (double)BvarMax()) {
-          vUniqueTholds[i] = BvarMax();
-        } else {
-          vUniqueTholds[i] = nUnique * UniqueDensity;
-        }
-      }
-      vCache.resize((size)nCache * 3);
-      CacheMask = nCache - 1;
-      nObjs = 1;
-      vVars[0] = VarMax();
-      for(int i = 0; i < nVars; i++) {
-        UniqueCreateInt(i, 1, 0);
-      }
-      Var2Level.resize(nVars);
-      Level2Var.resize(nVars);
-      for(int i = 0; i < nVars; i++) {
-        Var2Level[i] = i;
-        Level2Var[i] = i;
-      }
-      nCacheLookups = 0;
-      nCacheHits = 0;
-      CacheThold = nCache;
-      CacheHitRate = 1;
-      MinBvarRemoved = BvarMax();
-      nGbc = 0;
-      nReo = BvarMax();
-      //   {
-      //     var u = std::distance( vOrdering.begin(), std::find( vOrdering.begin(), vOrdering.end(), v ) );
-      //     if( u == nVars )
-      //       throw "Invalid Ordering";
-      //     
-      //   }
-      // fRef        = 0;
-      // nRefresh    = 0;
-      // fRealloc    = 0;
-      // fGC         = 0;
-      // nGC         = 0;
-      // fReo        = 0;
-      // nReo        = 0;
-      // MaxGrowth   = 0;
-      // nMinRemoved = nObjsAlloc;
-      // pRefs       = NULL;
-      // pEdges      = NULL;
-      // vOrdering.clear();
-      // if ( pvOrdering )
-      //   {
-      //     for ( var v : *pvOrdering )
-      //       vOrdering.push_back( v );
-      //     if ( vOrdering.size() != nVars )
-      //       throw "Wrong number of Variables in the ordering";
-      //   }
-      // else
-      //   for ( var v = 0; v < nVars; v++ )
-      //     vOrdering.push_back( v );
-    }
-    ~Man() {
-      if(nVerbose) {
-        std::cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << vCache.size() / 3 << " cache." << std::endl;
-        std::cout << "Free {";
-        std::string delim;
-        for(int i = 0; i < nVars; i++) {
-          std::cout << delim << vvUnique[i].size();
-          delim = ", ";
-        }
-        std::cout << "} unique." << std::endl;
-      }
-    }
-
-    void SetParameters(int nGbc_ = 0, int nReoLog = -1) {
-      nGbc = nGbc_;
-      if(nReoLog >= 0) {
-        nReo = 1 << nReoLog;
-        if(!nReo || (size)nReo > (size)BvarMax()) {
-          nReo = BvarMax();
-        }
-      }
-      if(nGbc || nReo != BvarMax()) {
-        vRefs.resize(nObjsAlloc);
-      }
-    }
-
-    int GetNumVars() {
-      return nVars;
-    }
-    int GetNumObjs() {
-      return nObjs;
-    }
-    int Var(Node const & x);
-    int Id(Node const & x);
-    bool IsCompl(Node const & x);
-    Node Then(Node const & x);
-    Node Else(Node const & x);
-    Node Const0();
-    Node Const1();
-    Node IthVar(int i);
-    Node Not(Node const & x);
-    Node NotCond(Node const & x, bool c);
-    Node And(Node const & x, Node const & y);
-
-    size CountNodes(std::vector<Node> const & vNodes);
-
-    void Sift();
 
   };
   
