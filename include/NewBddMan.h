@@ -15,6 +15,7 @@ namespace NewBdd {
     ~Man();
 
     void SetParameters(int nGbc_ = 0, int nReoLog = -1);
+    void SetInitialOrdering(std::vector<int> const & Var2Level_);
 
     int GetNumVars() const;
     int GetNumObjs() const;

@@ -56,27 +56,27 @@ namespace NewBdd {
     vUniqueMasks.resize(nVars);
     vUniqueCounts.resize(nVars);
     vUniqueTholds.resize(nVars);
-    for(int i = 0; i < nVars; i++) {
-      vvUnique[i].resize(nUnique);
-      vUniqueMasks[i] = nUnique - 1;
+    for(var v = 0; v < nVars; v++) {
+      vvUnique[v].resize(nUnique);
+      vUniqueMasks[v] = nUnique - 1;
       if(nUnique * UniqueDensity > (double)BvarMax()) {
-        vUniqueTholds[i] = BvarMax();
+        vUniqueTholds[v] = BvarMax();
       } else {
-        vUniqueTholds[i] = nUnique * UniqueDensity;
+        vUniqueTholds[v] = nUnique * UniqueDensity;
       }
     }
     vCache.resize((size)nCache * 3);
     CacheMask = nCache - 1;
     nObjs = 1;
     vVars[0] = VarMax();
-    for(int i = 0; i < nVars; i++) {
-      UniqueCreateInt(i, 1, 0);
+    for(var v = 0; v < nVars; v++) {
+      UniqueCreateInt(v, 1, 0);
     }
     Var2Level.resize(nVars);
     Level2Var.resize(nVars);
-    for(int i = 0; i < nVars; i++) {
-      Var2Level[i] = i;
-      Level2Var[i] = i;
+    for(var v = 0; v < nVars; v++) {
+      Var2Level[v] = v;
+      Level2Var[v] = v;
     }
     nCacheLookups = 0;
     nCacheHits = 0;
@@ -119,8 +119,8 @@ namespace NewBdd {
       cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << vCache.size() / 3 << " cache." << endl;
       cout << "Free {";
       string delim;
-      for(int i = 0; i < nVars; i++) {
-        cout << delim << vvUnique[i].size();
+      for(var v = 0; v < nVars; v++) {
+        cout << delim << vvUnique[v].size();
         delim = ", ";
       }
       cout << "} unique." << endl;
@@ -140,6 +140,14 @@ namespace NewBdd {
     }
     if(nGbc || nReo != BvarMax()) {
       vRefs.resize(nObjsAlloc);
+    }
+  }
+  void Man::SetInitialOrdering(vector<int> const & Var2Level_) {
+    for(var v = 0; v < nVars; v++) {
+      Var2Level[v] = Var2Level_[v];
+    }
+    for(var v = 0; v < nVars; v++) {
+      Level2Var[Var2Level[v]] = v;
     }
   }
 
