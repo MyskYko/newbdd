@@ -8,7 +8,7 @@ namespace NewBdd {
 
   Man::Man(int nVars, int nVerbose, int nMaxMemLog, int nObjsAllocLog, int nUniqueLog,int nCacheLog, double UniqueDensity) : nVars(nVars), nVerbose(nVerbose) {
     if(nVars >= VarMax()) {
-      throw std::length_error("Memout (var) in init");
+      throw length_error("Memout (var) in init");
     }
     if(nMaxMemLog > 0) {
       nMaxMem = 1ull << nMaxMemLog;
@@ -16,37 +16,37 @@ namespace NewBdd {
       nMaxMem = (lit)BvarMax() + 1;
     }
     if(!nMaxMem) {
-      throw std::length_error("Memout (maxmem) in init");
+      throw length_error("Memout (maxmem) in init");
     }
     nObjsAlloc = 1 << nObjsAllocLog;
     if((size)nObjsAlloc > (size)BvarMax()) {
       nObjsAlloc = BvarMax();
     }
     if(!nObjsAlloc || (size)nObjsAlloc > nMaxMem) {
-      throw std::length_error("Memout (node) in init");
+      throw length_error("Memout (node) in init");
     }
     lit nUnique = 1 << nUniqueLog;
     if(!nUnique || (size)nUnique > nMaxMem) {
-      throw std::length_error("Memout (unique) in init");
+      throw length_error("Memout (unique) in init");
     }
     lit nCache = 1 << nCacheLog;
     if(!nCache || (size)nCache > nMaxMem) {
-      throw std::length_error("Memout (cache) in init");
+      throw length_error("Memout (cache) in init");
     }
     while(nObjsAlloc < nVars + 1) {
       if(nObjsAlloc == BvarMax()) {
-        throw std::length_error("Memout (node) in init");
+        throw length_error("Memout (node) in init");
       }
       nObjsAlloc <<= 1;
       if((size)nObjsAlloc > (size)BvarMax()) {
         nObjsAlloc = BvarMax();
       }
       if((size)nObjsAlloc > nMaxMem) {
-        throw std::length_error("Memout (node) in init");
+        throw length_error("Memout (node) in init");
       }
     }
     if(nVerbose) {
-      std::cout << "Allocate " << nObjsAlloc << " nodes, " << nUnique << " unique, and " << nCache << " cache." << std::endl;
+      cout << "Allocate " << nObjsAlloc << " nodes, " << nUnique << " unique, and " << nCache << " cache." << endl;
     }
     vVars.resize(nObjsAlloc);
     vObjs.resize((size)nObjsAlloc * 2);
@@ -86,7 +86,7 @@ namespace NewBdd {
     nGbc = 0;
     nReo = BvarMax();
     //   {
-    //     var u = std::distance( vOrdering.begin(), std::find( vOrdering.begin(), vOrdering.end(), v ) );
+    //     var u = distance( vOrdering.begin(), find( vOrdering.begin(), vOrdering.end(), v ) );
     //     if( u == nVars )
     //       throw "Invalid Ordering";
     //     
@@ -116,14 +116,17 @@ namespace NewBdd {
   }
   Man::~Man() {
     if(nVerbose) {
-      std::cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << vCache.size() / 3 << " cache." << std::endl;
-      std::cout << "Free {";
-      std::string delim;
+      cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << vCache.size() / 3 << " cache." << endl;
+      cout << "Free {";
+      string delim;
       for(int i = 0; i < nVars; i++) {
-        std::cout << delim << vvUnique[i].size();
+        cout << delim << vvUnique[i].size();
         delim = ", ";
       }
-      std::cout << "} unique." << std::endl;
+      cout << "} unique." << endl;
+      if(!vRefs.empty()) {
+        cout << "Free " << vRefs.size() << " refs" << endl;
+      }
     }
   }
 
