@@ -129,8 +129,12 @@ namespace NewBdd {
         x = LitNot(UniqueCreateInt(v, LitNot(x1), LitNot(x0)));
       }
       if((x | 1) == LitMax()) {
-        if(!Resize()) {
-          Gbc();
+        bool fRemoved = false;
+        if(nGbc > 1) {
+          fRemoved = Gbc();
+        }
+        if(!Resize() && !fRemoved && nGbc != 1 && !Gbc()) {
+          throw length_error("Memout (node)");
         }
       } else {
         break;
@@ -321,10 +325,11 @@ namespace NewBdd {
     vUniqueCounts[v]--;
   }
 
-  void Man::Gbc() {
+  bool Man::Gbc() {
     if(nVerbose >= 2) {
       cout << "Garbage collect" << endl;
     }
+    bvar MinBvarRemovedOld = MinBvarRemoved;
     for(bvar a = nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         SetMark_rec(Bvar2Lit(a));
@@ -341,6 +346,7 @@ namespace NewBdd {
       }
     }
     CacheClear();
+    return MinBvarRemoved != MinBvarRemovedOld;
   }
 
   bvar Man::Swap(var i) {

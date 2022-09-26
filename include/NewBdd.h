@@ -71,6 +71,8 @@ namespace NewBdd {
     size CacheThold;
     double CacheHitRate;
 
+    int nGbc;
+
     bvar nReo;
     std::vector<var> Var2Level;
     std::vector<var> Level2Var;
@@ -203,7 +205,7 @@ namespace NewBdd {
 
     void CacheClear();
     void RemoveBvar(bvar a);
-    void Gbc();
+    bool Gbc();
 
     bvar Swap(var i);
 
@@ -212,7 +214,7 @@ namespace NewBdd {
     size CountNodes_rec(lit x);
 
   public:
-    Man(int nVars, int nVerbose = 0, int nReoLog = 12, bool fGbc = true, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), nVerbose(nVerbose) {
+    Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4) : nVars(nVars), nVerbose(nVerbose) {
       if(nVars >= VarMax()) {
         throw std::length_error("Memout (var) in init");
       }
@@ -239,14 +241,6 @@ namespace NewBdd {
       if(!nCache || (size)nCache > nMaxMem) {
         throw std::length_error("Memout (cache) in init");
       }
-      if(nReo < 0) {
-        nReo = BvarMax();
-      } else {
-        nReo = 1 << nReoLog;
-        if(!nReo || (size)nReo > (size)BvarMax()) {
-          nReo = BvarMax();
-        }
-      }
       while(nObjsAlloc < nVars + 1) {
         if(nObjsAlloc == BvarMax()) {
           throw std::length_error("Memout (node) in init");
@@ -266,9 +260,6 @@ namespace NewBdd {
       vObjs.resize((size)nObjsAlloc * 2);
       vNexts.resize(nObjsAlloc);
       vMarks.resize(nObjsAlloc);
-      if(fGbc || nReo != BvarMax()) {
-        vRefs.resize(nObjsAlloc);
-      }
       vvUnique.resize(nVars);
       vUniqueMasks.resize(nVars);
       vUniqueCounts.resize(nVars);
@@ -300,6 +291,8 @@ namespace NewBdd {
       CacheThold = nCache;
       CacheHitRate = 1;
       MinBvarRemoved = BvarMax();
+      nGbc = 0;
+      nReo = BvarMax();
       //   {
       //     var u = std::distance( vOrdering.begin(), std::find( vOrdering.begin(), vOrdering.end(), v ) );
       //     if( u == nVars )
@@ -339,6 +332,19 @@ namespace NewBdd {
           delim = ", ";
         }
         std::cout << "} unique." << std::endl;
+      }
+    }
+
+    void SetParameters(int nGbc_ = 0, int nReoLog = -1) {
+      nGbc = nGbc_;
+      if(nReoLog >= 0) {
+        nReo = 1 << nReoLog;
+        if(!nReo || (size)nReo > (size)BvarMax()) {
+          nReo = BvarMax();
+        }
+      }
+      if(nGbc || nReo != BvarMax()) {
+        vRefs.resize(nObjsAlloc);
       }
     }
 
