@@ -1,4 +1,4 @@
-#include "NewBdd.h"
+#include "NewBddMan.h"
 
 using namespace std;
 
