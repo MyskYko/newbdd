@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <vector>
-#include <limits>
 #include <stdexcept>
 #include <iostream>
 #include <cstdlib>
@@ -13,26 +12,6 @@
 #include "NewBdd.h"
 
 namespace NewBdd {
-  
-  static inline var VarMax() {
-    return std::numeric_limits<var>::max();
-  }
-  static inline bvar BvarMax() {
-    return std::numeric_limits<bvar>::max();
-  }
-  static inline lit LitMax() {
-    return std::numeric_limits<lit>::max();
-  }
-  static inline ref RefMax() {
-    return std::numeric_limits<ref>::max();
-  }
-  static inline size SizeMax() {
-    return std::numeric_limits<size>::max();
-  }
-
-  static inline lit Hash(lit Arg0, lit Arg1) {
-    return Arg0 + 4256249 * Arg1;
-  }
 
   class Man {
   public:
@@ -91,6 +70,8 @@ namespace NewBdd {
 
     size nMaxMem;
     int nVerbose;
+
+    inline lit Hash(lit Arg0, lit Arg1) const;
 
     inline lit Bvar2Lit(bvar a) const;
     inline lit Bvar2Lit(bvar a, bool c) const;
@@ -159,8 +140,11 @@ namespace NewBdd {
     void CheckTholds();
 
     size CountNodes_rec(lit x);
-
   };
+
+  inline lit Man::Hash(lit Arg0, lit Arg1) const {
+    return Arg0 + 4256249 * Arg1;
+  }
 
   inline lit Man::Bvar2Lit(bvar a) const {
     return a << 1;
