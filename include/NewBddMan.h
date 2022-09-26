@@ -38,6 +38,11 @@ namespace NewBdd {
     NodeNoRef Then(NodeNoRef const & x) const;
     NodeNoRef Else(NodeNoRef const & x) const;
 
+    void SetRef(std::vector<Node> const & vNodes);
+
+    void Reo();
+    void GetOrdering(std::vector<int> & Var2Level_);
+
     size CountNodes(std::vector<Node> const & vNodes);
 
   private:

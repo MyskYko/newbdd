@@ -208,6 +208,30 @@ namespace NewBdd {
     return NodeNoRef(Else(x.val));
   }
 
+  void Man::SetRef(vector<Node> const & vNodes) {
+    vRefs.clear();
+    vRefs.resize(nObjsAlloc);
+    for(size i = 0; i < vNodes.size(); i++) {
+      IncRef(vNodes[i].val);
+    }
+  }
+
+  void Man::Reo() {
+    if(nVerbose >= 2) {
+      cout << "Reorder" << endl;
+    }
+    Gbc();
+    CountEdges();
+    Sift();
+    vEdges.clear();
+  }
+  void Man::GetOrdering(vector<int> & Var2Level_) {
+    Var2Level_.resize(nVars);
+    for(var v = 0; v < nVars; v++) {
+      Var2Level_[v] = Var2Level[v];
+    }
+  }
+
   size Man::CountNodes(vector<Node> const & vNodes) {
     size count = 0;
     for(size i = 0; i < vNodes.size(); i++) {

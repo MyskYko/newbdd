@@ -448,8 +448,6 @@ namespace NewBdd {
   }
 
   void Man::Sift() {
-    Gbc();
-    CountEdges();
     vector<var> sift_order(nVars);
     for(int i = 0; i < nVars; i++) {
       sift_order[i] = i;
@@ -508,13 +506,11 @@ namespace NewBdd {
         }
       }
     }
-    //UncountEdges();
-    vEdges.clear();
   }
 
   void Man::CheckTholds() {
     if(nObjs > nReo) {
-      Sift();
+      Reo();
       if(nObjs == BvarMax()) {
         nReo = BvarMax();
       } else {
