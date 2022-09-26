@@ -18,6 +18,7 @@ namespace NewBdd {
 
     int GetNumVars() const;
     int GetNumObjs() const;
+
     int Var(Node const & x) const;
     int Id(Node const & x) const;
     bool IsCompl(Node const & x) const;
@@ -29,6 +30,12 @@ namespace NewBdd {
     Node Not(Node const & x);
     Node NotCond(Node const & x, bool c);
     Node And(Node const & x, Node const & y);
+
+    int Var(NodeNoRef const & x) const;
+    int Id(NodeNoRef const & x) const;
+    bool IsCompl(NodeNoRef const & x) const;
+    NodeNoRef Then(NodeNoRef const & x) const;
+    NodeNoRef Else(NodeNoRef const & x) const;
 
     size CountNodes(std::vector<Node> const & vNodes);
 

@@ -146,6 +146,7 @@ namespace NewBdd {
   int Man::GetNumObjs() const {
     return nObjs;
   }
+
   int Man::Var(Node const & x) const {
     return Var(x.val);
   }
@@ -178,6 +179,22 @@ namespace NewBdd {
   }
   Node Man::And(Node const & x, Node const & y) {
     return Node(this, And(x.val, y.val));
+  }
+
+  int Man::Var(NodeNoRef const & x) const {
+    return Var(x.val);
+  }
+  int Man::Id(NodeNoRef const & x) const {
+    return Lit2Bvar(x.val);
+  }
+  bool Man::IsCompl(NodeNoRef const & x) const {
+    return LitIsCompl(x.val);
+  }
+  NodeNoRef Man::Then(NodeNoRef const & x) const {
+    return NodeNoRef(Then(x.val));
+  }
+  NodeNoRef Man::Else(NodeNoRef const & x) const {
+    return NodeNoRef(Else(x.val));
   }
 
   size Man::CountNodes(vector<Node> const & vNodes) {

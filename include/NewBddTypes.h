@@ -30,6 +30,7 @@ namespace NewBdd {
 
   class Man;
   class Node;
+  class NodeNoRef;
 
 }
 

@@ -38,4 +38,27 @@ namespace NewBdd {
     return val != other.val;
   }
 
+  NodeNoRef::NodeNoRef(lit val) : val(val) {}
+  NodeNoRef::NodeNoRef() {}
+  NodeNoRef::NodeNoRef(const NodeNoRef & right) {
+    val = right.val;
+  }
+  NodeNoRef::NodeNoRef(const Node & right) {
+    val = right.val;
+  }
+
+  NodeNoRef & NodeNoRef::operator=(const NodeNoRef & right) {
+    if(this == &right) {
+      return *this;
+    }
+    val = right.val;
+    return *this;
+  }
+  bool NodeNoRef::operator==(const NodeNoRef & other) const {
+    return val == other.val;
+  }
+  bool NodeNoRef::operator!=(const NodeNoRef & other) const {
+    return val != other.val;
+  }
+
 }

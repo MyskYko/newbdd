@@ -42,7 +42,7 @@ void Aig2Bdd(aigman const & aig, NewBdd::Man & bdd, vector<NewBdd::Node> & vNode
   }
 }
 
-int Bdd2Aig_rec(NewBdd::Man & bdd, aigman & aig, NewBdd::Node const & x, vector<int> & values) {
+int Bdd2Aig_rec(NewBdd::Man const & bdd, aigman & aig, NewBdd::NodeNoRef const & x, vector<int> & values) {
   if(bdd.Id(x) == 0) {
     return bdd.IsCompl(x);
   }
@@ -71,14 +71,14 @@ int Bdd2Aig_rec(NewBdd::Man & bdd, aigman & aig, NewBdd::Node const & x, vector<
   return r ^ (int)bdd.IsCompl(x);
 }
 
-void Bdd2Aig(NewBdd::Man & bdd, aigman & aig, vector<NewBdd::Node> const & vNodes) {
+void Bdd2Aig(NewBdd::Man const & bdd, aigman & aig, vector<NewBdd::Node> const & vNodes) {
   aig.clear();
   aig.nPis = bdd.GetNumVars();
   aig.nObjs = aig.nPis + 1;
   aig.vObjs.resize(aig.nObjs * 2);
   vector<int> values(bdd.GetNumObjs());
   for(unsigned i = 0; i < vNodes.size(); i++) {
-    int j = Bdd2Aig_rec(bdd, aig, vNodes[i], values);
+    int j = Bdd2Aig_rec(bdd, aig, NewBdd::NodeNoRef(vNodes[i]), values);
     aig.vPos.push_back(j);
     aig.nPos++;
   }
