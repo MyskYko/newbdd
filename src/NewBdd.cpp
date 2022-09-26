@@ -129,7 +129,9 @@ namespace NewBdd {
         x = LitNot(UniqueCreateInt(v, LitNot(x1), LitNot(x0)));
       }
       if((x | 1) == LitMax()) {
-        Refresh();
+        if(!Resize()) {
+          Gbc();
+        }
       } else {
         break;
       }
@@ -187,35 +189,7 @@ namespace NewBdd {
     return z;
   }
   lit Man::And(lit x, lit y) {
-    if(nObjs > nReo) {
-      Sift();
-      if(nObjs == BvarMax()) {
-        nReo = BvarMax();
-      } else {
-        while(nReo < nObjs) {
-          nReo <<= 1;
-        }
-      }
-    }
-    for(var v = 0; v < nVars; v++) {
-      while(vUniqueCounts[v] > vUniqueTholds[v]) {
-        ResizeUnique(v);
-      }
-    }
-    if(nCacheLookups > CacheThold) {
-      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
-      if(NewCacheHitRate > CacheHitRate) {
-        ResizeCache();
-      } else {
-        while(nCacheLookups > CacheThold) {
-          CacheThold <<= 1;
-          if(!CacheThold) {
-            CacheThold = SizeMax();
-          }
-        }
-      }
-      CacheHitRate = NewCacheHitRate;
-    }
+    CheckTholds();
     return And_rec(x, y);
   }
 
@@ -527,11 +501,36 @@ namespace NewBdd {
     vEdges.clear();
   }
 
-  void Man::Refresh() {
-    if(Resize()) {
-      return;
+  void Man::CheckTholds() {
+    if(nObjs > nReo) {
+      Sift();
+      if(nObjs == BvarMax()) {
+        nReo = BvarMax();
+      } else {
+        while(nReo < nObjs) {
+          nReo <<= 1;
+        }
+      }
     }
-    Gbc();
+    for(var v = 0; v < nVars; v++) {
+      while(vUniqueCounts[v] > vUniqueTholds[v]) {
+        ResizeUnique(v);
+      }
+    }
+    if(nCacheLookups > CacheThold) {
+      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
+      if(NewCacheHitRate > CacheHitRate) {
+        ResizeCache();
+      } else {
+        while(nCacheLookups > CacheThold) {
+          CacheThold <<= 1;
+          if(!CacheThold) {
+            CacheThold = SizeMax();
+          }
+        }
+      }
+      CacheHitRate = NewCacheHitRate;
+    }
   }
 
   size Man::CountNodes_rec(lit x) {

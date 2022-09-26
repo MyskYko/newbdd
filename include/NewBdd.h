@@ -207,7 +207,7 @@ namespace NewBdd {
 
     bvar Swap(var i);
 
-    void Refresh();
+    void CheckTholds();
 
     size CountNodes_rec(lit x);
 
