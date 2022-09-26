@@ -144,9 +144,11 @@ namespace NewBdd {
     }
     void IncEdge(lit x) {
       vEdges[Lit2Bvar(x)]++;
+      //std::cout << "incedge " << Lit2Bvar(x) << std::endl;
     }
     void DecEdge(lit x) {
       vEdges[Lit2Bvar(x)]--;
+      //std::cout << "decedge " << Lit2Bvar(x) << std::endl;
     }
 
     var VarOfBvar(bvar a) {
@@ -167,8 +169,8 @@ namespace NewBdd {
     edge EdgeOfBvar(bvar a) {
       return vEdges[a];
     }
-    void SetVarOfBvar(bvar a, var i) {
-      vVars[a] = i;
+    void SetVarOfBvar(bvar a, var v) {
+      vVars[a] = v;
     }
     void SetThenOfBvar(bvar a, lit x) {
       vObjs[a << 1] = x;
@@ -182,6 +184,8 @@ namespace NewBdd {
 
     void CountEdges_rec(lit x);
     void CountEdges();
+    void UncountEdges_rec(lit x);
+    void UncountEdges();
 
     lit UniqueCreateInt(var v, lit x1, lit x0);
     lit UniqueCreate(var v, lit x1, lit x0);
@@ -199,6 +203,8 @@ namespace NewBdd {
     void CacheClear();
     void RemoveBvar(bvar a);
     void Gbc();
+
+    bvar Swap(var i);
 
     void Refresh();
 
@@ -347,8 +353,7 @@ namespace NewBdd {
 
     size CountNodes(std::vector<Node> const & vNodes);
 
-    void Swap(int i);
-
+    void Sift();
 
   };
   

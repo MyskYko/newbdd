@@ -35,9 +35,7 @@ namespace NewBdd {
     CountEdges_rec(Else(x));
     CountEdges_rec(Then(x));
   }
-
   void Man::CountEdges() {
-    vEdges.clear();
     vEdges.resize(nObjsAlloc);
     for(bvar a = nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
@@ -50,6 +48,39 @@ namespace NewBdd {
     for(bvar a = nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+  }
+
+  void Man::UncountEdges_rec(lit x) {
+    if(x < 2) {
+      return;
+    }
+    DecEdge(x);
+    if(Mark(x)) {
+      return;
+    }
+    SetMark(x);
+    UncountEdges_rec(Else(x));
+    UncountEdges_rec(Then(x));
+  }
+  void Man::UncountEdges() {
+    for(bvar a = nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        UncountEdges_rec(Bvar2Lit(a));
+      }
+    }
+    for(int i = 0; i < nVars; i++) {
+      vEdges[i + 1]--;
+    }
+    for(bvar a = nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+    for(bvar a = 1; a < nObjs; a++) {
+      if(Edge(Bvar2Lit(a))) {
+        cout << "strange edges " << a << " having " << Edge(Bvar2Lit(a)) << endl;
       }
     }
   }
@@ -211,14 +242,10 @@ namespace NewBdd {
     if(!vRefs.empty()) {
       vRefs.resize(nObjsAlloc);
     }
+    if(!vEdges.empty()) {
+      vEdges.resize(nObjsAlloc);
+    }
     return true;
-    // if ( pEdges )
-    //   {
-    //     pEdges = (edge *)realloc( pEdges, sizeof(edge) * nObjsAlloc );
-    //     if ( !pEdges )
-    //       throw "Reallocation failed";
-    //     memset ( pEdges + nObjsAllocOld, 0, sizeof(edge) * nObjsAllocOld );
-    //   }
   }
 
   void Man::ResizeUnique(var v) {
@@ -323,7 +350,7 @@ namespace NewBdd {
 
   void Man::Gbc() {
     if(nVerbose >= 2) {
-      cout <<  "Garbage collect" << endl;
+      cout << "Garbage collect" << endl;
     }
     for(bvar a = nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
@@ -343,11 +370,11 @@ namespace NewBdd {
     CacheClear();
   }
 
-  void Man::Swap(int i) {
-    CountEdges();
+  bvar Man::Swap(var i) {
     var v1 = Level2Var[i];
     var v2 = Level2Var[i + 1];
-    int f = 0;
+    bvar f = 0;
+    bvar count = 0;
     for(vector<bvar>::iterator p = vvUnique[v1].begin(); p != vvUnique[v1].end(); p++) {
       vector<bvar>::iterator q = p;
       while(*q) {
@@ -362,9 +389,17 @@ namespace NewBdd {
           vUniqueCounts[v1]--;
           continue;
         }
-        if(Var(ThenOfBvar(*q)) == v2 || Var(ElseOfBvar(*q)) == v2) {
-          DecEdge(ThenOfBvar(*q));
-          DecEdge(ElseOfBvar(*q));
+        lit f1 = ThenOfBvar(*q);
+        lit f0 = ElseOfBvar(*q);
+        if(Var(f1) == v2 || Var(f0) == v2) {
+          DecEdge(f1);
+          if(Var(f1) == v2 && !Edge(f1)) {
+            DecEdge(Then(f1)), DecEdge(Else(f1)), count--;
+          }
+          DecEdge(f0);
+          if(Var(f0) == v2 && !Edge(f0)) {
+            DecEdge(Then(f0)), DecEdge(Else(f0)), count--;
+          }
           bvar next = vNexts[*q];
           vNexts[*q] = f;
           f = *q;
@@ -380,14 +415,12 @@ namespace NewBdd {
       lit f1 = ThenOfBvar(f);
       lit f00, f01, f10, f11;
       if(Var(f0) == v2) {
-        f00 = Else(f0);
-        f01 = Then(f0);
+        f00 = Else(f0), f01 = Then(f0);
       } else {
         f00 = f01 = f0;
       }
       if(Var(f1) == v2) {
-        f10 = Else(f1);
-        f11 = Then(f1);
+        f10 = Else(f1), f11 = Then(f1);
       } else {
         f10 = f11 = f1;
       }
@@ -396,8 +429,7 @@ namespace NewBdd {
       } else {
         f0 = UniqueCreate(v1, f10, f00);
         if(!Edge(f0)) {
-          IncEdge(f10);
-          IncEdge(f00);
+          IncEdge(f10), IncEdge(f00), count++;
         }
       }
       IncEdge(f0);
@@ -407,8 +439,7 @@ namespace NewBdd {
       } else {
         f1 = UniqueCreate(v1, f11, f01);
         if(!Edge(f1)) {
-          IncEdge(f11);
-          IncEdge(f01);
+          IncEdge(f11), IncEdge(f01), count++;
         }
       }
       IncEdge(f1);
@@ -425,7 +456,76 @@ namespace NewBdd {
       // next target
       f = next;
     }
-    CacheClear();
+    Var2Level[v1] = i + 1;
+    Var2Level[v2] = i;
+    Level2Var[i] = v2;
+    Level2Var[i + 1] = v1;
+    return count;
+  }
+
+  void Man::Sift() {
+    Gbc();
+    CountEdges();
+    vector<var> sift_order(nVars);
+    for(int i = 0; i < nVars; i++) {
+      sift_order[i] = i;
+    }
+    for(int i = 0; i < nVars; i++) {
+      int max_j = i;
+      for(int j = i + 1; j < nVars; j++) {
+        if(vUniqueCounts[sift_order[j]] > vUniqueCounts[sift_order[max_j]]) {
+          max_j = j;
+        }
+      }
+      if(max_j != i) {
+        swap(sift_order[max_j], sift_order[i]);
+      }
+    }
+    for(int i = 0; i < nVars; i++) {
+      int lev = Var2Level[sift_order[i]];
+      bool UpFirst = lev < (nVars / 2);
+      int min_lev = lev;
+      bvar min_diff = 0;
+      bvar diff = 0;
+      if(UpFirst) {
+        lev--;
+        for(; lev >= 0; lev--) {
+          diff += Swap(lev);
+          if(diff < min_diff) {
+            min_lev = lev;
+            min_diff = diff;
+          }
+        }
+        lev++;
+      }
+      for(; lev < nVars - 1; lev++) {
+        diff += Swap(lev);
+        if(diff < min_diff) {
+          min_lev = lev + 1;
+          min_diff = diff;
+        }
+      }
+      lev--;
+      if(UpFirst) {
+        for(; lev >= min_lev; lev--) {
+          diff += Swap(lev);
+        }
+      } else {
+        for(; lev >= 0; lev--) {
+          diff += Swap(lev);
+          if(diff < min_diff) {
+            min_lev = lev;
+            min_diff = diff;
+          }
+        }
+        lev++;
+        for(; lev < min_lev; lev++) {
+          diff += Swap(lev);
+        }
+      }
+    }
+    //UncountEdges();
+    vEdges.clear();
   }
 
   void Man::Refresh() {
