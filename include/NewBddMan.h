@@ -5,6 +5,8 @@
 
 #include "NewBdd.h"
 
+//#define REO_DEBUG
+
 namespace NewBdd {
 
   class Man {
@@ -117,6 +119,8 @@ namespace NewBdd {
     inline void SetVarOfBvar(bvar a, var v);
     inline void SetThenOfBvar(bvar a, lit x);
     inline void SetElseOfBvar(bvar a, lit x);
+    inline void SetMarkOfBvar(bvar a);
+    inline void ResetMarkOfBvar(bvar a);
  
     void SetMark_rec(lit x);
     void ResetMark_rec(lit x);
@@ -148,7 +152,8 @@ namespace NewBdd {
 
     void CheckTholds();
 
-    size CountNodes_rec(lit x);
+    bvar CountNodes_rec(lit x);
+    bvar CountNodes();
   };
 
   inline lit Man::Hash(lit Arg0, lit Arg1) const {
@@ -253,6 +258,12 @@ namespace NewBdd {
   }
   inline void Man::SetElseOfBvar(bvar a, lit x) {
     vObjs[(a << 1) ^ 1] = x;
+  }
+  inline void Man::SetMarkOfBvar(bvar a) {
+    vMarks[a] = true;
+  }
+  inline void Man::ResetMarkOfBvar(bvar a) {
+    vMarks[a] = false;
   }
 
 }

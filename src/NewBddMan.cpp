@@ -477,6 +477,11 @@ namespace NewBdd {
       if(fReoVerbose) {
         cout << "Sift " << sift_order[v] << " : Level = " << lev << " Count = " << count << " Thold = " << thold << endl;
       }
+#ifdef REO_DEBUG
+    if(count != CountNodes()) {
+      throw runtime_error("Count mismatch in reorder");
+    }
+#endif
       if(UpFirst) {
         lev--;
         for(; lev >= 0; lev--) {
@@ -484,6 +489,11 @@ namespace NewBdd {
           if(fReoVerbose) {
             cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
           }
+#ifdef REO_DEBUG
+          if(count + diff != CountNodes()) {
+            throw runtime_error("Count mismatch in reorder");
+          }
+#endif
           if(diff < min_diff) {
             min_lev = lev;
             min_diff = diff;
@@ -500,6 +510,11 @@ namespace NewBdd {
         if(fReoVerbose) {
           cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
         }
+#ifdef REO_DEBUG
+        if(count + diff != CountNodes()) {
+          throw runtime_error("Count mismatch in reorder");
+        }
+#endif
         if(diff < min_diff) {
           min_lev = lev + 1;
           min_diff = diff;
@@ -512,10 +527,18 @@ namespace NewBdd {
       lev--;
       if(UpFirst) {
         for(; lev >= min_lev; lev--) {
-          diff += Swap(lev);
+#ifdef REO_DEBUG
+          diff +=
+#endif
+          Swap(lev);
           if(fReoVerbose) {
             cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
           }
+#ifdef REO_DEBUG
+          if(count + diff != CountNodes()) {
+            throw runtime_error("Count mismatch in reorder");
+          }
+#endif
         }
       } else {
         for(; lev >= 0; lev--) {
@@ -523,6 +546,11 @@ namespace NewBdd {
           if(fReoVerbose) {
             cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
           }
+#ifdef REO_DEBUG
+          if(count + diff != CountNodes()) {
+            throw runtime_error("Count mismatch in reorder");
+          }
+#endif
           if(diff < min_diff) {
             min_lev = lev;
             min_diff = diff;
@@ -534,14 +562,19 @@ namespace NewBdd {
         }
         lev++;
         for(; lev < min_lev; lev++) {
-          diff += Swap(lev);
+#ifdef REO_DEBUG
+          diff +=
+#endif
+          Swap(lev);
           if(fReoVerbose) {
             cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
           }
+#ifdef REO_DEBUG
+          if(count + diff != CountNodes()) {
+            throw runtime_error("Count mismatch in reorder");
+          }
+#endif
         }
-      }
-      if(diff != min_diff) {
-        throw runtime_error("Count mismatch in reorder");
       }
       count += min_diff;
       if(fReoVerbose) {
@@ -577,12 +610,42 @@ namespace NewBdd {
     }
   }
 
-  size Man::CountNodes_rec(lit x) {
+  bvar Man::CountNodes_rec(lit x) {
     if(x < 2 || Mark(x)) {
       return 0;
     }
     SetMark(x);
-    return 1ull + CountNodes_rec(Else(x)) + CountNodes_rec(Then(x));
+    return 1 + CountNodes_rec(Else(x)) + CountNodes_rec(Then(x));
+  }
+
+  bvar Man::CountNodes() {
+    bvar count = 0;
+    if(!vEdges.empty()) {
+      for(bvar a = 1; a < nObjs; a++) {
+        if(EdgeOfBvar(a)) {
+          count++;
+        }
+      }
+      return count;
+    }
+    for(bvar a = 1; a <= nVars; a++) {
+      count++;
+      SetMarkOfBvar(a);
+    }
+    for(bvar a = nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        count += CountNodes_rec(Bvar2Lit(a));
+      }
+    }
+    for(bvar a = 1; a <= nVars; a++) {
+      ResetMarkOfBvar(a);
+    }
+    for(bvar a = nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+    return count;
   }
 
 }
