@@ -150,6 +150,18 @@ namespace NewBdd {
 
   lit Man::CacheLookup(lit x, lit y) {
     nCacheLookups++;
+    if(nCacheLookups > CacheThold) {
+      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
+      if(NewCacheHitRate > CacheHitRate) {
+        ResizeCache();
+      } else {
+        CacheThold <<= 1;
+        if(!CacheThold) {
+          CacheThold = SizeMax();
+        }
+      }
+      CacheHitRate = NewCacheHitRate;
+    }
     size i = (size)(Hash(x, y) & CacheMask) * 3;
     if(vCache[i] == x && vCache[i + 1] == y) {
       nCacheHits++;
@@ -283,20 +295,18 @@ namespace NewBdd {
     }
     vCache.resize((size)nCache * 3);
     CacheMask = nCache - 1;
-     for(lit j = 0; j < nCacheOld; j++) {
-       size i = (size)j * 3;
-       if(vCache[i] || vCache[i + 1]) {
-         size hash = (size)(Hash(vCache[i], vCache[i + 1]) & CacheMask) * 3;
-         vCache[hash] = vCache[i];
-         vCache[hash + 1] = vCache[i + 1];
-         vCache[hash + 2] = vCache[i + 2];
-       }
-     }
-    while(nCacheLookups > CacheThold) {
-      CacheThold <<= 1;
-      if(!CacheThold) {
-        CacheThold = SizeMax();
+    for(lit j = 0; j < nCacheOld; j++) {
+      size i = (size)j * 3;
+      if(vCache[i] || vCache[i + 1]) {
+        size hash = (size)(Hash(vCache[i], vCache[i + 1]) & CacheMask) * 3;
+        vCache[hash] = vCache[i];
+        vCache[hash + 1] = vCache[i + 1];
+        vCache[hash + 2] = vCache[i + 2];
       }
+    }
+    CacheThold <<= 1;
+    if(!CacheThold) {
+      CacheThold = SizeMax();
     }
   }
 
@@ -608,20 +618,6 @@ namespace NewBdd {
           nReo <<= 1;
         }
       }
-    }
-    if(nCacheLookups > CacheThold) {
-      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
-      if(NewCacheHitRate > CacheHitRate) {
-        ResizeCache();
-      } else {
-        while(nCacheLookups > CacheThold) {
-          CacheThold <<= 1;
-          if(!CacheThold) {
-            CacheThold = SizeMax();
-          }
-        }
-      }
-      CacheHitRate = NewCacheHitRate;
     }
   }
 
