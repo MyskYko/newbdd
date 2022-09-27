@@ -358,7 +358,7 @@ namespace NewBdd {
     var v1 = Level2Var[i];
     var v2 = Level2Var[i + 1];
     bvar f = 0;
-    bvar count = 0;
+    bvar diff = 0;
     for(vector<bvar>::iterator p = vvUnique[v1].begin(); p != vvUnique[v1].end(); p++) {
       vector<bvar>::iterator q = p;
       while(*q) {
@@ -378,11 +378,11 @@ namespace NewBdd {
         if(Var(f1) == v2 || Var(f0) == v2) {
           DecEdge(f1);
           if(Var(f1) == v2 && !Edge(f1)) {
-            DecEdge(Then(f1)), DecEdge(Else(f1)), count--;
+            DecEdge(Then(f1)), DecEdge(Else(f1)), diff--;
           }
           DecEdge(f0);
           if(Var(f0) == v2 && !Edge(f0)) {
-            DecEdge(Then(f0)), DecEdge(Else(f0)), count--;
+            DecEdge(Then(f0)), DecEdge(Else(f0)), diff--;
           }
           bvar next = vNexts[*q];
           vNexts[*q] = f;
@@ -413,7 +413,7 @@ namespace NewBdd {
       } else {
         f0 = UniqueCreate(v1, f10, f00);
         if(!Edge(f0)) {
-          IncEdge(f10), IncEdge(f00), count++;
+          IncEdge(f10), IncEdge(f00), diff++;
         }
       }
       IncEdge(f0);
@@ -423,12 +423,11 @@ namespace NewBdd {
       } else {
         f1 = UniqueCreate(v1, f11, f01);
         if(!Edge(f1)) {
-          IncEdge(f11), IncEdge(f01), count++;
+          IncEdge(f11), IncEdge(f01), diff++;
         }
       }
       IncEdge(f1);
       DecRef(f0);
-      // change
       SetVarOfBvar(f, v2);
       SetElseOfBvar(f, f0);
       SetThenOfBvar(f, f1);
@@ -437,14 +436,13 @@ namespace NewBdd {
       vNexts[f] = *q;
       *q = f;
       vUniqueCounts[v2]++;
-      // next target
       f = next;
     }
     Var2Level[v1] = i + 1;
     Var2Level[v2] = i;
     Level2Var[i] = v2;
     Level2Var[i + 1] = v1;
-    return count;
+    return diff;
   }
 
   void Man::Sift() {
