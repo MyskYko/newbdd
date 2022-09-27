@@ -5,8 +5,6 @@
 
 #include "NewBdd.h"
 
-//#define REO_DEBUG
-
 namespace NewBdd {
 
   class Man {
