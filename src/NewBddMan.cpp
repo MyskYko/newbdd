@@ -283,21 +283,15 @@ namespace NewBdd {
     }
     vCache.resize((size)nCache * 3);
     CacheMask = nCache - 1;
-    for(lit j = 0; j < nCacheOld; j++) {
-      size i = (size)j * 3;
-      if(!vCache[i] || !vCache[i + 1]) {
-        continue;
-      }
-      size hash = (size)(Hash(vCache[i], vCache[i + 1]) & CacheMask) * 3;
-      if(i != hash) {
-        vCache[hash] = vCache[i];
-        vCache[hash + 1] = vCache[i + 1];
-        vCache[hash + 2] = vCache[i + 2];
-        vCache[i] = 0;
-        vCache[i + 1] = 0;
-        vCache[i + 2] = 0;
-      }
-    }
+     for(lit j = 0; j < nCacheOld; j++) {
+       size i = (size)j * 3;
+       if(vCache[i] || vCache[i + 1]) {
+         size hash = (size)(Hash(vCache[i], vCache[i + 1]) & CacheMask) * 3;
+         vCache[hash] = vCache[i];
+         vCache[hash + 1] = vCache[i + 1];
+         vCache[hash + 2] = vCache[i + 2];
+       }
+     }
     while(nCacheLookups > CacheThold) {
       CacheThold <<= 1;
       if(!CacheThold) {
