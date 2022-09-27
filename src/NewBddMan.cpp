@@ -448,13 +448,17 @@ namespace NewBdd {
   }
 
   void Man::Sift() {
-    vector<var> sift_order(nVars);
-    for(int i = 0; i < nVars; i++) {
-      sift_order[i] = i;
+    bvar count = 0;
+    for(var v = 0; v < nVars; v++) {
+      count += vUniqueCounts[v];
     }
-    for(int i = 0; i < nVars; i++) {
-      int max_j = i;
-      for(int j = i + 1; j < nVars; j++) {
+    vector<var> sift_order(nVars);
+    for(var v = 0; v < nVars; v++) {
+      sift_order[v] = v;
+    }
+    for(var i = 0; i < nVars; i++) {
+      var max_j = i;
+      for(var j = i + 1; j < nVars; j++) {
         if(vUniqueCounts[sift_order[j]] > vUniqueCounts[sift_order[max_j]]) {
           max_j = j;
         }
@@ -463,47 +467,85 @@ namespace NewBdd {
         swap(sift_order[max_j], sift_order[i]);
       }
     }
-    for(int i = 0; i < nVars; i++) {
-      int lev = Var2Level[sift_order[i]];
+    for(var v = 0; v < nVars; v++) {
+      int lev = Var2Level[sift_order[v]];
       bool UpFirst = lev < (nVars / 2);
       int min_lev = lev;
       bvar min_diff = 0;
       bvar diff = 0;
+      bvar thold = count * (MaxGrowth - 1);
+      if(fReoVerbose) {
+        cout << "Sift " << sift_order[v] << " : Level = " << lev << " Count = " << count << " Thold = " << thold << endl;
+      }
       if(UpFirst) {
         lev--;
         for(; lev >= 0; lev--) {
           diff += Swap(lev);
+          if(fReoVerbose) {
+            cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
+          }
           if(diff < min_diff) {
             min_lev = lev;
             min_diff = diff;
+            thold = (count + diff) * (MaxGrowth - 1);
+          } else if(diff > thold) {
+            lev--;
+            break;
           }
         }
         lev++;
       }
       for(; lev < nVars - 1; lev++) {
         diff += Swap(lev);
+        if(fReoVerbose) {
+          cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
+        }
         if(diff < min_diff) {
           min_lev = lev + 1;
           min_diff = diff;
+          thold = (count + diff) * (MaxGrowth - 1);
+        } else if(diff > thold) {
+          lev++;
+          break;
         }
       }
       lev--;
       if(UpFirst) {
         for(; lev >= min_lev; lev--) {
           diff += Swap(lev);
+          if(fReoVerbose) {
+            cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
+          }
         }
       } else {
         for(; lev >= 0; lev--) {
           diff += Swap(lev);
+          if(fReoVerbose) {
+            cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
+          }
           if(diff < min_diff) {
             min_lev = lev;
             min_diff = diff;
+            thold = (count + diff) * (MaxGrowth - 1);
+          } else if(diff > thold) {
+            lev--;
+            break;
           }
         }
         lev++;
         for(; lev < min_lev; lev++) {
           diff += Swap(lev);
+          if(fReoVerbose) {
+            cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
+          }
         }
+      }
+      if(diff != min_diff) {
+        throw runtime_error("Count mismatch in reorder");
+      }
+      count += min_diff;
+      if(fReoVerbose) {
+        cout << "Sifted " << sift_order[v] << " : Level = " << min_lev << " Count = " << count << " Thold = " << thold << endl;
       }
     }
   }

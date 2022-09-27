@@ -14,7 +14,7 @@ namespace NewBdd {
     Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4);
     ~Man();
 
-    void SetParameters(int nGbc_ = 0, int nReoLog = -1);
+    void SetParameters(int nGbc_ = 0, int nReoLog = -1, double MaxGrowth_ = 1.2, bool fReoVerbose_ = false);
     void SetInitialOrdering(std::vector<int> const & Var2Level_);
 
     int GetNumVars() const;
@@ -40,7 +40,7 @@ namespace NewBdd {
 
     void SetRef(std::vector<Node> const & vNodes);
 
-    void Reo();
+    void Reo(bool fVerbose = false);
     void GetOrdering(std::vector<int> & Var2Level_);
 
     size CountNodes(std::vector<Node> const & vNodes);
@@ -72,6 +72,8 @@ namespace NewBdd {
     int nGbc;
 
     bvar nReo;
+    double MaxGrowth;
+    bool fReoVerbose;
     std::vector<var> Var2Level;
     std::vector<var> Level2Var;
 

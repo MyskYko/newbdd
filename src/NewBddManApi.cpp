@@ -85,34 +85,8 @@ namespace NewBdd {
     MinBvarRemoved = BvarMax();
     nGbc = 0;
     nReo = BvarMax();
-    //   {
-    //     var u = distance( vOrdering.begin(), find( vOrdering.begin(), vOrdering.end(), v ) );
-    //     if( u == nVars )
-    //       throw "Invalid Ordering";
-    //     
-    //   }
-    // fRef        = 0;
-    // nRefresh    = 0;
-    // fRealloc    = 0;
-    // fGC         = 0;
-    // nGC         = 0;
-    // fReo        = 0;
-    // nReo        = 0;
-    // MaxGrowth   = 0;
-    // nMinRemoved = nObjsAlloc;
-    // pRefs       = NULL;
-    // pEdges      = NULL;
-    // vOrdering.clear();
-    // if ( pvOrdering )
-    //   {
-    //     for ( var v : *pvOrdering )
-    //       vOrdering.push_back( v );
-    //     if ( vOrdering.size() != nVars )
-    //       throw "Wrong number of Variables in the ordering";
-    //   }
-    // else
-    //   for ( var v = 0; v < nVars; v++ )
-    //     vOrdering.push_back( v );
+    MaxGrowth = 1.2;
+    fReoVerbose = false;
   }
   Man::~Man() {
     if(nVerbose) {
@@ -130,7 +104,7 @@ namespace NewBdd {
     }
   }
 
-  void Man::SetParameters(int nGbc_, int nReoLog) {
+  void Man::SetParameters(int nGbc_, int nReoLog, double MaxGrowth_, bool fReoVerbose_) {
     nGbc = nGbc_;
     if(nReoLog >= 0) {
       nReo = 1 << nReoLog;
@@ -138,6 +112,8 @@ namespace NewBdd {
         nReo = BvarMax();
       }
     }
+    MaxGrowth = MaxGrowth_;
+    fReoVerbose = fReoVerbose_;
     if(nGbc || nReo != BvarMax()) {
       vRefs.resize(nObjsAlloc);
     }
@@ -216,14 +192,17 @@ namespace NewBdd {
     }
   }
 
-  void Man::Reo() {
+  void Man::Reo(bool fVerbose) {
     if(nVerbose >= 2) {
       cout << "Reorder" << endl;
     }
+    bool fReoVerbose_ = fReoVerbose;
+    fReoVerbose |= fVerbose;
     Gbc();
     CountEdges();
     Sift();
     vEdges.clear();
+    fReoVerbose = fReoVerbose_;
   }
   void Man::GetOrdering(vector<int> & Var2Level_) {
     Var2Level_.resize(nVars);
