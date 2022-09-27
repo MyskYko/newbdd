@@ -15,7 +15,7 @@ int main(int argc, char ** argv) {
   std::vector<NewBdd::Node> vNodes;
   Aig2Bdd(aig, bdd, vNodes);
   int count = bdd.CountNodes(vNodes);
-  std::vector<int> ordering;
+  std::vector<NewBdd::var> ordering;
   bdd.GetOrdering(ordering);
   NewBdd::Man bdd2(aig.nPis);
   bdd2.SetInitialOrdering(ordering);

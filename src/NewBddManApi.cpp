@@ -7,7 +7,7 @@ using namespace std;
 namespace NewBdd {
 
   Man::Man(int nVars, int nVerbose, int nMaxMemLog, int nObjsAllocLog, int nUniqueLog,int nCacheLog, double UniqueDensity) : nVars(nVars), nVerbose(nVerbose) {
-    if(nVars >= VarMax()) {
+    if(nVars >= (int)VarMax()) {
       throw length_error("Memout (var) in init");
     }
     if(nMaxMemLog > 0) {
@@ -33,7 +33,7 @@ namespace NewBdd {
     if(!nCache || (size)nCache > nMaxMem) {
       throw length_error("Memout (cache) in init");
     }
-    while(nObjsAlloc < nVars + 1) {
+    while(nObjsAlloc < (bvar)nVars + 1) {
       if(nObjsAlloc == BvarMax()) {
         throw length_error("Memout (node) in init");
       }
@@ -118,26 +118,24 @@ namespace NewBdd {
       vRefs.resize(nObjsAlloc);
     }
   }
-  void Man::SetInitialOrdering(vector<int> const & Var2Level_) {
-    for(var v = 0; v < nVars; v++) {
-      Var2Level[v] = Var2Level_[v];
-    }
+  void Man::SetInitialOrdering(vector<var> const & Var2Level_) {
+    Var2Level = Var2Level_;
     for(var v = 0; v < nVars; v++) {
       Level2Var[Var2Level[v]] = v;
     }
   }
 
-  int Man::GetNumVars() const {
+  var Man::GetNumVars() const {
     return nVars;
   }
-  int Man::GetNumObjs() const {
+  bvar Man::GetNumObjs() const {
     return nObjs;
   }
 
-  int Man::Var(Node const & x) const {
+  var Man::Var(Node const & x) const {
     return Var(x.val);
   }
-  int Man::Id(Node const & x) const {
+  bvar Man::Id(Node const & x) const {
     return Lit2Bvar(x.val);
   }
   bool Man::IsCompl(Node const & x) const {
@@ -155,8 +153,8 @@ namespace NewBdd {
   Node Man::Const1() {
     return Node(this, 1);
   }
-  Node Man::IthVar(int i) {
-    return Node(this, Bvar2Lit(i + 1));
+  Node Man::IthVar(var v) {
+    return Node(this, Bvar2Lit((bvar)v + 1));
   }
   Node Man::Not(Node const & x) {
     return Node(this, LitNot(x.val));
@@ -168,10 +166,10 @@ namespace NewBdd {
     return Node(this, And(x.val, y.val));
   }
 
-  int Man::Var(NodeNoRef const & x) const {
+  var Man::Var(NodeNoRef const & x) const {
     return Var(x.val);
   }
-  int Man::Id(NodeNoRef const & x) const {
+  bvar Man::Id(NodeNoRef const & x) const {
     return Lit2Bvar(x.val);
   }
   bool Man::IsCompl(NodeNoRef const & x) const {
@@ -198,15 +196,12 @@ namespace NewBdd {
     Reo();
     fReoVerbose = fReoVerbose_;
   }
-  void Man::GetOrdering(vector<int> & Var2Level_) {
-    Var2Level_.resize(nVars);
-    for(var v = 0; v < nVars; v++) {
-      Var2Level_[v] = Var2Level[v];
-    }
+  void Man::GetOrdering(vector<var> & Var2Level_) {
+    Var2Level_ = Var2Level;
   }
 
-  size Man::CountNodes(vector<Node> const & vNodes) {
-    size count = 0;
+  bvar Man::CountNodes(vector<Node> const & vNodes) {
+    bvar count = 0;
     for(size i = 0; i < vNodes.size(); i++) {
       count += CountNodes_rec(vNodes[i].val);
     }

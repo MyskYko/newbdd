@@ -37,15 +37,15 @@ namespace NewBdd {
   }
   void Man::CountEdges() {
     vEdges.resize(nObjsAlloc);
-    for(bvar a = nVars + 1; a < nObjs; a++) {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         CountEdges_rec(Bvar2Lit(a));
       }
     }
-    for(int i = 0; i < nVars; i++) {
-      vEdges[i + 1]++;
+    for(bvar a = 1; a <= (bvar)nVars; a++) {
+      vEdges[a]++;
     }
-    for(bvar a = nVars + 1; a < nObjs; a++) {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         ResetMark_rec(Bvar2Lit(a));
       }
@@ -65,15 +65,15 @@ namespace NewBdd {
     UncountEdges_rec(Then(x));
   }
   void Man::UncountEdges() {
-    for(bvar a = nVars + 1; a < nObjs; a++) {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         UncountEdges_rec(Bvar2Lit(a));
       }
     }
-    for(int i = 0; i < nVars; i++) {
-      vEdges[i + 1]--;
+    for(bvar a = 1; a <= (bvar)nVars; a++) {
+      vEdges[a]--;
     }
-    for(bvar a = nVars + 1; a < nObjs; a++) {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         ResetMark_rec(Bvar2Lit(a));
       }
@@ -336,24 +336,24 @@ namespace NewBdd {
     }
     bvar MinBvarRemovedOld = MinBvarRemoved;
     if(!vEdges.empty()) {
-      for(bvar a = nVars + 1; a < nObjs; a++) {
+      for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
         if(!EdgeOfBvar(a) && VarOfBvar(a) != VarMax()) {
           RemoveBvar(a);
         }
       }
       return MinBvarRemoved != MinBvarRemovedOld;
     }
-    for(bvar a = nVars + 1; a < nObjs; a++) {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         SetMark_rec(Bvar2Lit(a));
       }
     }
-    for(bvar a = nVars + 1; a < nObjs; a++) {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
       if(!MarkOfBvar(a) && VarOfBvar(a) != VarMax()) {
         RemoveBvar(a);
       }
     }
-    for(bvar a = nVars + 1; a < nObjs; a++) {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         ResetMark_rec(Bvar2Lit(a));
       }
@@ -474,9 +474,9 @@ namespace NewBdd {
       }
     }
     for(var v = 0; v < nVars; v++) {
-      int lev = Var2Level[sift_order[v]];
+      bvar lev = Var2Level[sift_order[v]];
       bool UpFirst = lev < (nVars / 2);
-      int min_lev = lev;
+      bvar min_lev = lev;
       bvar min_diff = 0;
       bvar diff = 0;
       bvar thold = count * (MaxGrowth - 1);
@@ -511,7 +511,7 @@ namespace NewBdd {
         }
         lev++;
       }
-      for(; lev < nVars - 1; lev++) {
+      for(; lev < (bvar)nVars - 1; lev++) {
         diff += Swap(lev);
         if(fReoVerbose) {
           cout << "\tSwap " << lev << " : Diff = " << diff << " Thold = " << thold << endl;
@@ -649,19 +649,19 @@ namespace NewBdd {
       }
       return count;
     }
-    for(bvar a = 1; a <= nVars; a++) {
+    for(bvar a = 1; a <= (bvar)nVars; a++) {
       count++;
       SetMarkOfBvar(a);
     }
-    for(bvar a = nVars + 1; a < nObjs; a++) {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         count += CountNodes_rec(Bvar2Lit(a));
       }
     }
-    for(bvar a = 1; a <= nVars; a++) {
+    for(bvar a = 1; a <= (bvar)nVars; a++) {
       ResetMarkOfBvar(a);
     }
-    for(bvar a = nVars + 1; a < nObjs; a++) {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         ResetMark_rec(Bvar2Lit(a));
       }

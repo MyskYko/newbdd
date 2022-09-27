@@ -15,25 +15,25 @@ namespace NewBdd {
     ~Man();
 
     void SetParameters(int nGbc_ = 0, int nReoLog = -1, double MaxGrowth_ = 1.2, bool fReoVerbose_ = false);
-    void SetInitialOrdering(std::vector<int> const & Var2Level_);
+    void SetInitialOrdering(std::vector<var> const & Var2Level_);
 
-    int GetNumVars() const;
-    int GetNumObjs() const;
+    var GetNumVars() const;
+    bvar GetNumObjs() const;
 
-    int Var(Node const & x) const;
-    int Id(Node const & x) const;
+    var Var(Node const & x) const;
+    bvar Id(Node const & x) const;
     bool IsCompl(Node const & x) const;
     Node Then(Node const & x);
     Node Else(Node const & x);
     Node Const0();
     Node Const1();
-    Node IthVar(int i);
+    Node IthVar(var v);
     Node Not(Node const & x);
     Node NotCond(Node const & x, bool c);
     Node And(Node const & x, Node const & y);
 
-    int Var(NodeNoRef const & x) const;
-    int Id(NodeNoRef const & x) const;
+    var Var(NodeNoRef const & x) const;
+    bvar Id(NodeNoRef const & x) const;
     bool IsCompl(NodeNoRef const & x) const;
     NodeNoRef Then(NodeNoRef const & x) const;
     NodeNoRef Else(NodeNoRef const & x) const;
@@ -41,12 +41,12 @@ namespace NewBdd {
     void SetRef(std::vector<Node> const & vNodes);
 
     void Reorder(bool fVerbose = false);
-    void GetOrdering(std::vector<int> & Var2Level_);
+    void GetOrdering(std::vector<var> & Var2Level_);
 
-    size CountNodes(std::vector<Node> const & vNodes);
+    bvar CountNodes(std::vector<Node> const & vNodes);
 
   private:
-    int nVars;
+    var nVars;
     bvar nObjs;
     bvar nObjsAlloc;
     bvar MinBvarRemoved;
@@ -163,7 +163,7 @@ namespace NewBdd {
     return a << 1;
   }
   inline lit Man::Bvar2Lit(bvar a, bool c) const {
-    return (a << 1) ^ (int)c;
+    return (a << 1) ^ (lit)c;
   }
   inline bvar Man::Lit2Bvar(lit x) const {
     return x >> 1;
@@ -179,7 +179,7 @@ namespace NewBdd {
     return x ^ 1;
   }
   inline lit Man::LitNotCond(lit x, bool c) const {
-    return x ^ (int)c;
+    return x ^ (lit)c;
   }
 
   inline bool Man::LitIsCompl(lit x) const {
