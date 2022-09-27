@@ -521,7 +521,7 @@ namespace NewBdd {
           throw runtime_error("Count mismatch in reorder");
         }
 #endif
-        if(diff < min_diff) {
+        if(diff <= min_diff) {
           min_lev = lev + 1;
           min_diff = diff;
           thold = (count + diff) * (MaxGrowth - 1);
@@ -557,7 +557,7 @@ namespace NewBdd {
             throw runtime_error("Count mismatch in reorder");
           }
 #endif
-          if(diff < min_diff) {
+          if(diff <= min_diff) {
             min_lev = lev;
             min_diff = diff;
             thold = (count + diff) * (MaxGrowth - 1);
