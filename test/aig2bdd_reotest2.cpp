@@ -7,10 +7,9 @@ int main(int argc, char ** argv) {
   aig.read(argv[1]);
   aig.supportfanouts();
   NewBdd::Man bdd(aig.nPis);
+  bdd.SetParameters(1, 0);
   std::vector<NewBdd::Node> vNodes;
   Aig2Bdd(aig, bdd, vNodes);
-  bdd.SetRef(vNodes);
-  bdd.Reo();
   int count = bdd.CountNodes(vNodes);
   std::vector<int> ordering;
   bdd.GetOrdering(ordering);
