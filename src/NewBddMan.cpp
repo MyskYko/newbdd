@@ -335,6 +335,14 @@ namespace NewBdd {
       cout << "Garbage collect" << endl;
     }
     bvar MinBvarRemovedOld = MinBvarRemoved;
+    if(!vEdges.empty()) {
+      for(bvar a = nVars + 1; a < nObjs; a++) {
+        if(!EdgeOfBvar(a) && VarOfBvar(a) != VarMax()) {
+          RemoveBvar(a);
+        }
+      }
+      return MinBvarRemoved != MinBvarRemovedOld;
+    }
     for(bvar a = nVars + 1; a < nObjs; a++) {
       if(RefOfBvar(a)) {
         SetMark_rec(Bvar2Lit(a));

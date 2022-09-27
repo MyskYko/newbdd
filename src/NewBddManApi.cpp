@@ -198,14 +198,15 @@ namespace NewBdd {
     }
     bool fReoVerbose_ = fReoVerbose;
     fReoVerbose |= fVerbose;
-    Gbc();
     CountEdges();
+    Gbc();
     Sift();
 #ifdef REO_DEBUG
     UncountEdges();
 #else
     vEdges.clear();
 #endif
+    CacheClear();
     fReoVerbose = fReoVerbose_;
   }
   void Man::GetOrdering(vector<int> & Var2Level_) {
