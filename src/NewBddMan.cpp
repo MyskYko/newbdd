@@ -210,7 +210,15 @@ namespace NewBdd {
     return z;
   }
   lit Man::And(lit x, lit y) {
-    CheckTholds();
+    if(nObjs > nReo) {
+      Reo();
+      while(nReo < nObjs) {
+        nReo <<= 1;
+        if((size)nReo > (size)BvarMax()) {
+          nReo = BvarMax();
+        }
+      }
+    }
     return And_rec(x, y);
   }
 
@@ -602,19 +610,6 @@ namespace NewBdd {
     vEdges.clear();
 #endif
     CacheClear();
-  }
-
-  void Man::CheckTholds() {
-    if(nObjs > nReo) {
-      Reo();
-      if(nObjs == BvarMax()) {
-        nReo = BvarMax();
-      } else {
-        while(nReo < nObjs) {
-          nReo <<= 1;
-        }
-      }
-    }
   }
 
   bvar Man::CountNodes_rec(lit x) {

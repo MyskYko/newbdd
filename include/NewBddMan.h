@@ -149,8 +149,6 @@ namespace NewBdd {
     void Sift();
     void Reo();
 
-    void CheckTholds();
-
     bvar CountNodes_rec(lit x);
     bvar CountNodes();
   };
