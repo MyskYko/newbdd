@@ -44,12 +44,12 @@ void Aig2Bdd(aigman const & aig, NewBdd::Man & bdd, vector<NewBdd::Node> & vNode
 
 int Bdd2Aig_rec(NewBdd::Man const & bdd, aigman & aig, NewBdd::NodeNoRef const & x, vector<int> & values) {
   if(bdd.Id(x) == 0) {
-    return bdd.IsCompl(x);
+    return (int)bdd.IsCompl(x);
   }
   if(values[bdd.Id(x)]) {
     return values[bdd.Id(x)] ^ (int)bdd.IsCompl(x);
   }
-  int v = (bdd.Var(x) + 1) << 1;
+  int v = ((int)bdd.Var(x) + 1) << 1;
   int i0 = Bdd2Aig_rec(bdd, aig, bdd.Else(x), values) ^ (int)bdd.IsCompl(x);
   int i1 = Bdd2Aig_rec(bdd, aig, bdd.Then(x), values) ^ (int)bdd.IsCompl(x);
   aig.vObjs.push_back(v);
