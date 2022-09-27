@@ -458,10 +458,7 @@ namespace NewBdd {
   }
 
   void Man::Sift() {
-    bvar count = 0;
-    for(var v = 0; v < nVars; v++) {
-      count += vUniqueCounts[v];
-    }
+    bvar count = CountNodes();
     vector<var> sift_order(nVars);
     for(var v = 0; v < nVars; v++) {
       sift_order[v] = v;
@@ -598,7 +595,6 @@ namespace NewBdd {
       cout << "Reorder" << endl;
     }
     CountEdges();
-    Gbc();
     Sift();
 #ifdef REO_DEBUG
     UncountEdges();
