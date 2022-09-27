@@ -192,21 +192,10 @@ namespace NewBdd {
     }
   }
 
-  void Man::Reo(bool fVerbose) {
-    if(nVerbose >= 2) {
-      cout << "Reorder" << endl;
-    }
+  void Man::Reorder(bool fVerbose) {
     bool fReoVerbose_ = fReoVerbose;
     fReoVerbose |= fVerbose;
-    CountEdges();
-    Gbc();
-    Sift();
-#ifdef REO_DEBUG
-    UncountEdges();
-#else
-    vEdges.clear();
-#endif
-    CacheClear();
+    Reo();
     fReoVerbose = fReoVerbose_;
   }
   void Man::GetOrdering(vector<int> & Var2Level_) {

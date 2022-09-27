@@ -10,7 +10,7 @@ int main(int argc, char ** argv) {
   std::vector<NewBdd::Node> vNodes;
   Aig2Bdd(aig, bdd, vNodes);
   bdd.SetRef(vNodes);
-  bdd.Reo();
+  bdd.Reorder();
   int count = bdd.CountNodes(vNodes);
   std::vector<int> ordering;
   bdd.GetOrdering(ordering);

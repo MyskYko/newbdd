@@ -589,6 +589,21 @@ namespace NewBdd {
     }
   }
 
+  void Man::Reo() {
+    if(nVerbose >= 2) {
+      cout << "Reorder" << endl;
+    }
+    CountEdges();
+    Gbc();
+    Sift();
+#ifdef REO_DEBUG
+    UncountEdges();
+#else
+    vEdges.clear();
+#endif
+    CacheClear();
+  }
+
   void Man::CheckTholds() {
     if(nObjs > nReo) {
       Reo();

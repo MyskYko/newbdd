@@ -40,7 +40,7 @@ namespace NewBdd {
 
     void SetRef(std::vector<Node> const & vNodes);
 
-    void Reo(bool fVerbose = false);
+    void Reorder(bool fVerbose = false);
     void GetOrdering(std::vector<int> & Var2Level_);
 
     size CountNodes(std::vector<Node> const & vNodes);
@@ -147,6 +147,7 @@ namespace NewBdd {
 
     bvar Swap(var i);
     void Sift();
+    void Reo();
 
     void CheckTholds();
 
