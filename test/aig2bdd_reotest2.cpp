@@ -5,7 +5,7 @@
 int main(int argc, char ** argv) {
   if(argc == 1) {
     std::cout << "Specify aig name" << std::endl;
-    return 0;
+    return 1;
   }
   aigman aig;
   aig.read(argv[1]);
@@ -22,13 +22,15 @@ int main(int argc, char ** argv) {
   std::vector<NewBdd::Node> vNodes2;
   Aig2Bdd(aig, bdd2, vNodes2);
   int count2 = bdd2.CountNodes(vNodes2);
-  if(count == count2) {
-    std::cout << "[PASS] ";
-  } else {
-    std::cout << "[FAIL] ";
-  }
-  std::cout << count << " " << count2 << " " << argv[1] << std::endl;
   Bdd2Aig(bdd, aig, vNodes);
   aig.write("a.aig");
+  if(count == count2) {
+    std::cout << "[PASS] ";
+    std::cout << count << " " << count2 << " " << argv[1] << std::endl;
+  } else {
+    std::cout << "[FAIL] ";
+    std::cout << count << " " << count2 << " " << argv[1] << std::endl;
+    return 1;
+  }
   return 0;
 }

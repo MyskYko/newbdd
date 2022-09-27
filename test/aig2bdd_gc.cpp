@@ -5,7 +5,7 @@
 int main(int argc, char ** argv) {
   if(argc == 1) {
     std::cout << "Specify aig name" << std::endl;
-    return 0;
+    return 1;
   }
   aigman aig;
   aig.read(argv[1]);
