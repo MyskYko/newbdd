@@ -52,39 +52,6 @@ namespace NewBdd {
     }
   }
 
-  void Man::UncountEdges_rec(lit x) {
-    if(x < 2) {
-      return;
-    }
-    DecEdge(x);
-    if(Mark(x)) {
-      return;
-    }
-    SetMark(x);
-    UncountEdges_rec(Else(x));
-    UncountEdges_rec(Then(x));
-  }
-  void Man::UncountEdges() {
-    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
-      if(RefOfBvar(a)) {
-        UncountEdges_rec(Bvar2Lit(a));
-      }
-    }
-    for(bvar a = 1; a <= (bvar)nVars; a++) {
-      vEdges[a]--;
-    }
-    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
-      if(RefOfBvar(a)) {
-        ResetMark_rec(Bvar2Lit(a));
-      }
-    }
-    for(bvar a = 1; a < nObjs; a++) {
-      if(Edge(Bvar2Lit(a))) {
-        cout << "strange edges " << a << " having " << Edge(Bvar2Lit(a)) << endl;
-      }
-    }
-  }
-
   lit Man::UniqueCreateInt(var v, lit x1, lit x0) {
     vector<bvar>::iterator p, q;
     p = q = vvUnique[v].begin() + (Hash(x1, x0) & vUniqueMasks[v]);
@@ -649,5 +616,40 @@ namespace NewBdd {
     }
     return count;
   }
+
+#ifdef REO_DEBUG
+  void Man::UncountEdges_rec(lit x) {
+    if(x < 2) {
+      return;
+    }
+    DecEdge(x);
+    if(Mark(x)) {
+      return;
+    }
+    SetMark(x);
+    UncountEdges_rec(Else(x));
+    UncountEdges_rec(Then(x));
+  }
+  void Man::UncountEdges() {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        UncountEdges_rec(Bvar2Lit(a));
+      }
+    }
+    for(bvar a = 1; a <= (bvar)nVars; a++) {
+      vEdges[a]--;
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+    for(bvar a = 1; a < nObjs; a++) {
+      if(EdgeOfBvar(a)) {
+        cout << "Strange edge " << a << " : Edge = " << EdgeOfBvar(a) << endl;
+      }
+    }
+  }
+#endif
 
 }

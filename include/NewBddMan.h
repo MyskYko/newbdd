@@ -125,8 +125,6 @@ namespace NewBdd {
 
     void CountEdges_rec(lit x);
     void CountEdges();
-    void UncountEdges_rec(lit x);
-    void UncountEdges();
 
     lit UniqueCreateInt(var v, lit x1, lit x0);
     lit UniqueCreate(var v, lit x1, lit x0);
@@ -151,6 +149,11 @@ namespace NewBdd {
 
     bvar CountNodes_rec(lit x);
     bvar CountNodes();
+
+#ifdef REO_DEBUG
+    void UncountEdges_rec(lit x);
+    void UncountEdges();
+#endif
   };
 
   inline lit Man::Hash(lit Arg0, lit Arg1) const {
