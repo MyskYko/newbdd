@@ -105,7 +105,7 @@ namespace NewBdd {
         if(nGbc > 1) {
           fRemoved = Gbc();
         }
-        if(!Resize() && !fRemoved && nGbc != 1 && !Gbc()) {
+        if(!Resize() && !fRemoved && (nGbc != 1 || !Gbc())) {
           throw length_error("Memout (node)");
         }
       } else {
@@ -153,7 +153,7 @@ namespace NewBdd {
     if(x > y) {
       swap(x, y);
     }
-    lit z = CacheLookup( x, y );
+    lit z = CacheLookup(x, y);
     if(z != LitMax()) {
       return z;
     }
@@ -190,6 +190,9 @@ namespace NewBdd {
   }
 
   bool Man::Resize() {
+    if(nObjsAlloc == BvarMax()) {
+      return false;
+    }
     bvar nObjsAllocOld = nObjsAlloc;
     nObjsAlloc <<= 1;
     if((size)nObjsAlloc > (size)BvarMax()) {
@@ -451,7 +454,7 @@ namespace NewBdd {
     }
     for(var v = 0; v < nVars; v++) {
       bvar lev = Var2Level[sift_order[v]];
-      bool UpFirst = lev < (nVars / 2);
+      bool UpFirst = lev < (bvar)(nVars / 2);
       bvar min_lev = lev;
       bvar min_diff = 0;
       bvar diff = 0;
@@ -573,9 +576,8 @@ namespace NewBdd {
     Sift();
 #ifdef REO_DEBUG
     UncountEdges();
-#else
-    vEdges.clear();
 #endif
+    vEdges.clear();
     CacheClear();
   }
 
