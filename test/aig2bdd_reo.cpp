@@ -11,7 +11,7 @@ int main(int argc, char ** argv) {
   aig.read(argv[1]);
   aig.supportfanouts();
   NewBdd::Man bdd(aig.nPis);
-  bdd.SetParameters(1);
+  bdd.SetParameters(1, 10);
   std::vector<NewBdd::Node> vNodes;
   Aig2Bdd(aig, bdd, vNodes);
   std::cout << bdd.CountNodes(vNodes) << std::endl;

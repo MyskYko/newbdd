@@ -23,7 +23,7 @@ target_include_directories(newbdd_reodebug PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/in
 target_link_libraries(newbdd_reodebug PUBLIC aig)
 target_compile_options(newbdd_reodebug PRIVATE -DREO_DEBUG)
 
-file(GLOB REOTESTFILENAMES ${CMAKE_CURRENT_SOURCE_DIR}/test/*reo*.cpp)
+file(GLOB REOTESTFILENAMES ${CMAKE_CURRENT_SOURCE_DIR}/test/*reotest*.cpp)
 foreach(testfilename ${REOTESTFILENAMES})
   get_filename_component(testname ${testfilename} NAME_WE)
   add_executable(${testname}_reodebug ${testfilename})
