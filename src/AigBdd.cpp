@@ -50,8 +50,8 @@ int Bdd2Aig_rec(NewBdd::Man const & bdd, aigman & aig, NewBdd::NodeNoRef const &
     return values[bdd.Id(x)] ^ (int)bdd.IsCompl(x);
   }
   int v = ((int)bdd.Var(x) + 1) << 1;
-  int i0 = Bdd2Aig_rec(bdd, aig, bdd.Else(x), values) ^ (int)bdd.IsCompl(x);
   int i1 = Bdd2Aig_rec(bdd, aig, bdd.Then(x), values) ^ (int)bdd.IsCompl(x);
+  int i0 = Bdd2Aig_rec(bdd, aig, bdd.Else(x), values) ^ (int)bdd.IsCompl(x);
   aig.vObjs.push_back(v);
   aig.vObjs.push_back(i1);
   aig.nGates++;

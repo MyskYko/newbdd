@@ -11,16 +11,16 @@ namespace NewBdd {
       return;
     }
     SetMark(x);
-    SetMark_rec(Else(x));
     SetMark_rec(Then(x));
+    SetMark_rec(Else(x));
   }
   void Man::ResetMark_rec(lit x) {
     if(x < 2 || !Mark(x)) {
       return;
     }
     ResetMark(x);
-    ResetMark_rec(Else(x));
     ResetMark_rec(Then(x));
+    ResetMark_rec(Else(x));
   }
 
   void Man::CountEdges_rec(lit x) {
@@ -32,8 +32,8 @@ namespace NewBdd {
       return;
     }
     SetMark(x);
-    CountEdges_rec(Else(x));
     CountEdges_rec(Then(x));
+    CountEdges_rec(Else(x));
   }
   void Man::CountEdges() {
     vEdges.resize(nObjsAlloc);
@@ -160,11 +160,11 @@ namespace NewBdd {
     var v;
     lit x0, x1, y0, y1;
     if(Level(x) < Level(y)) {
-      v = Var(x), x0 = Else(x), x1 = Then(x), y0 = y1 = y;
+      v = Var(x), x1 = Then(x), x0 = Else(x), y0 = y1 = y;
     } else if(Level(x) > Level(y)) {
-      v = Var(y), x0 = x1 = x, y0 = Else(y), y1 = Then(y);
+      v = Var(y), x0 = x1 = x, y1 = Then(y), y0 = Else(y);
     } else {
-      v = Var(x), x0 = Else(x), x1 = Then(x), y0 = Else(y), y1 = Then(y);
+      v = Var(x), x1 = Then(x), x0 = Else(x), y1 = Then(y), y0 = Else(y);
     }
     lit z1 = And_rec(x1, y1);
     IncRef(z1);
@@ -385,29 +385,19 @@ namespace NewBdd {
       }
     }
     while(f) {
-      lit f0 = ElseOfBvar(f);
       lit f1 = ThenOfBvar(f);
+      lit f0 = ElseOfBvar(f);
       lit f00, f01, f10, f11;
-      if(Var(f0) == v2) {
-        f00 = Else(f0), f01 = Then(f0);
-      } else {
-        f00 = f01 = f0;
-      }
       if(Var(f1) == v2) {
-        f10 = Else(f1), f11 = Then(f1);
+        f11 = Then(f1), f10 = Else(f1);
       } else {
         f10 = f11 = f1;
       }
-      if(f10 == f00) {
-        f0 = f10;
+      if(Var(f0) == v2) {
+        f01 = Then(f0), f00 = Else(f0);
       } else {
-        f0 = UniqueCreate(v1, f10, f00);
-        if(!Edge(f0)) {
-          IncEdge(f10), IncEdge(f00), diff++;
-        }
+        f00 = f01 = f0;
       }
-      IncEdge(f0);
-      IncRef(f0);
       if(f11 == f01) {
         f1 = f11;
       } else {
@@ -417,10 +407,20 @@ namespace NewBdd {
         }
       }
       IncEdge(f1);
-      DecRef(f0);
+      IncRef(f1);
+      if(f10 == f00) {
+        f0 = f10;
+      } else {
+        f0 = UniqueCreate(v1, f10, f00);
+        if(!Edge(f0)) {
+          IncEdge(f10), IncEdge(f00), diff++;
+        }
+      }
+      IncEdge(f0);
+      DecRef(f1);
       SetVarOfBvar(f, v2);
-      SetElseOfBvar(f, f0);
       SetThenOfBvar(f, f1);
+      SetElseOfBvar(f, f0);
       vector<bvar>::iterator q = vvUnique[v2].begin() + (Hash(f1, f0) & vUniqueMasks[v2]);
       lit next = vNexts[f];
       vNexts[f] = *q;
@@ -586,7 +586,7 @@ namespace NewBdd {
       return 0;
     }
     SetMark(x);
-    return 1 + CountNodes_rec(Else(x)) + CountNodes_rec(Then(x));
+    return 1 + CountNodes_rec(Then(x)) + CountNodes_rec(Else(x));
   }
 
   bvar Man::CountNodes() {
@@ -629,8 +629,8 @@ namespace NewBdd {
       return;
     }
     SetMark(x);
-    UncountEdges_rec(Else(x));
     UncountEdges_rec(Then(x));
+    UncountEdges_rec(Else(x));
   }
   void Man::UncountEdges() {
     for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
