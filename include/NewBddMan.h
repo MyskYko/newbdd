@@ -25,6 +25,8 @@ namespace NewBdd {
     bool IsCompl(Node const & x) const;
     Node Then(Node const & x);
     Node Else(Node const & x);
+    bool IsConst0(Node const & x) const;
+    bool IsConst1(Node const & x) const;
     Node Const0();
     Node Const1();
     Node IthVar(var v);

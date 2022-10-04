@@ -148,6 +148,12 @@ namespace NewBdd {
   Node Man::Else(Node const & x) {
     return Node(this, Else(x.val));
   }
+  bool Man::IsConst0(Node const & x) const {
+    return x.val == 0;
+  }
+  bool Man::IsConst1(Node const & x) const {
+    return x.val == 1;
+  }
   Node Man::Const0() {
     return Node(this, 0);
   }
