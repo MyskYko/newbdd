@@ -83,10 +83,7 @@ namespace NewBdd {
     CacheThold = nCache;
     CacheHitRate = 1;
     MinBvarRemoved = BvarMax();
-    nGbc = 0;
-    nReo = BvarMax();
-    MaxGrowth = 1.2;
-    fReoVerbose = false;
+    SetParameters();
   }
   Man::~Man() {
     if(nVerbose) {
@@ -111,11 +108,15 @@ namespace NewBdd {
       if(!nReo || (size)nReo > (size)BvarMax()) {
         nReo = BvarMax();
       }
+    } else {
+      nReo = BvarMax();
     }
     MaxGrowth = MaxGrowth_;
     fReoVerbose = fReoVerbose_;
     if(nGbc || nReo != BvarMax()) {
       vRefs.resize(nObjsAlloc);
+    } else {
+      vRefs.clear();
     }
   }
   void Man::SetInitialOrdering(vector<var> const & Var2Level_) {
