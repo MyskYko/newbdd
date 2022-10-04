@@ -28,7 +28,9 @@ namespace NewBdd {
     }
     val = right.val;
     man = right.man;
-    man->IncRef(val);
+    if(man) {
+      man->IncRef(val);
+    }
     return *this;
   }
   bool Node::operator==(const Node & other) const {

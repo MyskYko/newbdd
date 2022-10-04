@@ -28,11 +28,11 @@ void Aig2Bdd(aigman const & aig, NewBdd::Man & bdd, vector<NewBdd::Node> & vNode
     nodes[i] = bdd.And(bdd.NotCond(nodes[i0], c0), bdd.NotCond(nodes[i1], c1));
     vCounts[i0]--;
     if(!vCounts[i0]) {
-      nodes[i0] = bdd.Const0();
+      nodes[i0] = NewBdd::Node();
     }
     vCounts[i1]--;
     if(!vCounts[i1]) {
-      nodes[i1] = bdd.Const0();
+      nodes[i1] = NewBdd::Node();
     }
   }
   for(int i = 0; i < aig.nPos; i++) {
