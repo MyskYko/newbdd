@@ -30,6 +30,7 @@ namespace NewBdd {
     bool IsConst0(Node const & x) const;
     bool IsConst1(Node const & x) const;
     double OneCount(Node const & x) const;
+    double ZeroCount(Node const & x) const;
     Node Const0();
     Node Const1();
     Node IthVar(var v);

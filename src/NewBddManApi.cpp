@@ -173,6 +173,9 @@ namespace NewBdd {
   double Man::OneCount(Node const & x) const {
     return OneCount(x.val);
   }
+  double Man::ZeroCount(Node const & x) const {
+    return OneCount(LitNot(x.val));
+  }
   Node Man::Const0() {
     return Node(this, 0);
   }
