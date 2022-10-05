@@ -227,6 +227,7 @@ double Transduction::Rank(int i) const {
   assert(vPis.size() + ceil(log2(vvFos[i].size())) < 1024);
   double a = pow(2.0, vPis.size()) * vvFos[i].size();
   double b = bdd->OneCount(vFs[i]);
+  //double b = bdd->ZeroCount(vFs[i]);
   assert(abs(b) < numeric_limits<double>::max() - abs(a));
   return a + b;
 }
