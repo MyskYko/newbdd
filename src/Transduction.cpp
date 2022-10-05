@@ -37,6 +37,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
 
   bdd = new NewBdd::Man(aig.nPis);
   bdd->SetParameters(0, 12);
+  bdd->SetOneCounts(true);
   vFs.resize(nObjs);
   vFs[0] = bdd->Const0();
   for(int i = 0; i < aig.nPis; i++) {
@@ -223,7 +224,11 @@ double Transduction::Rank(int i) const {
   if(vvFis[i].empty()) {
     return numeric_limits<double>::max();
   }
-  return vvFos[i].size();
+  assert(vPis.size() + ceil(log2(vvFos[i].size())) < 1024);
+  double a = pow(2.0, vPis.size()) * vvFos[i].size();
+  double b = bdd->OneCount(vFs[i]);
+  assert(abs(b) < numeric_limits<double>::max() - abs(a));
+  return a + b;
 }
 void Transduction::SortFisNode(int i) {
   sort(vvFis[i].begin(), vvFis[i].end(), RankComparator(*this));
@@ -273,8 +278,8 @@ void Transduction::CalcG(int i) {
   }
 }
 void Transduction::CalcC(int i) {
-  RemoveRedundantFis(i);
   SortFisNode(i);
+  RemoveRedundantFis(i);
   vvCs[i].clear();
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     // x = Not(And(FIs with larger rank))
