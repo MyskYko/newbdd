@@ -44,6 +44,8 @@ private:
   int FindFi(int i, int i0) const;
   void ReplaceNode(int i, int c);
 
+  void RemoveRedundantFis(int i);
+
   void CalcG(int i);
   void CalcC(int i);
 

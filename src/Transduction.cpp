@@ -129,8 +129,8 @@ void Transduction::TrivialMerge() {
       int i0 = vvFis[*it][j] >> 1;
       int c0 = vvFis[*it][j] & 1;
       if(!vvFis[i0].empty() && vvFos[i0].size() == 1 && !c0) {
-        if(nVerbose > 3) {
-          cout << "\t\t\tDisconnect " << i0 <<"(" << c0 << ")" << " from " << *it << endl;
+        if(nVerbose > 4) {
+          cout << "\t\t\t\tDisconnect " << i0 <<"(" << c0 << ")" << " from " << *it << endl;
         }
         vector<int>::iterator it2 = find(vvFos[i0].begin(), vvFos[i0].end(), *it);
         vvFos[i0].erase(it2);
@@ -138,8 +138,8 @@ void Transduction::TrivialMerge() {
         for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
           int c = vvFis[i0][jj];
           if(find(vvFis[*it].begin(), vvFis[*it].end(), c) == vvFis[*it].end()) {
-            if(nVerbose > 3) {
-              cout << "\t\t\tConnect " << (c >> 1) << "(" << (c & 1) << ")" << " to " << *it << endl;
+            if(nVerbose > 4) {
+              cout << "\t\t\t\tConnect " << (c >> 1) << "(" << (c & 1) << ")" << " to " << *it << endl;
             }
             vvFis[*it].push_back(c);
             vvFos[c >> 1].push_back(*it);
@@ -194,8 +194,8 @@ void Transduction::SortFis() {
 }
 
 void Transduction::RemoveFis(int i) {
-  if(nVerbose > 3) {
-    cout << "\t\t\tRemove node " << i << endl;
+  if(nVerbose > 4) {
+    cout << "\t\t\t\tRemove node " << i << endl;
   }
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     int i0 = vvFis[i][j] >> 1;
@@ -214,8 +214,8 @@ int Transduction::FindFi(int i, int i0) const {
   abort();
 }
 void Transduction::ReplaceNode(int i, int c) {
-  if(nVerbose > 3) {
-    cout << "\t\t\tReplace node " << i << " by " << (c >> 1) << "(" << (c & 1) << ")" << endl;
+  if(nVerbose > 4) {
+    cout << "\t\t\t\tReplace node " << i << " by " << (c >> 1) << "(" << (c & 1) << ")" << endl;
   }
   assert(i != (c >> 1));
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
@@ -226,6 +226,34 @@ void Transduction::ReplaceNode(int i, int c) {
   }
   vvFos[i].clear();
   RemoveFis(i);
+}
+
+void Transduction::RemoveRedundantFis(int i) {
+  for(unsigned j = 0; j < vvFis[i].size(); j++) {
+    NewBdd::Node x = bdd->Const1();
+    for(unsigned jj = 0; jj < vvFis[i].size(); jj++) {
+      if(j == jj) {
+        continue;
+      }
+      int i0 = vvFis[i][jj] >> 1;
+      int c0 = vvFis[i][jj] & 1;
+      x = bdd->And(x, bdd->NotCond(vFs[i0], c0));
+    }
+    x = bdd->Not(x);
+    x = bdd->Or(x, vGs[i]);
+    int i0 = vvFis[i][j] >> 1;
+    int c0 = vvFis[i][j] & 1;
+    x = bdd->Or(x, bdd->NotCond(vFs[i0], c0));
+    if(bdd->IsConst1(x)) {
+      if(nVerbose > 4) {
+        cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
+      }
+      vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
+      vvFos[i0].erase(it);
+      vvFis[i].erase(vvFis[i].begin() + j);
+      j--;
+    }
+  }
 }
 
 void Transduction::CalcG(int i) {
@@ -242,10 +270,7 @@ void Transduction::CalcG(int i) {
   }
 }
 void Transduction::CalcC(int i) {
-  // if ( fRemove && RemoveRedundantFIs( id ) )
-  //   {
-  //     return;
-  //   }
+  RemoveRedundantFis(i);
   SortFisNode(i);
   vvCs[i].clear();
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
@@ -268,8 +293,8 @@ void Transduction::CalcC(int i) {
     c = bdd->Or(c, vGs[i]);
     // Or(c, f[i_j]) == const1 -> redundant
     if(bdd->IsConst1(bdd->Or(c, f_i_j))) {
-      if(nVerbose > 3) {
-        cout << "\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
+      if(nVerbose > 4) {
+        cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
       vvFos[i0].erase(it);
