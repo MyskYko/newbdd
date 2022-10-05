@@ -233,6 +233,12 @@ double Transduction::Rank(int i) const {
 }
 void Transduction::SortFisNode(int i) {
   sort(vvFis[i].begin(), vvFis[i].end(), RankComparator(*this));
+  if(nVerbose > 4) {
+    cout << "\t\t\t\tSort fanins node " << i << endl;
+    for(unsigned j = 0; j < vvFis[i].size(); j++) {
+      cout << "\t\t\t\t\tFanin " << j << " node " << (vvFis[i][j] >> 1) << " rank " << Rank(vvFis[i][j] >> 1) << endl;
+    }
+  }
 }
 void Transduction::SortFis() {
   for(int i : vObjs) {
