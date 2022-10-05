@@ -31,6 +31,8 @@ private:
 
   int nVerbose;
 
+  void TrivialMerge();
+
   void BuildNode(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();
 

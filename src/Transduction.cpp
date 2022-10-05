@@ -28,6 +28,8 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
     vPos.push_back(i + aig.nObjs);
   }
 
+  TrivialMerge();
+
   bdd = new NewBdd::Man(aig.nPis);
   bdd->SetParameters(0, 12);
   vFs.resize(nObjs);
@@ -107,6 +109,52 @@ void Transduction::Aig(aigman & aig) const {
     int c0 = vvFis[vPos[i]][0] & 1;
     aig.vPos.push_back(values[i0] ^ c0);
     aig.nPos++;
+  }
+}
+
+void Transduction::TrivialMerge() {
+  if(nVerbose > 2) {
+    cout << "\t\tTrivial merge" << endl;
+  }
+  for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
+    if(nVerbose > 3) {
+      cout << "\t\t\tTrivial merge node " << *it << endl;
+    }
+    if(vvFos[*it].empty()) {
+      RemoveFis(*it);
+      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
+      continue;
+    }
+    for(unsigned j = 0; j < vvFis[*it].size(); j++) {
+      int i0 = vvFis[*it][j] >> 1;
+      int c0 = vvFis[*it][j] & 1;
+      if(!vvFis[i0].empty() && vvFos[i0].size() == 1 && !c0) {
+        if(nVerbose > 3) {
+          cout << "\t\t\tDisconnect " << i0 <<"(" << c0 << ")" << " from " << *it << endl;
+        }
+        vector<int>::iterator it2 = find(vvFos[i0].begin(), vvFos[i0].end(), *it);
+        vvFos[i0].erase(it2);
+        vvFis[*it][j] = -1;
+        for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
+          int c = vvFis[i0][jj];
+          if(find(vvFis[*it].begin(), vvFis[*it].end(), c) == vvFis[*it].end()) {
+            if(nVerbose > 3) {
+              cout << "\t\t\tConnect " << (c >> 1) << "(" << (c & 1) << ")" << " to " << *it << endl;
+            }
+            vvFis[*it].push_back(c);
+            vvFos[c >> 1].push_back(*it);
+          }
+        }
+      }
+    }
+    vector<int> vFisNew;
+    for(unsigned j = 0; j < vvFis[*it].size(); j++) {
+      if(vvFis[*it][j] != -1) {
+        vFisNew.push_back(vvFis[*it][j]);
+      }
+    }
+    vvFis[*it] = vFisNew;
+    it++;
   }
 }
 
