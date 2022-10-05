@@ -78,8 +78,15 @@ namespace NewBdd {
     SetThenOfBvar(*p, x1);
     SetElseOfBvar(*p, x0);
     vNexts[*p] = next;
+    if(!vOneCounts.empty()) {
+      vOneCounts[*p] = OneCount(x1) / 2 + OneCount(x0) / 2;
+    }
     if(nVerbose >= 3) {
-      cout << "Create node " << *p << " : Var = " << v << " Then = " << x1 << " Else = " << x0 << endl;
+      cout << "Create node " << *p << " : Var = " << v << " Then = " << x1 << " Else = " << x0;
+      if(!vOneCounts.empty()) {
+        cout << " Ones = " << vOneCounts[*q];
+      }
+      cout << endl;
     }
     vUniqueCounts[v]++;
     if(vUniqueCounts[v] > vUniqueTholds[v]) {
@@ -214,6 +221,9 @@ namespace NewBdd {
     }
     if(!vEdges.empty()) {
       vEdges.resize(nObjsAlloc);
+    }
+    if(!vOneCounts.empty()) {
+      vOneCounts.resize(nObjsAlloc);
     }
     return true;
   }
