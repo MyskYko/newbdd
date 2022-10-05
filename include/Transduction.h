@@ -31,6 +31,13 @@ private:
 
   int nVerbose;
 
+  void Connect(int i, int f);
+  void Disconnect(int i, int i0, unsigned j);
+
+  void RemoveFis(int i);
+  int FindFi(int i, int i0) const;
+  void ReplaceNode(int i, int c);
+
   void TrivialMerge();
 
   void BuildNode(int i, std::vector<NewBdd::Node> & vFs_);
@@ -39,10 +46,6 @@ private:
   double Rank(int i) const;
   void SortFisNode(int i);
   void SortFis();
-
-  void RemoveFis(int i);
-  int FindFi(int i, int i0) const;
-  void ReplaceNode(int i, int c);
 
   void RemoveRedundantFis(int i);
 

@@ -7,6 +7,9 @@
 using namespace std;
 
 Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose) {
+  if(nVerbose > 2) {
+    cout << "\t\tImport aig" << endl;
+  }
   nObjs = aig.nObjs + aig.nPos;
   vvFis.resize(nObjs);
   vvFos.resize(nObjs);
@@ -14,17 +17,19 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
     vPis.push_back(i + 1);
   }
   for(int i = aig.nPis + 1; i < aig.nObjs; i++) {
+    if(nVerbose > 3) {
+      cout << "\t\t\tImport aig node " << i << endl;
+    }
     for(int ii = i + i;  ii <= i + i + 1; ii++) {
-      int i0 = aig.vObjs[ii];
-      vvFis[i].push_back(i0);
-      vvFos[i0 >> 1].push_back(i);
+      Connect(i, aig.vObjs[ii]);
     }
     vObjs.push_back(i);
   }
   for(int i = 0; i < aig.nPos; i++) {
-    int i0 = aig.vPos[i];
-    vvFis[i + aig.nObjs].push_back(i0);
-    vvFos[i0 >> 1].push_back(i + aig.nObjs);
+    if(nVerbose > 3) {
+      cout << "\t\t\tImport aig po " << i << endl;
+    }
+    Connect(i + aig.nObjs, aig.vPos[i]);
     vPos.push_back(i + aig.nObjs);
   }
 
@@ -112,6 +117,58 @@ void Transduction::Aig(aigman & aig) const {
   }
 }
 
+void Transduction::Connect(int i, int f) {
+  if(nVerbose > 5) {
+    cout << "\t\t\t\t\tConnect " << (f >> 1) << " to " << i << endl;
+  }
+  vvFis[i].push_back(f);
+  vvFos[f >> 1].push_back(i);
+}
+
+void Transduction::Disconnect(int i, int i0, unsigned j) {
+  if(nVerbose > 5) {
+    cout << "\t\t\t\t\tDisconnect " << i0 << " from " << i << endl;
+  }
+  vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
+  vvFos[i0].erase(it);
+  vvFis[i].erase(vvFis[i].begin() + j);
+}
+
+
+void Transduction::RemoveFis(int i) {
+  if(nVerbose > 4) {
+    cout << "\t\t\t\tRemove node " << i << endl;
+  }
+  for(unsigned j = 0; j < vvFis[i].size(); j++) {
+    int i0 = vvFis[i][j] >> 1;
+    vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
+    vvFos[i0].erase(it);
+  }
+  vvFis[i].clear();
+}
+int Transduction::FindFi(int i, int i0) const {
+  for(unsigned j = 0; j < vvFis[i].size(); j++) {
+    if((vvFis[i][j] >> 1) == i0) {
+      return j;
+    }
+  }
+  abort();
+}
+void Transduction::ReplaceNode(int i, int c) {
+  if(nVerbose > 4) {
+    cout << "\t\t\t\tReplace node " << i << " by " << (c >> 1) << endl;
+  }
+  assert(i != (c >> 1));
+  for(unsigned j = 0; j < vvFos[i].size(); j++) {
+    int k = vvFos[i][j];
+    int l = FindFi(k, i);
+    vvFis[k][l] = c ^ (vvFis[k][l] & 1);
+    vvFos[c >> 1].push_back(k);
+  }
+  vvFos[i].clear();
+  RemoveFis(i);
+}
+
 void Transduction::TrivialMerge() {
   if(nVerbose > 2) {
     cout << "\t\tTrivial merge" << endl;
@@ -129,31 +186,15 @@ void Transduction::TrivialMerge() {
       int i0 = vvFis[*it][j] >> 1;
       int c0 = vvFis[*it][j] & 1;
       if(!vvFis[i0].empty() && vvFos[i0].size() == 1 && !c0) {
-        if(nVerbose > 4) {
-          cout << "\t\t\t\tDisconnect " << i0 <<"(" << c0 << ")" << " from " << *it << endl;
-        }
-        vector<int>::iterator it2 = find(vvFos[i0].begin(), vvFos[i0].end(), *it);
-        vvFos[i0].erase(it2);
-        vvFis[*it][j] = -1;
+        Disconnect(*it, i0, j--);
         for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
-          int c = vvFis[i0][jj];
-          if(find(vvFis[*it].begin(), vvFis[*it].end(), c) == vvFis[*it].end()) {
-            if(nVerbose > 4) {
-              cout << "\t\t\t\tConnect " << (c >> 1) << "(" << (c & 1) << ")" << " to " << *it << endl;
-            }
-            vvFis[*it].push_back(c);
-            vvFos[c >> 1].push_back(*it);
+          int f = vvFis[i0][jj];
+          if(find(vvFis[*it].begin(), vvFis[*it].end(), f) == vvFis[*it].end()) {
+            Connect(*it, f);
           }
         }
       }
     }
-    vector<int> vFisNew;
-    for(unsigned j = 0; j < vvFis[*it].size(); j++) {
-      if(vvFis[*it][j] != -1) {
-        vFisNew.push_back(vvFis[*it][j]);
-      }
-    }
-    vvFis[*it] = vFisNew;
     it++;
   }
 }
@@ -193,41 +234,6 @@ void Transduction::SortFis() {
   }
 }
 
-void Transduction::RemoveFis(int i) {
-  if(nVerbose > 4) {
-    cout << "\t\t\t\tRemove node " << i << endl;
-  }
-  for(unsigned j = 0; j < vvFis[i].size(); j++) {
-    int i0 = vvFis[i][j] >> 1;
-    vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
-    assert(it != vvFos[i0].end());
-    vvFos[i0].erase(it);
-  }
-  vvFis[i].clear();
-}
-int Transduction::FindFi(int i, int i0) const {
-  for(unsigned j = 0; j < vvFis[i].size(); j++) {
-    if((vvFis[i][j] >> 1) == i0) {
-      return j;
-    }
-  }
-  abort();
-}
-void Transduction::ReplaceNode(int i, int c) {
-  if(nVerbose > 4) {
-    cout << "\t\t\t\tReplace node " << i << " by " << (c >> 1) << "(" << (c & 1) << ")" << endl;
-  }
-  assert(i != (c >> 1));
-  for(unsigned j = 0; j < vvFos[i].size(); j++) {
-    int k = vvFos[i][j];
-    int l = FindFi(k, i);
-    vvFis[k][l] = c ^ (vvFis[k][l] & 1);
-    vvFos[c >> 1].push_back(k);
-  }
-  vvFos[i].clear();
-  RemoveFis(i);
-}
-
 void Transduction::RemoveRedundantFis(int i) {
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     NewBdd::Node x = bdd->Const1();
@@ -246,12 +252,9 @@ void Transduction::RemoveRedundantFis(int i) {
     x = bdd->Or(x, bdd->NotCond(vFs[i0], c0));
     if(bdd->IsConst1(x)) {
       if(nVerbose > 4) {
-        cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
+        cout << "\t\t\t\tRemove wire " << i0 << " -> " << i << endl;
       }
-      vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
-      vvFos[i0].erase(it);
-      vvFis[i].erase(vvFis[i].begin() + j);
-      j--;
+      Disconnect(i, i0, j--);
     }
   }
 }
@@ -294,12 +297,9 @@ void Transduction::CalcC(int i) {
     // Or(c, f[i_j]) == const1 -> redundant
     if(bdd->IsConst1(bdd->Or(c, f_i_j))) {
       if(nVerbose > 4) {
-        cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
+        cout << "\t\t\t\tRemove wire " << i0 << " -> " << i << endl;
       }
-      vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
-      vvFos[i0].erase(it);
-      vvFis[i].erase(vvFis[i].begin() + j);
-      j--;
+      Disconnect(i, i0, j--);
     } else {
       vvCs[i].push_back(c);
     }
