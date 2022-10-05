@@ -87,10 +87,7 @@ void Transduction::Aig(aigman & aig) const {
     values[i + 1] = (i + 1) << 1;
   }
   for(list<int>::const_iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    if(vvFis[*it].empty()) {
-      continue;
-    }
-    assert(vvFis[*it].size() != 1);
+    assert(vvFis[*it].size() > 1);
     for(int i = 0; i < 2; i++) {
       int i0 = vvFis[*it][i] >> 1;
       int c0 = vvFis[*it][i] & 1;
@@ -332,7 +329,13 @@ void Transduction::Cspf() {
       continue;
     }
     CalcG(*it);
+    if(vvFis[*it].empty()) {
+      assert(vvFos[*it].empty());
+      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
+      continue;
+    }
     CalcC(*it);
+    assert(!vvFis[*it].empty());
     if(vvFis[*it].size() == 1) {
       ReplaceNode(*it, vvFis[*it][0]);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
