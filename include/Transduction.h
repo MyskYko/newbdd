@@ -14,6 +14,9 @@ public:
   
   void Aig(aigman & aig) const;
 
+  void TrivialMerge();
+  void TrivialDecompose();
+
   void Cspf();
 
   void Resub();
@@ -46,8 +49,6 @@ private:
   void RemoveFis(int i);
   int FindFi(int i, int i0) const;
   void ReplaceNode(int i, int c);
-
-  void TrivialMerge();
 
   void BuildNode(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();

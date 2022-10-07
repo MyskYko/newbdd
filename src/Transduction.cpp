@@ -33,8 +33,6 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
     vPos.push_back(i + aig.nObjs);
   }
 
-  TrivialMerge();
-
   bdd = new NewBdd::Man(aig.nPis);
   bdd->SetParameters(0, 12);
   bdd->SetOneCounts(true);
@@ -226,6 +224,41 @@ void Transduction::TrivialMerge() {
     }
     it++;
   }
+}
+
+void Transduction::TrivialDecompose() {
+  if(nVerbose > 2) {
+    cout << "\t\tTrivial decompose" << endl;
+  }
+  int pos = vPis.size() + 1;
+  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+    if(nVerbose > 3) {
+      cout << "\t\t\tTrivial decompose node " << *it << endl;
+    }
+    if(vvFis[*it].size() > 2) {
+      int f0 = vvFis[*it].back();
+      Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1);
+      int f1 = vvFis[*it].back();
+      Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1);
+      while(!vvFis[pos].empty() || !vvFos[pos].empty()) {
+        pos++;
+        if(pos == nObjs) {
+          nObjs++;
+          vvFis.resize(nObjs);
+          vvFis.resize(nObjs);
+          vFs.resize(nObjs);
+          vGs.resize(nObjs);
+          vvCs.resize(nObjs);
+          break;
+        }
+      }
+      vObjs.insert(it, pos);
+      Connect(pos, f0);
+      Connect(pos, f1);
+      Connect(*it, pos << 1);
+    }
+  }
+  Build();
 }
 
 void Transduction::BuildNode(int i, vector<NewBdd::Node> & vFs_) {
