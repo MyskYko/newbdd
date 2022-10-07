@@ -53,7 +53,7 @@ private:
   void BuildNode(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();
 
-  double Rank(int i) const;
+  double Rank(int f) const;
   void SortFisNode(int i);
   void SortFis();
 
@@ -70,7 +70,7 @@ private:
     Transduction const & t;
     RankComparator(Transduction const & t) : t(t) {}
     bool operator()(int a, int b) {
-      return t.Rank(a >> 1) < t.Rank(b >> 1);
+      return t.Rank(a) < t.Rank(b);
     }
   };
 };

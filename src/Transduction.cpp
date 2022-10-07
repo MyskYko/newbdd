@@ -281,13 +281,15 @@ void Transduction::Build() {
   }
 }
 
-double Transduction::Rank(int i) const {
+double Transduction::Rank(int f) const {
+  int i = f >> 1;
   if(vvFis[i].empty()) {
     return numeric_limits<double>::max();
   }
   assert(vPis.size() + ceil(log2(vvFos[i].size())) < 1024);
   double a = pow(2.0, vPis.size()) * vvFos[i].size();
   double b = bdd->OneCount(vFs[i]);
+  //double b = bdd->OneCount(bdd->NotCond(vFs[i], f & 1));
   //double b = bdd->ZeroCount(vFs[i]);
   assert(abs(b) < numeric_limits<double>::max() - abs(a));
   return a + b;
