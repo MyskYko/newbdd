@@ -115,12 +115,43 @@ void Transduction::Aig(aigman & aig) const {
   }
 }
 
-void Transduction::Connect(int i, int f) {
+void Transduction::SortObjs(list<int>::iterator const & it) {
+  for(unsigned j = 0; j < vvFis[*it].size(); j++) {
+    int i0 = vvFis[*it][j] >> 1;
+    if(vvFis[i0].empty()) {
+      continue;
+    }
+    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
+    if(it_i0 != vObjs.end()) {
+      if(nVerbose > 6) {
+        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
+      }
+      vObjs.erase(it_i0);
+      it_i0 = vObjs.insert(it, i0);
+      SortObjs(it_i0);
+    }
+  }
+}
+
+void Transduction::Connect(int i, int f, bool fSort) {
+  int i0 = f >> 1;
   if(nVerbose > 5) {
-    cout << "\t\t\t\t\tConnect " << (f >> 1) << " to " << i << endl;
+    cout << "\t\t\t\t\tConnect " << i0 << " to " << i << endl;
   }
   vvFis[i].push_back(f);
-  vvFos[f >> 1].push_back(i);
+  vvFos[i0].push_back(i);
+  if(fSort && !vvFos[i].empty() && !vvFis[i0].empty()) {
+    list<int>::iterator it = find(vObjs.begin(), vObjs.end(), i);
+    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
+    if(it_i0 != vObjs.end()) {
+      if(nVerbose > 6) {
+        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
+      }
+      vObjs.erase(it_i0);
+      it_i0 = vObjs.insert(it, i0);
+      SortObjs(it_i0);
+    }
+  }
 }
 
 void Transduction::Disconnect(int i, int i0, unsigned j) {
@@ -344,4 +375,80 @@ void Transduction::Cspf() {
     it++;
   }
   Build();
+}
+
+bool Transduction::TryConnect(int i, int f) {
+  if(find(vvFis[i].begin(), vvFis[i].end(), f) == vvFis[i].end()) {
+    NewBdd::Node x = bdd->Or(bdd->Not(vFs[i]), vGs[i]);
+    x = bdd->Or(x, bdd->NotCond(vFs[f >> 1], f & 1));
+    if(bdd->IsConst1(x)) {
+      Connect(i, f, true);
+      return true;
+    }
+  }
+  return false;
+}
+
+void Transduction::MarkFoCone_rec(int i) {
+  for(unsigned j = 0; j < vvFos[i].size(); j++) {
+    int k = vvFos[i][j];
+    if(!vMarks[k]) {
+      vMarks[k] = true;
+      MarkFoCone_rec(k);
+    }
+  }
+}
+
+void Transduction::Resub() {
+  if(nVerbose) {
+    cout << "Resubstitution" << endl;
+  }
+  list<int> targets = vObjs;
+  for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
+    if(nVerbose > 1) {
+      cout << "\tResubstitute node " << *it << endl;
+      cout << "\t aigs " << CountNodes() << " ands " << CountGates() << " wires " << CountWires() << endl;
+    }
+    if(vvFos[*it].empty()) {
+      continue;
+    }
+    vMarks.clear();
+    vMarks.resize(nObjs);
+    vMarks[*it] = true;
+    MarkFoCone_rec(*it);
+    for(unsigned i = 0; i < vPis.size(); i++) {
+      int f = vPis[i] << 1;
+      if(!TryConnect(*it, f)) {
+        TryConnect(*it, f ^ 1);
+      }
+    }
+    for(list<int>::iterator it2 = targets.begin(); it2 != targets.end(); it2++) {
+      if(vMarks[*it2] || vvFos[*it2].empty()) {
+        continue;
+      }
+      int f = *it2 << 1;
+      if(!TryConnect(*it, f)) {
+        TryConnect(*it, f ^ 1);
+      }
+    }
+    Cspf();
+    //return;
+    //CspfFiCone();
+  }
+}
+
+int Transduction::CountGates() {
+  return vObjs.size();
+}
+
+int Transduction::CountWires() {
+  int count = 0;
+  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+    count += vvFis[*it].size();
+  }
+  return count;
+}
+
+int Transduction::CountNodes() {
+  return CountWires() - CountGates();
 }

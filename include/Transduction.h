@@ -16,6 +16,12 @@ public:
 
   void Cspf();
 
+  void Resub();
+
+  int CountGates();
+  int CountWires();
+  int CountNodes();
+
 private:
   int nObjs;
   std::vector<int> vPis;
@@ -23,6 +29,7 @@ private:
   std::list<int> vObjs;
   std::vector<std::vector<int> > vvFis;
   std::vector<std::vector<int> > vvFos;
+  std::vector<bool> vMarks;
 
   NewBdd::Man * bdd;
   std::vector<NewBdd::Node> vFs;
@@ -31,7 +38,9 @@ private:
 
   int nVerbose;
 
-  void Connect(int i, int f);
+  void SortObjs(std::list<int>::iterator const & it);
+
+  void Connect(int i, int f, bool fSort = false);
   void Disconnect(int i, int i0, unsigned j);
 
   void RemoveFis(int i);
@@ -51,6 +60,10 @@ private:
 
   void CalcG(int i);
   void CalcC(int i);
+
+  bool TryConnect(int i, int f);
+
+  void MarkFoCone_rec(int i);
 
   struct RankComparator {
     Transduction const & t;
