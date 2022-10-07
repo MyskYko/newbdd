@@ -424,14 +424,67 @@ bool Transduction::TryConnect(int i, int f) {
   return false;
 }
 
-void Transduction::MarkFoCone_rec(int i) {
+void Transduction::MarkFiCone_rec(vector<bool> & vMarks, int i) {
+  for(unsigned j = 0; j < vvFis[i].size(); j++) {
+    int i0 = vvFis[i][j] >> 1;
+    if(!vMarks[i0]) {
+      vMarks[i0] = true;
+      MarkFiCone_rec(vMarks, i0);
+    }
+  }
+}
+void Transduction::MarkFoCone_rec(vector<bool> & vMarks, int i) {
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     int k = vvFos[i][j];
     if(!vMarks[k]) {
       vMarks[k] = true;
-      MarkFoCone_rec(k);
+      MarkFoCone_rec(vMarks, k);
     }
   }
+}
+
+void Transduction::CspfFiCone(int i) {
+  if(nVerbose > 2) {
+    cout << "\t\tCspf fanin cone of " << i << endl;
+  }
+  CalcC(i);
+  assert(!vvFis[i].empty());
+  if(vvFis[i].size() == 1) {
+    ReplaceNode(i, vvFis[i][0]);
+    vObjs.erase(find(vObjs.begin(), vObjs.end(), i));
+    i = vvFis[i][0] >> 1;
+  }
+  vector<bool> vMarks(nObjs);
+  MarkFiCone_rec(vMarks, i);
+  for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
+    if(!vMarks[*it]) {
+      it++;
+      continue;
+    }
+    if(nVerbose > 3) {
+      cout << "\t\t\tCspf node " << *it << endl;
+    }
+    if(vvFos[*it].empty()) {
+      RemoveFis(*it);
+      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
+      continue;
+    }
+    CalcG(*it);
+    if(vvFis[*it].empty()) {
+      assert(vvFos[*it].empty());
+      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
+      continue;
+    }
+    CalcC(*it);
+    assert(!vvFis[*it].empty());
+    if(vvFis[*it].size() == 1) {
+      ReplaceNode(*it, vvFis[*it][0]);
+      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
+      continue;
+    }
+    it++;
+  }
+  Build();
 }
 
 void Transduction::Resub() {
@@ -447,10 +500,9 @@ void Transduction::Resub() {
     if(vvFos[*it].empty()) {
       continue;
     }
-    vMarks.clear();
-    vMarks.resize(nObjs);
+    vector<bool> vMarks(nObjs);
     vMarks[*it] = true;
-    MarkFoCone_rec(*it);
+    MarkFoCone_rec(vMarks, *it);
     for(unsigned i = 0; i < vPis.size(); i++) {
       int f = vPis[i] << 1;
       if(!TryConnect(*it, f)) {
@@ -467,8 +519,6 @@ void Transduction::Resub() {
       }
     }
     Cspf();
-    //return;
-    //CspfFiCone();
   }
 }
 

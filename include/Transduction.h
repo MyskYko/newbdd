@@ -32,7 +32,6 @@ private:
   std::list<int> vObjs;
   std::vector<std::vector<int> > vvFis;
   std::vector<std::vector<int> > vvFos;
-  std::vector<bool> vMarks;
 
   NewBdd::Man * bdd;
   std::vector<NewBdd::Node> vFs;
@@ -64,7 +63,10 @@ private:
 
   bool TryConnect(int i, int f);
 
-  void MarkFoCone_rec(int i);
+  void MarkFiCone_rec(std::vector<bool> & vMarks, int i);
+  void MarkFoCone_rec(std::vector<bool> & vMarks, int i);
+
+  void CspfFiCone(int i);
 
   struct RankComparator {
     Transduction const & t;
