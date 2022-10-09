@@ -6,52 +6,6 @@
 
 using namespace std;
 
-void Transduction::SortObjs(list<int>::iterator const & it) {
-  for(unsigned j = 0; j < vvFis[*it].size(); j++) {
-    int i0 = vvFis[*it][j] >> 1;
-    if(vvFis[i0].empty()) {
-      continue;
-    }
-    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
-    if(it_i0 != vObjs.end()) {
-      if(nVerbose > 6) {
-        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
-      }
-      vObjs.erase(it_i0);
-      it_i0 = vObjs.insert(it, i0);
-      SortObjs(it_i0);
-    }
-  }
-}
-void Transduction::Connect(int i, int f, bool fSort) {
-  int i0 = f >> 1;
-  if(nVerbose > 5) {
-    cout << "\t\t\t\t\tConnect " << i0 << " to " << i << endl;
-  }
-  vvFis[i].push_back(f);
-  vvFos[i0].push_back(i);
-  if(fSort && !vvFos[i].empty() && !vvFis[i0].empty()) {
-    list<int>::iterator it = find(vObjs.begin(), vObjs.end(), i);
-    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
-    if(it_i0 != vObjs.end()) {
-      if(nVerbose > 6) {
-        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
-      }
-      vObjs.erase(it_i0);
-      it_i0 = vObjs.insert(it, i0);
-      SortObjs(it_i0);
-    }
-  }
-}
-void Transduction::Disconnect(int i, int i0, unsigned j) {
-  if(nVerbose > 5) {
-    cout << "\t\t\t\t\tDisconnect " << i0 << " from " << i << endl;
-  }
-  vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
-  vvFos[i0].erase(it);
-  vvFis[i].erase(vvFis[i].begin() + j);
-}
-
 Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose) {
   if(nVerbose > 2) {
     cout << "\t\tImport aig" << endl;
@@ -145,7 +99,6 @@ void Transduction::Aig(aigman & aig) const {
 int Transduction::CountGates() const {
   return vObjs.size();
 }
-
 int Transduction::CountWires() const {
   int count = 0;
   for(list<int>::const_iterator it = vObjs.begin(); it != vObjs.end(); it++) {
@@ -153,9 +106,54 @@ int Transduction::CountWires() const {
   }
   return count;
 }
-
 int Transduction::CountNodes() const {
   return CountWires() - CountGates();
+}
+
+void Transduction::SortObjs(list<int>::iterator const & it) {
+  for(unsigned j = 0; j < vvFis[*it].size(); j++) {
+    int i0 = vvFis[*it][j] >> 1;
+    if(vvFis[i0].empty()) {
+      continue;
+    }
+    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
+    if(it_i0 != vObjs.end()) {
+      if(nVerbose > 6) {
+        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
+      }
+      vObjs.erase(it_i0);
+      it_i0 = vObjs.insert(it, i0);
+      SortObjs(it_i0);
+    }
+  }
+}
+void Transduction::Connect(int i, int f, bool fSort) {
+  int i0 = f >> 1;
+  if(nVerbose > 5) {
+    cout << "\t\t\t\t\tConnect " << i0 << " to " << i << endl;
+  }
+  vvFis[i].push_back(f);
+  vvFos[i0].push_back(i);
+  if(fSort && !vvFos[i].empty() && !vvFis[i0].empty()) {
+    list<int>::iterator it = find(vObjs.begin(), vObjs.end(), i);
+    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
+    if(it_i0 != vObjs.end()) {
+      if(nVerbose > 6) {
+        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
+      }
+      vObjs.erase(it_i0);
+      it_i0 = vObjs.insert(it, i0);
+      SortObjs(it_i0);
+    }
+  }
+}
+void Transduction::Disconnect(int i, int i0, unsigned j) {
+  if(nVerbose > 5) {
+    cout << "\t\t\t\t\tDisconnect " << i0 << " from " << i << endl;
+  }
+  vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
+  vvFos[i0].erase(it);
+  vvFis[i].erase(vvFis[i].begin() + j);
 }
 
 void Transduction::RemoveFis(int i) {
