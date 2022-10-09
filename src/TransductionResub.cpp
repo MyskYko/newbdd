@@ -19,13 +19,13 @@ void Transduction::Resub() {
     if(vvFos[*it].empty()) {
       continue;
     }
-    vector<bool> vMarks(nObjs);
-    vMarks[*it] = true;
-    MarkFoCone_rec(vMarks, *it);
     for(unsigned i = 0; i < vPis.size(); i++) {
       int f = vPis[i] << 1;
       TryConnect(*it, f) || TryConnect(*it, f ^ 1);
     }
+    vector<bool> vMarks(nObjs);
+    vMarks[*it] = true;
+    MarkFoCone_rec(vMarks, *it);
     for(list<int>::iterator it2 = targets.begin(); it2 != targets.end(); it2++) {
       if(!vMarks[*it2] && !vvFos[*it2].empty()) {
         int f = *it2 << 1;
@@ -68,9 +68,6 @@ void Transduction::ResubMono() {
     }
     SortFisOne(*it);
     // resub
-    vector<bool> vMarks(nObjs);
-    vMarks[*it] = true;
-    MarkFoCone_rec(vMarks, *it);
     for(unsigned i = 0; i < vPis.size(); i++) {
       if(vvFos[*it].empty()) {
         break;
@@ -90,6 +87,9 @@ void Transduction::ResubMono() {
     if(vvFos[*it].empty()) {
       continue;
     }
+    vector<bool> vMarks(nObjs);
+    vMarks[*it] = true;
+    MarkFoCone_rec(vMarks, *it);
     list<int> targets2 = vObjs;
     for(list<int>::iterator it2 = targets2.begin(); it2 != targets2.end(); it2++) {
       if(vvFos[*it].empty()) {

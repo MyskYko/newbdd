@@ -293,7 +293,7 @@ void Transduction::SortFisOne(int i) {
   if(nVerbose > 4) {
     cout << "\t\t\t\tSort fanins " << i << endl;
     for(unsigned j = 0; j < vvFis[i].size(); j++) {
-      cout << "\t\t\t\t\tFanin " << j << " node " << (vvFis[i][j] >> 1) << " rank " << Rank(vvFis[i][j] >> 1) << endl;
+      cout << "\t\t\t\t\tFanin " << j << " : node " << (vvFis[i][j] >> 1) << " rank " << Rank(vvFis[i][j] >> 1) << endl;
     }
   }
 }
@@ -377,7 +377,7 @@ void Transduction::Cspf() {
   }
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
     if(nVerbose > 3) {
-      cout << "\t\t\tCspf node " << *it << endl;
+      cout << "\t\t\tCspf " << *it << endl;
     }
     if(vvFos[*it].empty()) {
       RemoveFis(*it);
@@ -459,7 +459,7 @@ void Transduction::CspfFiCone(int i) {
       continue;
     }
     if(nVerbose > 3) {
-      cout << "\t\t\tCspf node " << *it << endl;
+      cout << "\t\t\tCspf " << *it << endl;
     }
     if(vvFos[*it].empty()) {
       RemoveFis(*it);
