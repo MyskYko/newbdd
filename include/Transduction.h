@@ -21,6 +21,8 @@ public:
 
   void Resub();
 
+  void ResubMono();
+
   int CountGates();
   int CountWires();
   int CountNodes();
