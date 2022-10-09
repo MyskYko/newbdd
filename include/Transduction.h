@@ -43,23 +43,21 @@ private:
   int nVerbose;
 
   void SortObjs(std::list<int>::iterator const & it);
-
   void Connect(int i, int f, bool fSort = false);
   void Disconnect(int i, int i0, unsigned j);
 
   void RemoveFis(int i);
   int FindFi(int i, int i0) const;
-  void ReplaceNode(int i, int c);
+  void Replace(int i, int c);
 
-  void BuildNode(int i, std::vector<NewBdd::Node> & vFs_);
+  void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();
 
   double Rank(int f) const;
-  void SortFisNode(int i);
+  void SortFisOne(int i);
   void SortFis();
 
   void RemoveRedundantFis(int i);
-
   void CalcG(int i);
   void CalcC(int i);
 

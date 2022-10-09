@@ -6,6 +6,52 @@
 
 using namespace std;
 
+void Transduction::SortObjs(list<int>::iterator const & it) {
+  for(unsigned j = 0; j < vvFis[*it].size(); j++) {
+    int i0 = vvFis[*it][j] >> 1;
+    if(vvFis[i0].empty()) {
+      continue;
+    }
+    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
+    if(it_i0 != vObjs.end()) {
+      if(nVerbose > 6) {
+        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
+      }
+      vObjs.erase(it_i0);
+      it_i0 = vObjs.insert(it, i0);
+      SortObjs(it_i0);
+    }
+  }
+}
+void Transduction::Connect(int i, int f, bool fSort) {
+  int i0 = f >> 1;
+  if(nVerbose > 5) {
+    cout << "\t\t\t\t\tConnect " << i0 << " to " << i << endl;
+  }
+  vvFis[i].push_back(f);
+  vvFos[i0].push_back(i);
+  if(fSort && !vvFos[i].empty() && !vvFis[i0].empty()) {
+    list<int>::iterator it = find(vObjs.begin(), vObjs.end(), i);
+    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
+    if(it_i0 != vObjs.end()) {
+      if(nVerbose > 6) {
+        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
+      }
+      vObjs.erase(it_i0);
+      it_i0 = vObjs.insert(it, i0);
+      SortObjs(it_i0);
+    }
+  }
+}
+void Transduction::Disconnect(int i, int i0, unsigned j) {
+  if(nVerbose > 5) {
+    cout << "\t\t\t\t\tDisconnect " << i0 << " from " << i << endl;
+  }
+  vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
+  vvFos[i0].erase(it);
+  vvFis[i].erase(vvFis[i].begin() + j);
+}
+
 Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose) {
   if(nVerbose > 2) {
     cout << "\t\tImport aig" << endl;
@@ -18,7 +64,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
   }
   for(int i = aig.nPis + 1; i < aig.nObjs; i++) {
     if(nVerbose > 3) {
-      cout << "\t\t\tImport aig node " << i << endl;
+      cout << "\t\t\tImport node " << i << endl;
     }
     for(int ii = i + i;  ii <= i + i + 1; ii++) {
       Connect(i, aig.vObjs[ii]);
@@ -27,12 +73,12 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
   }
   for(int i = 0; i < aig.nPos; i++) {
     if(nVerbose > 3) {
-      cout << "\t\t\tImport aig po " << i << endl;
+      cout << "\t\t\tImport po " << i << endl;
     }
     Connect(i + aig.nObjs, aig.vPos[i]);
     vPos.push_back(i + aig.nObjs);
   }
-
+  // set up BDD
   bdd = new NewBdd::Man(aig.nPis);
   bdd->SetParameters(0, 12);
   bdd->SetOneCounts(true);
@@ -44,29 +90,12 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
   Build();
   bdd->Reorder();
   bdd->SetParameters(1);
-
   vGs.resize(nObjs);
   vvCs.resize(nObjs);
   for(int i = 0; i < aig.nPos; i++) {
     vGs[i + aig.nObjs] = bdd->Const0();
     vvCs[i + aig.nObjs].push_back(bdd->Const0());
   }
-
-  /*  
-  #include "AigBdd.h"
-  vector<NewBdd::Node> vNodes;
-  for(unsigned i = 0; i < vPos.size(); i++) {
-    int i0 = vPos[i] >> 1;
-    if(vPos[i] & 1) {
-      vNodes.push_back(bdd->Not(vFs[i0]));
-    } else {
-      vNodes.push_back(vFs[i0]);
-    }
-  }
-  aigman aig2;
-  Bdd2Aig(*bdd, aig2, vNodes);
-  aig2.write("c.aig");
-  */
 }
 Transduction::~Transduction() {
   vFs.clear();
@@ -113,58 +142,9 @@ void Transduction::Aig(aigman & aig) const {
   }
 }
 
-void Transduction::SortObjs(list<int>::iterator const & it) {
-  for(unsigned j = 0; j < vvFis[*it].size(); j++) {
-    int i0 = vvFis[*it][j] >> 1;
-    if(vvFis[i0].empty()) {
-      continue;
-    }
-    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
-    if(it_i0 != vObjs.end()) {
-      if(nVerbose > 6) {
-        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
-      }
-      vObjs.erase(it_i0);
-      it_i0 = vObjs.insert(it, i0);
-      SortObjs(it_i0);
-    }
-  }
-}
-
-void Transduction::Connect(int i, int f, bool fSort) {
-  int i0 = f >> 1;
-  if(nVerbose > 5) {
-    cout << "\t\t\t\t\tConnect " << i0 << " to " << i << endl;
-  }
-  vvFis[i].push_back(f);
-  vvFos[i0].push_back(i);
-  if(fSort && !vvFos[i].empty() && !vvFis[i0].empty()) {
-    list<int>::iterator it = find(vObjs.begin(), vObjs.end(), i);
-    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
-    if(it_i0 != vObjs.end()) {
-      if(nVerbose > 6) {
-        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
-      }
-      vObjs.erase(it_i0);
-      it_i0 = vObjs.insert(it, i0);
-      SortObjs(it_i0);
-    }
-  }
-}
-
-void Transduction::Disconnect(int i, int i0, unsigned j) {
-  if(nVerbose > 5) {
-    cout << "\t\t\t\t\tDisconnect " << i0 << " from " << i << endl;
-  }
-  vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
-  vvFos[i0].erase(it);
-  vvFis[i].erase(vvFis[i].begin() + j);
-}
-
-
 void Transduction::RemoveFis(int i) {
   if(nVerbose > 4) {
-    cout << "\t\t\t\tRemove node " << i << endl;
+    cout << "\t\t\t\tRemove " << i << endl;
   }
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     int i0 = vvFis[i][j] >> 1;
@@ -181,9 +161,9 @@ int Transduction::FindFi(int i, int i0) const {
   }
   abort();
 }
-void Transduction::ReplaceNode(int i, int c) {
+void Transduction::Replace(int i, int c) {
   if(nVerbose > 4) {
-    cout << "\t\t\t\tReplace node " << i << " by " << (c >> 1) << endl;
+    cout << "\t\t\t\tReplace " << i << " by " << (c >> 1) << endl;
   }
   assert(i != (c >> 1));
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
@@ -202,7 +182,7 @@ void Transduction::TrivialMerge() {
   }
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
     if(nVerbose > 3) {
-      cout << "\t\t\tTrivial merge node " << *it << endl;
+      cout << "\t\t\tTrivial merge " << *it << endl;
     }
     if(vvFos[*it].empty()) {
       RemoveFis(*it);
@@ -233,7 +213,7 @@ void Transduction::TrivialDecompose() {
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(nVerbose > 3) {
-      cout << "\t\t\tTrivial decompose node " << *it << endl;
+      cout << "\t\t\tTrivial decompose " << *it << endl;
     }
     while(vvFis[*it].size() > 2) {
       int f0 = vvFis[*it].back();
@@ -261,9 +241,9 @@ void Transduction::TrivialDecompose() {
   Build();
 }
 
-void Transduction::BuildNode(int i, vector<NewBdd::Node> & vFs_) {
+void Transduction::BuildOne(int i, vector<NewBdd::Node> & vFs_) {
   if(nVerbose > 3) {
-    cout << "\t\t\tBuild node " << i << endl;
+    cout << "\t\t\tBuild " << i << endl;
   }
   vFs_[i] = bdd->Const1();
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
@@ -277,7 +257,7 @@ void Transduction::Build() {
     cout << "\t\tBuild" << endl;
   }
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    BuildNode(*it, vFs);
+    BuildOne(*it, vFs);
   }
 }
 
@@ -294,10 +274,10 @@ double Transduction::Rank(int f) const {
   assert(abs(b) < numeric_limits<double>::max() - abs(a));
   return a + b;
 }
-void Transduction::SortFisNode(int i) {
+void Transduction::SortFisOne(int i) {
   sort(vvFis[i].begin(), vvFis[i].end(), RankComparator(*this));
   if(nVerbose > 4) {
-    cout << "\t\t\t\tSort fanins node " << i << endl;
+    cout << "\t\t\t\tSort fanins " << i << endl;
     for(unsigned j = 0; j < vvFis[i].size(); j++) {
       cout << "\t\t\t\t\tFanin " << j << " node " << (vvFis[i][j] >> 1) << " rank " << Rank(vvFis[i][j] >> 1) << endl;
     }
@@ -305,7 +285,7 @@ void Transduction::SortFisNode(int i) {
 }
 void Transduction::SortFis() {
   for(int i : vObjs) {
-    SortFisNode(i);
+    SortFisOne(i);
   }
 }
 
@@ -333,7 +313,6 @@ void Transduction::RemoveRedundantFis(int i) {
     }
   }
 }
-
 void Transduction::CalcG(int i) {
   vGs[i] = bdd->Const1();
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
@@ -342,9 +321,9 @@ void Transduction::CalcG(int i) {
     vGs[i] = bdd->And(vGs[i], vvCs[k][l]);
   }
   if(bdd->IsConst1(bdd->Or(vFs[i], vGs[i]))) {
-    ReplaceNode(i, 1);
+    Replace(i, 1);
   } else if(bdd->IsConst1(bdd->Or(bdd->Not(vFs[i]), vGs[i]))) {
-    ReplaceNode(i, 0);
+    Replace(i, 0);
   }
 }
 void Transduction::CalcC(int i) {
@@ -378,7 +357,6 @@ void Transduction::CalcC(int i) {
     }
   }
 }
-
 void Transduction::Cspf() {
   if(nVerbose > 2) {
     cout << "\t\tCspf" << endl;
@@ -398,12 +376,12 @@ void Transduction::Cspf() {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    SortFisNode(*it);
+    SortFisOne(*it);
     RemoveRedundantFis(*it);
     CalcC(*it);
     assert(!vvFis[*it].empty());
     if(vvFis[*it].size() == 1) {
-      ReplaceNode(*it, vvFis[*it][0]);
+      Replace(*it, vvFis[*it][0]);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
@@ -450,7 +428,7 @@ void Transduction::CspfFiCone(int i) {
   CalcC(i);
   assert(!vvFis[i].empty());
   while(vvFis[i].size() == 1) {
-    ReplaceNode(i, vvFis[i][0]);
+    Replace(i, vvFis[i][0]);
     vObjs.erase(find(vObjs.begin(), vObjs.end(), i));
     i = vvFis[i][0] >> 1;
     CalcG(i);
@@ -480,12 +458,12 @@ void Transduction::CspfFiCone(int i) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    SortFisNode(*it);
+    SortFisOne(*it);
     RemoveRedundantFis(*it);
     CalcC(*it);
     assert(!vvFis[*it].empty());
     if(vvFis[*it].size() == 1) {
-      ReplaceNode(*it, vvFis[*it][0]);
+      Replace(*it, vvFis[*it][0]);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
@@ -554,7 +532,7 @@ void Transduction::ResubMono() {
         RemoveFis(i0);
       }
     }
-    SortFisNode(*it);
+    SortFisOne(*it);
     // resub
     vector<bool> vMarks(nObjs);
     vMarks[*it] = true;
