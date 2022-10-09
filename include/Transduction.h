@@ -14,6 +14,10 @@ public:
   
   void Aig(aigman & aig) const;
 
+  int CountGates() const;
+  int CountWires() const;
+  int CountNodes() const;
+
   void TrivialMerge();
   void TrivialDecompose();
 
@@ -22,10 +26,6 @@ public:
   void Resub();
 
   void ResubMono();
-
-  int CountGates();
-  int CountWires();
-  int CountNodes();
 
 private:
   int nObjs;
