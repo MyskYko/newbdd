@@ -455,10 +455,11 @@ void Transduction::BuildFoCone(int i) {
     }
   }
 }
-void Transduction::CspfFiCone(int i, int block) {
+int Transduction::CspfFiCone(int i, int block) {
   if(nVerbose > 2) {
     cout << "\t\tCspf fanin cone of " << i << endl;
   }
+  int count = 0;
   vector<bool> vMarks(nObjs);
   vMarks[i] = true;
   MarkFiCone_rec(vMarks, i);
@@ -471,11 +472,11 @@ void Transduction::CspfFiCone(int i, int block) {
       cout << "\t\t\tCspf " << *it << endl;
     }
     if(vvFos[*it].empty()) {
-      RemoveFis(*it);
+      count += RemoveFis(*it);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    CalcG(*it);
+    count += CalcG(*it);
     if(vvFis[*it].empty()) {
       assert(vvFos[*it].empty());
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
@@ -483,18 +484,19 @@ void Transduction::CspfFiCone(int i, int block) {
     }
     if(*it != block) {
       SortFisOne(*it);
-      RemoveRedundantFis(*it);
+      count += RemoveRedundantFis(*it);
     }
-    CalcC(*it);
+    count += CalcC(*it);
     assert(!vvFis[*it].empty());
     if(vvFis[*it].size() == 1) {
-      Replace(*it, vvFis[*it][0]);
+      count += Replace(*it, vvFis[*it][0]);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
     it++;
   }
   Build();
+  return count;
 }
 
 bool Transduction::TryConnect(int i, int f) {

@@ -47,10 +47,11 @@ int Transduction::Resub() {
   return count;
 }
 
-void Transduction::ResubMono() {
+int Transduction::ResubMono() {
   if(nVerbose) {
     cout << "Resubstitution monotonic" << endl;
   }
+  int count = CspfEager();
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -66,18 +67,20 @@ void Transduction::ResubMono() {
       int c0 = vvFis[*it][j] & 1;
       if(!vvFis[i0].empty() && vvFos[i0].size() == 1 && !c0) {
         Disconnect(*it, i0, j--);
+        count++;
         for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
           int f = vvFis[i0][jj];
           if(find(vvFis[*it].begin(), vvFis[*it].end(), f) == vvFis[*it].end()) {
             Connect(*it, f);
+            count--;
           }
         }
         targets.erase(find(targets.begin(), targets.end(), i0));
         vObjs.erase(find(vObjs.begin(), vObjs.end(), i0));
-        RemoveFis(i0);
+        count += RemoveFis(i0);
       }
     }
-    SortFisOne(*it);
+    count += CspfFiCone(*it);
     // resub
     for(unsigned i = 0; i < vPis.size(); i++) {
       if(vvFos[*it].empty()) {
@@ -85,13 +88,16 @@ void Transduction::ResubMono() {
       }
       int f = vPis[i] << 1;
       if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
-        int wire = CountWires();
-        CspfFiCone(*it, *it);
-        if(wire > CountWires()) {
-          Cspf();
+        count--;
+        int diff = CspfFiCone(*it, *it);
+        if(diff) {
+          count += diff;
+          count += CspfEager();
         } else {
           Disconnect(*it, f >> 1, vvFis[*it].size() - 1);
-          CspfFiCone(*it);
+          count++;
+          diff = CspfFiCone(*it);
+          assert(!diff);
         }
       }
     }
@@ -109,13 +115,16 @@ void Transduction::ResubMono() {
       if(!vMarks[*it2] && !vvFos[*it2].empty()) {
         int f = *it2 << 1;
         if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
-          int wire = CountWires();
-          CspfFiCone(*it, *it);
-          if(wire > CountWires()) {
-            Cspf();
+          count--;
+          int diff = CspfFiCone(*it, *it);
+          if(diff) {
+            count += diff;
+            count += CspfEager();
           } else {
             Disconnect(*it, f >> 1, vvFis[*it].size() - 1);
-            CspfFiCone(*it);
+            count++;
+            diff = CspfFiCone(*it);
+            assert(!diff);
           }
         }
       }
@@ -140,9 +149,12 @@ void Transduction::ResubMono() {
         Connect(i, f0);
         Connect(i, f1);
         Connect(*it, i << 1);
+        count--;
       }
       Build();
-      Cspf();
     }
+    int diff = Cspf();
+    assert(!diff);
   }
+  return count;
 }

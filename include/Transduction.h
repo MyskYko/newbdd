@@ -25,8 +25,7 @@ public:
   int CspfEager();
 
   int Resub();
-
-  void ResubMono();
+  int ResubMono();
 
 private:
   int nObjs;
@@ -66,7 +65,7 @@ private:
   void MarkFoCone_rec(std::vector<bool> & vMarks, int i);
 
   void BuildFoCone(int i);
-  void CspfFiCone(int i, int block = -1);
+  int CspfFiCone(int i, int block = -1);
 
   bool TryConnect(int i, int f);
 
