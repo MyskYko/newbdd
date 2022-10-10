@@ -96,7 +96,7 @@ void Transduction::Aig(aigman & aig) const {
   }
 }
 
-void Transduction::SortObjs(list<int>::iterator const & it) {
+void Transduction::SortObjs_rec(list<int>::iterator const & it) {
   for(unsigned j = 0; j < vvFis[*it].size(); j++) {
     int i0 = vvFis[*it][j] >> 1;
     if(vvFis[i0].empty()) {
@@ -109,7 +109,7 @@ void Transduction::SortObjs(list<int>::iterator const & it) {
       }
       vObjs.erase(it_i0);
       it_i0 = vObjs.insert(it, i0);
-      SortObjs(it_i0);
+      SortObjs_rec(it_i0);
     }
   }
 }

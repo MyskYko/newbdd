@@ -55,7 +55,7 @@ private:
   inline int Replace(int i, int f);
   inline void CreateNewGate(int & pos);
 
-  void SortObjs(std::list<int>::iterator const & it);
+  void SortObjs_rec(std::list<int>::iterator const & it);
 
   int TrivialMergeOne(int i, bool fErase = false);
   int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
@@ -129,7 +129,7 @@ void Transduction::Connect(int i, int f, bool fSort) {
       }
       vObjs.erase(it_i0);
       it_i0 = vObjs.insert(it, i0);
-      SortObjs(it_i0);
+      SortObjs_rec(it_i0);
     }
   }
 }
