@@ -82,6 +82,7 @@ int Transduction::ResubMono() {
     }
     count += CspfFiCone(*it);
     // resub
+    Save();
     for(unsigned i = 0; i < vPis.size(); i++) {
       if(vvFos[*it].empty()) {
         break;
@@ -93,11 +94,10 @@ int Transduction::ResubMono() {
         if(diff) {
           count += diff;
           count += CspfEager();
+          Save();
         } else {
-          Disconnect(*it, f >> 1, vvFis[*it].size() - 1);
+          Load();
           count++;
-          diff = CspfFiCone(*it);
-          assert(!diff);
         }
       }
     }
@@ -120,11 +120,12 @@ int Transduction::ResubMono() {
           if(diff) {
             count += diff;
             count += CspfEager();
+            Save();
           } else {
-            Disconnect(*it, f >> 1, vvFis[*it].size() - 1);
+            auto a = vObjs;
+            Load();
+            vObjs = a;
             count++;
-            diff = CspfFiCone(*it);
-            assert(!diff);
           }
         }
       }
@@ -156,5 +157,6 @@ int Transduction::ResubMono() {
     int diff = Cspf();
     assert(!diff);
   }
+  ClearSave();
   return count;
 }

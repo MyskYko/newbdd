@@ -528,3 +528,12 @@ void Transduction::Load() {
   vGs = vGsOld;
   vvCs = vvCsOld;
 }
+
+void Transduction::ClearSave() {
+  vObjsOld.clear();
+  vvFisOld.clear();
+  vvFosOld.clear();
+  vFsOld.clear();
+  vGsOld.clear();
+  vvCsOld.clear();
+}

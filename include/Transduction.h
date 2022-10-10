@@ -78,6 +78,7 @@ private:
 
   void Save();
   void Load();
+  void ClearSave();
 
   struct RankComparator {
     Transduction const & t;
