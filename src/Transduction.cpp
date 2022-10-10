@@ -381,7 +381,7 @@ int Transduction::CalcC(int i) {
   }
   return count;
 }
-int Transduction::Cspf() {
+int Transduction::Cspf(int block) {
   if(nVerbose > 2) {
     cout << "\t\tCspf" << endl;
   }
@@ -401,8 +401,10 @@ int Transduction::Cspf() {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    SortFisOne(*it);
-    count += RemoveRedundantFis(*it);
+    if(*it != block) {
+      SortFisOne(*it);
+      count += RemoveRedundantFis(*it);
+    }
     count += CalcC(*it);
     assert(!vvFis[*it].empty());
     if(vvFis[*it].size() == 1) {
@@ -415,12 +417,12 @@ int Transduction::Cspf() {
   Build();
   return count;
 }
-int Transduction::CspfEager() {
+int Transduction::CspfEager(int block) {
   if(nVerbose > 1) {
     cout << "\tCspf eager" << endl;
   }
   int count = 0;
-  while(int diff = Cspf()) {
+  while(int diff = Cspf(block)) {
     count += diff;
   }
   return count;

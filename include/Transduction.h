@@ -21,8 +21,8 @@ public:
   void TrivialMerge();
   void TrivialDecompose();
 
-  int Cspf();
-  int CspfEager();
+  int Cspf(int block = -1);
+  int CspfEager(int block = -1);
 
   int Resub();
   int ResubMono();
