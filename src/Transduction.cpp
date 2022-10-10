@@ -185,16 +185,16 @@ int Transduction::RemoveFis(int i) {
   vvFis[i].clear();
   return count;
 }
-int Transduction::Replace(int i, int c) {
+int Transduction::Replace(int i, int f) {
   if(nVerbose > 4) {
-    cout << "\t\t\t\tReplace " << i << " by " << (c >> 1) << "(" << (c & 1) << ")" << endl;
+    cout << "\t\t\t\tReplace " << i << " by " << (f >> 1) << "(" << (f & 1) << ")" << endl;
   }
-  assert(i != (c >> 1));
+  assert(i != (f >> 1));
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     int k = vvFos[i][j];
     unsigned l = FindFi(k, i);
-    vvFis[k][l] = c ^ (vvFis[k][l] & 1);
-    vvFos[c >> 1].push_back(k);
+    vvFis[k][l] = f ^ (vvFis[k][l] & 1);
+    vvFos[f >> 1].push_back(k);
   }
   vvFos[i].clear();
   return RemoveFis(i);
@@ -531,8 +531,8 @@ int Transduction::Cspf(int block) {
   return count;
 }
 int Transduction::CspfEager(int block) {
-  if(nVerbose > 1) {
-    cout << "\tCspf eager" << endl;
+  if(nVerbose > 2) {
+    cout << "\t\tCspf eager" << endl;
   }
   int count = 0;
   while(int diff = Cspf(block)) {

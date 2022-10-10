@@ -51,7 +51,7 @@ private:
   void Disconnect(int i, int f);
 
   int RemoveFis(int i);
-  int Replace(int i, int c);
+  int Replace(int i, int f);
 
   void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();
