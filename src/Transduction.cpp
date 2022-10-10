@@ -404,18 +404,6 @@ void Transduction::Cspf() {
   Build();
 }
 
-bool Transduction::TryConnect(int i, int f) {
-  if(find(vvFis[i].begin(), vvFis[i].end(), f) == vvFis[i].end()) {
-    NewBdd::Node x = bdd->Or(bdd->Not(vFs[i]), vGs[i]);
-    x = bdd->Or(x, bdd->NotCond(vFs[f >> 1], f & 1));
-    if(bdd->IsConst1(x)) {
-      Connect(i, f, true);
-      return true;
-    }
-  }
-  return false;
-}
-
 void Transduction::MarkFiCone_rec(vector<bool> & vMarks, int i) {
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     int i0 = vvFis[i][j] >> 1;
@@ -435,23 +423,22 @@ void Transduction::MarkFoCone_rec(vector<bool> & vMarks, int i) {
   }
 }
 
-void Transduction::CspfFiCone(int i) {
+void Transduction::BuildFoCone(int i) {
+  vector<bool> vMarks(nObjs);
+  vMarks[i] = true;
+  MarkFoCone_rec(vMarks, i);
+  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+    if(vMarks[*it]) {
+      BuildOne(*it, vFs);
+    }
+  }
+}
+void Transduction::CspfFiCone(int i, int block) {
   if(nVerbose > 2) {
     cout << "\t\tCspf fanin cone of " << i << endl;
   }
-  CalcC(i);
-  assert(!vvFis[i].empty());
-  while(vvFis[i].size() == 1) {
-    Replace(i, vvFis[i][0]);
-    vObjs.erase(find(vObjs.begin(), vObjs.end(), i));
-    i = vvFis[i][0] >> 1;
-    CalcG(i);
-    if(vvFis[i].empty()) {
-      return;
-    }
-    CalcC(i);
-  }
   vector<bool> vMarks(nObjs);
+  vMarks[i] = true;
   MarkFiCone_rec(vMarks, i);
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
     if(!vMarks[*it]) {
@@ -472,8 +459,10 @@ void Transduction::CspfFiCone(int i) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    SortFisOne(*it);
-    RemoveRedundantFis(*it);
+    if(*it != block) {
+      SortFisOne(*it);
+      RemoveRedundantFis(*it);
+    }
     CalcC(*it);
     assert(!vvFis[*it].empty());
     if(vvFis[*it].size() == 1) {
@@ -484,4 +473,34 @@ void Transduction::CspfFiCone(int i) {
     it++;
   }
   Build();
+}
+
+bool Transduction::TryConnect(int i, int f) {
+  if(find(vvFis[i].begin(), vvFis[i].end(), f) == vvFis[i].end()) {
+    NewBdd::Node x = bdd->Or(bdd->Not(vFs[i]), vGs[i]);
+    x = bdd->Or(x, bdd->NotCond(vFs[f >> 1], f & 1));
+    if(bdd->IsConst1(x)) {
+      Connect(i, f, true);
+      return true;
+    }
+  }
+  return false;
+}
+
+void Transduction::Save() {
+  vObjsOld = vObjs;
+  vvFisOld = vvFis;
+  vvFosOld = vvFos;
+  vFsOld = vFs;
+  vGsOld = vGs;
+  vvCsOld = vvCs;
+}
+
+void Transduction::Load() {
+  vObjs = vObjsOld;
+  vvFis = vvFisOld;
+  vvFos = vvFosOld;
+  vFs = vFsOld;
+  vGs = vGsOld;
+  vvCs = vvCsOld;
 }

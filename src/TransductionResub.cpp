@@ -75,7 +75,7 @@ void Transduction::ResubMono() {
       int f = vPis[i] << 1;
       if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
         int wire = CountWires();
-        CspfFiCone(*it);
+        CspfFiCone(*it, *it);
         if(wire > CountWires()) {
           Cspf();
         } else {
@@ -99,7 +99,7 @@ void Transduction::ResubMono() {
         int f = *it2 << 1;
         if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
           int wire = CountWires();
-          CspfFiCone(*it);
+          CspfFiCone(*it, *it);
           if(wire > CountWires()) {
             Cspf();
           } else {
@@ -108,7 +108,6 @@ void Transduction::ResubMono() {
           }
         }
       }
-
     }
     if(vvFos[*it].empty()) {
       continue;

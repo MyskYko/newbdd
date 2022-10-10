@@ -61,12 +61,23 @@ private:
   void CalcG(int i);
   void CalcC(int i);
 
-  bool TryConnect(int i, int f);
-
   void MarkFiCone_rec(std::vector<bool> & vMarks, int i);
   void MarkFoCone_rec(std::vector<bool> & vMarks, int i);
 
-  void CspfFiCone(int i);
+  void BuildFoCone(int i);
+  void CspfFiCone(int i, int block = -1);
+
+  bool TryConnect(int i, int f);
+
+  std::list<int> vObjsOld;
+  std::vector<std::vector<int> > vvFisOld;
+  std::vector<std::vector<int> > vvFosOld;
+  std::vector<NewBdd::Node> vFsOld;
+  std::vector<NewBdd::Node> vGsOld;
+  std::vector<std::vector<NewBdd::Node> > vvCsOld;
+
+  void Save();
+  void Load();
 
   struct RankComparator {
     Transduction const & t;
