@@ -257,10 +257,14 @@ int Transduction::TrivialMerge() {
 }
 
 int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos) {
+  if(vvFis[*it].size() <= 2) {
+    return 0;
+  }
   if(nVerbose > 3) {
     cout << "\t\t\tTrivial decompose " << *it << endl;
   }
   int count = 0;
+  SortFisOne(*it);
   while(vvFis[*it].size() > 2) {
     int f0 = vvFis[*it].back();
     Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1);
