@@ -330,6 +330,7 @@ void Transduction::Decompose() {
           for(set<int>::iterator it3 = s.begin(); it3 != s.end(); it3++) {
             Connect(pos, *it3);
           }
+          BuildOne(pos, vFs);
         }
         if(nVerbose > 3) {
           cout << "\t\t\tDecompose switch to " << *it << endl;
@@ -338,30 +339,33 @@ void Transduction::Decompose() {
         it2 = it;
       }
     }
-    while(vvFis[*it].size() > 2) {
-      int f0 = vvFis[*it].back();
-      Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1);
-      int f1 = vvFis[*it].back();
-      Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1);
-      while(!vvFis[pos].empty() || !vvFos[pos].empty()) {
-        pos++;
-        if(pos == nObjs) {
-          nObjs++;
-          vvFis.resize(nObjs);
-          vvFos.resize(nObjs);
-          vFs.resize(nObjs);
-          vGs.resize(nObjs);
-          vvCs.resize(nObjs);
-          break;
+    if(vvFis[*it].size() > 2) {
+      SortFisOne(*it);
+      while(vvFis[*it].size() > 2) {
+        int f0 = vvFis[*it].back();
+        Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1);
+        int f1 = vvFis[*it].back();
+        Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1);
+        while(!vvFis[pos].empty() || !vvFos[pos].empty()) {
+          pos++;
+          if(pos == nObjs) {
+            nObjs++;
+            vvFis.resize(nObjs);
+            vvFos.resize(nObjs);
+            vFs.resize(nObjs);
+            vGs.resize(nObjs);
+            vvCs.resize(nObjs);
+            break;
+          }
         }
+        vObjs.insert(it, pos);
+        Connect(pos, f0);
+        Connect(pos, f1);
+        Connect(*it, pos << 1);
+        BuildOne(pos, vFs);
       }
-      vObjs.insert(it, pos);
-      Connect(pos, f0);
-      Connect(pos, f1);
-      Connect(*it, pos << 1);
     }
   }
-  Build();
 }
 
 void Transduction::BuildOne(int i, vector<NewBdd::Node> & vFs_) {
