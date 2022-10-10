@@ -1,6 +1,5 @@
 #include <set>
 #include <map>
-#include <cassert>
 
 #include "Transduction.h"
 
