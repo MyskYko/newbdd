@@ -19,7 +19,7 @@ public:
   int CountNodes() const;
 
   int TrivialMerge();
-  void TrivialDecompose();
+  int TrivialDecompose();
 
   void Decompose();
 
@@ -52,6 +52,7 @@ private:
 
   int RemoveFis(int i);
   int Replace(int i, int f);
+  void CreateNewGate(int & pos);
 
   int TrivialMergeOne(int i, bool fErase = false);
 

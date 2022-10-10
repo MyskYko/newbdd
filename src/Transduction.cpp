@@ -199,6 +199,19 @@ int Transduction::Replace(int i, int f) {
   vvFos[i].clear();
   return RemoveFis(i);
 }
+void Transduction::CreateNewGate(int & pos) {
+  while(pos != nObjs && (!vvFis[pos].empty() || !vvFos[pos].empty())) {
+    pos++;
+  }
+  if(pos == nObjs) {
+    nObjs++;
+    vvFis.resize(nObjs);
+    vvFos.resize(nObjs);
+    vFs.resize(nObjs);
+    vGs.resize(nObjs);
+    vvCs.resize(nObjs);
+  }
+}
 
 int Transduction::TrivialMergeOne(int i, bool fErase) {
   if(nVerbose > 3) {
@@ -243,10 +256,11 @@ int Transduction::TrivialMerge() {
   return count;
 }
 
-void Transduction::TrivialDecompose() {
+int Transduction::TrivialDecompose() {
   if(nVerbose > 2) {
     cout << "\t\tTrivial decompose" << endl;
   }
+  int count = 0;
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(nVerbose > 3) {
@@ -257,25 +271,16 @@ void Transduction::TrivialDecompose() {
       Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1);
       int f1 = vvFis[*it].back();
       Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1);
-      while(!vvFis[pos].empty() || !vvFos[pos].empty()) {
-        pos++;
-        if(pos == nObjs) {
-          nObjs++;
-          vvFis.resize(nObjs);
-          vvFos.resize(nObjs);
-          vFs.resize(nObjs);
-          vGs.resize(nObjs);
-          vvCs.resize(nObjs);
-          break;
-        }
-      }
+      CreateNewGate(pos);
       vObjs.insert(it, pos);
       Connect(pos, f0);
       Connect(pos, f1);
       Connect(*it, pos << 1);
+      count--;
     }
   }
   Build();
+  return count;
 }
 
 void Transduction::Decompose() {
