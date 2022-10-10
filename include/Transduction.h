@@ -65,6 +65,7 @@ private:
   int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
 
   double Rank(int f) const;
+  bool RankCompare(int a, int b) const;
   void SortFisOne(int i);
   void SortFis();
 
@@ -95,7 +96,7 @@ private:
     Transduction const & t;
     RankComparator(Transduction const & t) : t(t) {}
     bool operator()(int a, int b) {
-      return t.Rank(a) < t.Rank(b);
+      return t.RankCompare(a, b);
     }
   };
 };

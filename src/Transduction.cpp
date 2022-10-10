@@ -288,16 +288,29 @@ int Transduction::Decompose() {
 
 double Transduction::Rank(int f) const {
   int i = f >> 1;
-  if(vvFis[i].empty()) {
-    return numeric_limits<double>::max();
+  return bdd->OneCount(vFs[i]);
+  //return bdd->OneCount(bdd->NotCond(vFs[i], f & 1));
+  //return bdd->ZeroCount(vFs[i]);
+}
+bool Transduction::RankCompare(int a, int b) const {
+  int a0 = a >> 1;
+  int b0 = b >> 1;
+  if(vvFis[a0].empty() && vvFis[b0].empty()) {
+    return a0 < b0;
   }
-  assert(vPis.size() + ceil(log2(vvFos[i].size())) < 1024);
-  double a = pow(2.0, vPis.size()) * vvFos[i].size();
-  double b = bdd->OneCount(vFs[i]);
-  //double b = bdd->OneCount(bdd->NotCond(vFs[i], f & 1));
-  //double b = bdd->ZeroCount(vFs[i]);
-  assert(abs(b) < numeric_limits<double>::max() - abs(a));
-  return a + b;
+  if(vvFis[a0].empty() && !vvFis[b0].empty()) {
+    return false;
+  }
+  if(!vvFis[a0].empty() && vvFis[b0].empty()) {
+    return true;
+  }
+  if(vvFos[a0].size() > vvFos[b0].size()) {
+    return false;
+  }
+  if(vvFos[a0].size() < vvFos[b0].size()) {
+    return true;
+  }
+  return Rank(a) < Rank(b);
 }
 void Transduction::SortFisOne(int i) {
   if(nVerbose > 4) {
@@ -306,7 +319,7 @@ void Transduction::SortFisOne(int i) {
   sort(vvFis[i].begin(), vvFis[i].end(), RankComparator(*this));
   if(nVerbose > 5) {
     for(unsigned j = 0; j < vvFis[i].size(); j++) {
-      cout << "\t\t\t\t\tFanin " << j << " : " << (vvFis[i][j] >> 1) << "(" << (vvFis[i][j] & 1) << ")" << " rank " << Rank(vvFis[i][j] >> 1) << endl;
+      cout << "\t\t\t\t\tFanin " << j << " : " << (vvFis[i][j] >> 1) << "(" << (vvFis[i][j] & 1) << ")" << endl;
     }
   }
 }
