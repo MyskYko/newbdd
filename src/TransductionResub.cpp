@@ -90,7 +90,10 @@ int Transduction::ResubMono() {
       int f = vPis[i] << 1;
       if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
         count--;
-        int diff = CspfFiCone(*it, *it);
+        //int diff = CspfFiCone(*it, *it);
+        BuildFoCone(*it);
+        int diff = Cspf(*it);
+        //int diff = CspfEager(*it);
         if(diff) {
           count += diff;
           count += CspfEager();
@@ -116,15 +119,16 @@ int Transduction::ResubMono() {
         int f = *it2 << 1;
         if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
           count--;
-          int diff = CspfFiCone(*it, *it);
+          //int diff = CspfFiCone(*it, *it);
+          BuildFoCone(*it);
+          int diff = Cspf(*it);
+          //int diff = CspfEager(*it);
           if(diff) {
             count += diff;
             count += CspfEager();
             Save();
           } else {
-            auto a = vObjs;
             Load();
-            vObjs = a;
             count++;
           }
         }
