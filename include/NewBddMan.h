@@ -38,6 +38,7 @@ namespace NewBdd {
     Node NotCond(Node const & x, bool c);
     Node And(Node const & x, Node const & y);
     Node Or(Node const & x, Node const & y);
+    Node Xor(Node const & x, Node const & y);
 
     var Var(NodeNoRef const & x) const;
     bvar Id(NodeNoRef const & x) const;

@@ -197,6 +197,11 @@ namespace NewBdd {
   Node Man::Or(Node const & x, Node const & y) {
     return Node(this, LitNot(And(LitNot(x.val), LitNot(y.val))));
   }
+  Node Man::Xor(Node const & x, Node const & y) {
+    Node z0 = And(Not(x), y);
+    Node z1 = And(x, Not(y));
+    return Or(z0, z1);
+  }
 
   var Man::Var(NodeNoRef const & x) const {
     return Var(x.val);
