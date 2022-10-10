@@ -201,15 +201,3 @@ void Transduction::SortFis(int i) {
     }
   }
 }
-
-bool Transduction::TryConnect(int i, int f) {
-  if(find(vvFis[i].begin(), vvFis[i].end(), f) == vvFis[i].end()) {
-    NewBdd::Node x = bdd->Or(bdd->Not(vFs[i]), vGs[i]);
-    x = bdd->Or(x, bdd->NotCond(vFs[f >> 1], f & 1));
-    if(bdd->IsConst1(x)) {
-      Connect(i, f, true);
-      return true;
-    }
-  }
-  return false;
-}

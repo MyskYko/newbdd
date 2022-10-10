@@ -69,8 +69,6 @@ private:
   bool RankCompare(int a, int b) const;
   void SortFis(int i);
 
-  bool TryConnect(int i, int f);
-
   int TrivialMergeOne(int i, bool fErase = false);
   int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
 
@@ -78,6 +76,8 @@ private:
   int CalcG(int i);
   int CalcC(int i);
   int CspfFiCone(int i, int block = -1);
+
+  bool TryConnect(int i, int f);
 
   struct RankComparator {
     Transduction const & t;
