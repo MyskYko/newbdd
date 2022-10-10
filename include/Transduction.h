@@ -23,7 +23,6 @@ public:
 
   int TrivialMerge();
   int TrivialDecompose();
-
   int Decompose();
 
   int Cspf(int block = -1);
@@ -65,21 +64,30 @@ private:
   void Build();
   void BuildFoCone(int i);
 
-  int TrivialMergeOne(int i, bool fErase = false);
-  int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
-
   double Rank(int f) const;
   bool RankCompare(int a, int b) const;
   void SortFisOne(int i);
   void SortFis();
+
+  bool TryConnect(int i, int f);
+
+  int TrivialMergeOne(int i, bool fErase = false);
+  int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
 
   int RemoveRedundantFis(int i);
   int CalcG(int i);
   int CalcC(int i);
   int CspfFiCone(int i, int block = -1);
 
-  bool TryConnect(int i, int f);
+  struct RankComparator {
+    Transduction const & t;
+    RankComparator(Transduction const & t) : t(t) {}
+    bool operator()(int a, int b) {
+      return t.RankCompare(a, b);
+    }
+  };
 
+private:
   std::list<int> vObjsOld;
   std::vector<std::vector<int> > vvFisOld;
   std::vector<std::vector<int> > vvFosOld;
@@ -90,14 +98,6 @@ private:
   inline void Save();
   inline void Load();
   inline void ClearSave();
-
-  struct RankComparator {
-    Transduction const & t;
-    RankComparator(Transduction const & t) : t(t) {}
-    bool operator()(int a, int b) {
-      return t.RankCompare(a, b);
-    }
-  };
 };
 
 int Transduction::CountGates() const {
