@@ -21,6 +21,8 @@ public:
   void TrivialMerge();
   void TrivialDecompose();
 
+  void Decompose();
+
   int Cspf(int block = -1);
   int CspfEager(int block = -1);
 
