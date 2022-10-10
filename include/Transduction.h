@@ -63,6 +63,7 @@ private:
 
   void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();
+  void BuildFoCone(int i);
 
   int TrivialMergeOne(int i, bool fErase = false);
   int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
@@ -75,8 +76,6 @@ private:
   int RemoveRedundantFis(int i);
   int CalcG(int i);
   int CalcC(int i);
-
-  void BuildFoCone(int i);
   int CspfFiCone(int i, int block = -1);
 
   bool TryConnect(int i, int f);

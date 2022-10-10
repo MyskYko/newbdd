@@ -151,6 +151,19 @@ void Transduction::Build() {
     BuildOne(*it, vFs);
   }
 }
+void Transduction::BuildFoCone(int i) {
+  if(nVerbose > 2) {
+    cout << "\t\tBuild fanout cone " << i << endl;
+  }
+  vector<bool> vMarks(nObjs);
+  vMarks[i] = true;
+  MarkFoCone_rec(vMarks, i);
+  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+    if(vMarks[*it]) {
+      BuildOne(*it, vFs);
+    }
+  }
+}
 
 int Transduction::TrivialMergeOne(int i, bool fErase) {
   if(nVerbose > 3) {
@@ -345,17 +358,6 @@ void Transduction::SortFisOne(int i) {
 void Transduction::SortFis() {
   for(int i : vObjs) {
     SortFisOne(i);
-  }
-}
-
-void Transduction::BuildFoCone(int i) {
-  vector<bool> vMarks(nObjs);
-  vMarks[i] = true;
-  MarkFoCone_rec(vMarks, i);
-  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    if(vMarks[*it]) {
-      BuildOne(*it, vFs);
-    }
   }
 }
 
