@@ -416,6 +416,9 @@ int Transduction::Cspf() {
   return count;
 }
 int Transduction::CspfEager() {
+  if(nVerbose > 1) {
+    cout << "\tCspf eager" << endl;
+  }
   int count = 0;
   while(int diff = Cspf()) {
     count += diff;

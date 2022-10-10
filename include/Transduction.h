@@ -24,7 +24,7 @@ public:
   int Cspf();
   int CspfEager();
 
-  void Resub();
+  int Resub();
 
   void ResubMono();
 

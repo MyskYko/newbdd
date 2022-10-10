@@ -6,10 +6,11 @@
 
 using namespace std;
 
-void Transduction::Resub() {
+int Transduction::Resub() {
   if(nVerbose) {
     cout << "Resubstitution" << endl;
   }
+  int count = CspfEager();
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -19,9 +20,13 @@ void Transduction::Resub() {
     if(vvFos[*it].empty()) {
       continue;
     }
+    bool fConnect = false;
     for(unsigned i = 0; i < vPis.size(); i++) {
       int f = vPis[i] << 1;
-      TryConnect(*it, f) || TryConnect(*it, f ^ 1);
+      if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
+        fConnect |= true;
+        count--;
+      }
     }
     vector<bool> vMarks(nObjs);
     vMarks[*it] = true;
@@ -29,11 +34,17 @@ void Transduction::Resub() {
     for(list<int>::iterator it2 = targets.begin(); it2 != targets.end(); it2++) {
       if(!vMarks[*it2] && !vvFos[*it2].empty()) {
         int f = *it2 << 1;
-        TryConnect(*it, f) || TryConnect(*it, f ^ 1);
+        if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
+          fConnect |= true;
+          count--;
+        }
       }
     }
-    Cspf();
+    if(fConnect) {
+      count += CspfEager();
+    }
   }
+  return count;
 }
 
 void Transduction::ResubMono() {
