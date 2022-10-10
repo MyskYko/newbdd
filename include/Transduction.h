@@ -60,7 +60,8 @@ private:
   void MarkFiCone_rec(std::vector<bool> & vMarks, int i) const;
   void MarkFoCone_rec(std::vector<bool> & vMarks, int i) const;
 
-  void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);
+  void Build(int i, std::vector<NewBdd::Node> & vFs_);
+  void Build(int i);
   void Build();
   void BuildFoCone(int i);
 

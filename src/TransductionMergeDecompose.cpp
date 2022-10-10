@@ -64,7 +64,7 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
     Connect(pos, f1);
     Connect(*it, pos << 1);
     vObjs.insert(it, pos);
-    BuildOne(pos, vFs);
+    Build(pos);
   }
   return count;
 }
@@ -141,7 +141,7 @@ int Transduction::Decompose() {
           }
           count -= s.size();
           it = vObjs.insert(it, pos);
-          BuildOne(pos, vFs);
+          Build(pos);
         }
         if(nVerbose > 3) {
           cout << "\t\t\tDecompose switch to " << *it << endl;

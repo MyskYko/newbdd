@@ -129,7 +129,7 @@ void Transduction::MarkFoCone_rec(vector<bool> & vMarks, int i) const {
   }
 }
 
-void Transduction::BuildOne(int i, vector<NewBdd::Node> & vFs_) {
+void Transduction::Build(int i, vector<NewBdd::Node> & vFs_) {
   if(nVerbose > 3) {
     cout << "\t\t\tBuild " << i << endl;
   }
@@ -140,12 +140,15 @@ void Transduction::BuildOne(int i, vector<NewBdd::Node> & vFs_) {
     vFs_[i] = bdd->And(vFs_[i], bdd->NotCond(vFs_[i0], c0));
   }
 }
+void Transduction::Build(int i) {
+  Build(i, vFs);
+}
 void Transduction::Build() {
   if(nVerbose > 2) {
     cout << "\t\tBuild" << endl;
   }
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    BuildOne(*it, vFs);
+    Build(*it);
   }
 }
 void Transduction::BuildFoCone(int i) {
@@ -157,7 +160,7 @@ void Transduction::BuildFoCone(int i) {
   MarkFoCone_rec(vMarks, i);
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(vMarks[*it]) {
-      BuildOne(*it, vFs);
+      Build(*it);
     }
   }
 }
