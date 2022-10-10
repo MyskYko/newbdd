@@ -53,7 +53,7 @@ private:
   int RemoveFis(int i);
   int Replace(int i, int f);
 
-  int TrivialMergeOne(int i);
+  int TrivialMergeOne(int i, bool fErase = false);
 
   void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();

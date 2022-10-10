@@ -62,25 +62,8 @@ int Transduction::ResubMono() {
       continue;
     }
     // merge
-    for(unsigned j = 0; j < vvFis[*it].size(); j++) {
-      int i0 = vvFis[*it][j] >> 1;
-      int c0 = vvFis[*it][j] & 1;
-      if(!vvFis[i0].empty() && vvFos[i0].size() == 1 && !c0) {
-        Disconnect(*it, i0, j--);
-        count++;
-        for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
-          int f = vvFis[i0][jj];
-          if(find(vvFis[*it].begin(), vvFis[*it].end(), f) == vvFis[*it].end()) {
-            Connect(*it, f);
-            count--;
-          }
-        }
-        targets.erase(find(targets.begin(), targets.end(), i0));
-        vObjs.erase(find(vObjs.begin(), vObjs.end(), i0));
-        count += RemoveFis(i0);
-      }
-    }
-    count += CspfFiCone(*it);
+    count += TrivialMergeOne(*it, true);
+    count += CspfEager();
     // resub
     Save();
     for(unsigned i = 0; i < vPis.size(); i++) {

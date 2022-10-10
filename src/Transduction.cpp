@@ -200,7 +200,7 @@ int Transduction::Replace(int i, int f) {
   return RemoveFis(i);
 }
 
-int Transduction::TrivialMergeOne(int i) {
+int Transduction::TrivialMergeOne(int i, bool fErase) {
   if(nVerbose > 3) {
     cout << "\t\t\tTrivial merge " << i << endl;
   }
@@ -219,6 +219,9 @@ int Transduction::TrivialMergeOne(int i) {
         }
       }
       count += RemoveFis(i0);
+      if(fErase) {
+        vObjs.erase(find(vObjs.begin(), vObjs.end(), i0));
+      }
     }
   }
   return count;
