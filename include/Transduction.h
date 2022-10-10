@@ -67,6 +67,13 @@ private:
 
   double Rank(int f) const;
   bool RankCompare(int a, int b) const;
+  struct RankComparator {
+    Transduction const & t;
+    RankComparator(Transduction const & t) : t(t) {}
+    bool operator()(int a, int b) {
+      return t.RankCompare(a, b);
+    }
+  };
   void SortFis(int i);
 
   int TrivialMergeOne(int i, bool fErase = false);
@@ -78,14 +85,6 @@ private:
   int CspfFiCone(int i, int block = -1);
 
   bool TryConnect(int i, int f);
-
-  struct RankComparator {
-    Transduction const & t;
-    RankComparator(Transduction const & t) : t(t) {}
-    bool operator()(int a, int b) {
-      return t.RankCompare(a, b);
-    }
-  };
 
 private:
   std::list<int> vObjsOld;
