@@ -21,7 +21,8 @@ public:
   void TrivialMerge();
   void TrivialDecompose();
 
-  void Cspf();
+  int Cspf();
+  int CspfEager();
 
   void Resub();
 
@@ -46,9 +47,9 @@ private:
   void Connect(int i, int f, bool fSort = false);
   void Disconnect(int i, int i0, unsigned j);
 
-  void RemoveFis(int i);
+  int RemoveFis(int i);
   int FindFi(int i, int i0) const;
-  void Replace(int i, int c);
+  int Replace(int i, int c);
 
   void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();
@@ -57,9 +58,9 @@ private:
   void SortFisOne(int i);
   void SortFis();
 
-  void RemoveRedundantFis(int i);
-  void CalcG(int i);
-  void CalcC(int i);
+  int RemoveRedundantFis(int i);
+  int CalcG(int i);
+  int CalcC(int i);
 
   void MarkFiCone_rec(std::vector<bool> & vMarks, int i);
   void MarkFoCone_rec(std::vector<bool> & vMarks, int i);
