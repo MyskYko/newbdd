@@ -57,11 +57,11 @@ private:
 
   void SortObjs_rec(std::list<int>::iterator const & it);
 
-  int TrivialMergeOne(int i, bool fErase = false);
-  int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
-
   void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();
+
+  int TrivialMergeOne(int i, bool fErase = false);
+  int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
 
   double Rank(int f) const;
   void SortFisOne(int i);

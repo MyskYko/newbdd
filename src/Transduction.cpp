@@ -114,6 +114,26 @@ void Transduction::SortObjs_rec(list<int>::iterator const & it) {
   }
 }
 
+void Transduction::BuildOne(int i, vector<NewBdd::Node> & vFs_) {
+  if(nVerbose > 3) {
+    cout << "\t\t\tBuild " << i << endl;
+  }
+  vFs_[i] = bdd->Const1();
+  for(unsigned j = 0; j < vvFis[i].size(); j++) {
+    int i0 = vvFis[i][j] >> 1;
+    int c0 = vvFis[i][j] & 1;
+    vFs_[i] = bdd->And(vFs_[i], bdd->NotCond(vFs_[i0], c0));
+  }
+}
+void Transduction::Build() {
+  if(nVerbose > 2) {
+    cout << "\t\tBuild" << endl;
+  }
+  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+    BuildOne(*it, vFs);
+  }
+}
+
 int Transduction::TrivialMergeOne(int i, bool fErase) {
   if(nVerbose > 3) {
     cout << "\t\t\tTrivial merge " << i << endl;
@@ -265,26 +285,6 @@ int Transduction::Decompose() {
     }
   }
   return count;
-}
-
-void Transduction::BuildOne(int i, vector<NewBdd::Node> & vFs_) {
-  if(nVerbose > 3) {
-    cout << "\t\t\tBuild " << i << endl;
-  }
-  vFs_[i] = bdd->Const1();
-  for(unsigned j = 0; j < vvFis[i].size(); j++) {
-    int i0 = vvFis[i][j] >> 1;
-    int c0 = vvFis[i][j] & 1;
-    vFs_[i] = bdd->And(vFs_[i], bdd->NotCond(vFs_[i0], c0));
-  }
-}
-void Transduction::Build() {
-  if(nVerbose > 2) {
-    cout << "\t\tBuild" << endl;
-  }
-  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    BuildOne(*it, vFs);
-  }
 }
 
 double Transduction::Rank(int f) const {
