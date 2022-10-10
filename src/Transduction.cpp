@@ -132,7 +132,7 @@ void Transduction::SortObjs(list<int>::iterator const & it) {
 void Transduction::Connect(int i, int f, bool fSort) {
   int i0 = f >> 1;
   if(nVerbose > 5) {
-    cout << "\t\t\t\t\tConnect " << i0 << " to " << i << endl;
+    cout << "\t\t\t\t\tConnect " << i0 << "(" << (f & 1) << ")" << " to " << i << endl;
   }
   vvFis[i].push_back(f);
   vvFos[i0].push_back(i);
@@ -159,7 +159,7 @@ unsigned Transduction::FindFi(int i, int i0) const {
 }
 void Transduction::Disconnect(int i, int i0, unsigned j) {
   if(nVerbose > 5) {
-    cout << "\t\t\t\t\tDisconnect " << i0 << " from " << i << endl;
+    cout << "\t\t\t\t\tDisconnect " << i0 << "(" << (vvFis[i][j] & 1) << ")" << " from " << i << endl;
   }
   vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
   vvFos[i0].erase(it);
@@ -187,7 +187,7 @@ int Transduction::RemoveFis(int i) {
 }
 int Transduction::Replace(int i, int c) {
   if(nVerbose > 4) {
-    cout << "\t\t\t\tReplace " << i << " by " << (c >> 1) << endl;
+    cout << "\t\t\t\tReplace " << i << " by " << (c >> 1) << "(" << (c & 1) << ")" << endl;
   }
   assert(i != (c >> 1));
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
@@ -293,7 +293,7 @@ void Transduction::Decompose() {
         if(nVerbose > 5) {
           cout << "\t\t\t\t\tIntersection";
           for(set<int>::iterator it3 = s.begin(); it3 != s.end(); it3++) {
-            cout << " " << *it3;
+            cout << " " << (*it3 >> 1) << "(" << (*it3 & 1) << ")";
           }
           cout << endl;
         }
@@ -402,11 +402,13 @@ double Transduction::Rank(int f) const {
   return a + b;
 }
 void Transduction::SortFisOne(int i) {
-  sort(vvFis[i].begin(), vvFis[i].end(), RankComparator(*this));
   if(nVerbose > 4) {
     cout << "\t\t\t\tSort fanins " << i << endl;
+  }
+  sort(vvFis[i].begin(), vvFis[i].end(), RankComparator(*this));
+  if(nVerbose > 5) {
     for(unsigned j = 0; j < vvFis[i].size(); j++) {
-      cout << "\t\t\t\t\tFanin " << j << " : node " << (vvFis[i][j] >> 1) << " rank " << Rank(vvFis[i][j] >> 1) << endl;
+      cout << "\t\t\t\t\tFanin " << j << " : " << (vvFis[i][j] >> 1) << "(" << (vvFis[i][j] & 1) << ")" << " rank " << Rank(vvFis[i][j] >> 1) << endl;
     }
   }
 }
@@ -435,7 +437,7 @@ int Transduction::RemoveRedundantFis(int i) {
     x = bdd->Or(x, bdd->NotCond(vFs[i0], c0));
     if(bdd->IsConst1(x)) {
       if(nVerbose > 4) {
-        cout << "\t\t\t\tRemove wire " << i0 << " -> " << i << endl;
+        cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j--);
       count++;
@@ -482,7 +484,7 @@ int Transduction::CalcC(int i) {
     // Or(c, f[i_j]) == const1 -> redundant
     if(bdd->IsConst1(bdd->Or(c, f_i_j))) {
       if(nVerbose > 4) {
-        cout << "\t\t\t\tRemove wire " << i0 << " -> " << i << endl;
+        cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j--);
       count++;
@@ -570,7 +572,7 @@ void Transduction::BuildFoCone(int i) {
 }
 int Transduction::CspfFiCone(int i, int block) {
   if(nVerbose > 2) {
-    cout << "\t\tCspf fanin cone of " << i << endl;
+    cout << "\t\tCspf fanin cone " << i << endl;
   }
   int count = 0;
   vector<bool> vMarks(nObjs);
