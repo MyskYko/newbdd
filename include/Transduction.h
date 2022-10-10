@@ -58,6 +58,9 @@ private:
 
   void SortObjs_rec(std::list<int>::iterator const & it);
 
+  void MarkFiCone_rec(std::vector<bool> & vMarks, int i) const;
+  void MarkFoCone_rec(std::vector<bool> & vMarks, int i) const;
+
   void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();
 
@@ -72,9 +75,6 @@ private:
   int RemoveRedundantFis(int i);
   int CalcG(int i);
   int CalcC(int i);
-
-  void MarkFiCone_rec(std::vector<bool> & vMarks, int i) const;
-  void MarkFoCone_rec(std::vector<bool> & vMarks, int i) const;
 
   void BuildFoCone(int i);
   int CspfFiCone(int i, int block = -1);
