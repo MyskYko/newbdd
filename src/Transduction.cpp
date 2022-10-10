@@ -200,34 +200,44 @@ int Transduction::Replace(int i, int f) {
   return RemoveFis(i);
 }
 
-void Transduction::TrivialMerge() {
+int Transduction::TrivialMergeOne(int i) {
+  if(nVerbose > 3) {
+    cout << "\t\t\tTrivial merge " << i << endl;
+  }
+  int count = 0;
+  for(unsigned j = 0; j < vvFis[i].size(); j++) {
+    int i0 = vvFis[i][j] >> 1;
+    int c0 = vvFis[i][j] & 1;
+    if(!vvFis[i0].empty() && vvFos[i0].size() == 1 && !c0) {
+      Disconnect(i, i0, j--);
+      count++;
+      for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
+        int f = vvFis[i0][jj];
+        if(find(vvFis[i].begin(), vvFis[i].end(), f) == vvFis[i].end()) {
+          Connect(i, f);
+          count--;
+        }
+      }
+      count += RemoveFis(i0);
+    }
+  }
+  return count;
+}
+int Transduction::TrivialMerge() {
   if(nVerbose > 2) {
     cout << "\t\tTrivial merge" << endl;
   }
+  int count = 0;
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
-    if(nVerbose > 3) {
-      cout << "\t\t\tTrivial merge " << *it << endl;
-    }
     if(vvFos[*it].empty()) {
-      RemoveFis(*it);
+      count += RemoveFis(*it);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    for(unsigned j = 0; j < vvFis[*it].size(); j++) {
-      int i0 = vvFis[*it][j] >> 1;
-      int c0 = vvFis[*it][j] & 1;
-      if(!vvFis[i0].empty() && vvFos[i0].size() == 1 && !c0) {
-        Disconnect(*it, i0, j--);
-        for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
-          int f = vvFis[i0][jj];
-          if(find(vvFis[*it].begin(), vvFis[*it].end(), f) == vvFis[*it].end()) {
-            Connect(*it, f);
-          }
-        }
-      }
-    }
+    count += TrivialMergeOne(*it);
     it++;
   }
+  return count;
 }
 
 void Transduction::TrivialDecompose() {

@@ -18,7 +18,7 @@ public:
   int CountWires() const;
   int CountNodes() const;
 
-  void TrivialMerge();
+  int TrivialMerge();
   void TrivialDecompose();
 
   void Decompose();
@@ -52,6 +52,8 @@ private:
 
   int RemoveFis(int i);
   int Replace(int i, int f);
+
+  int TrivialMergeOne(int i);
 
   void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();
