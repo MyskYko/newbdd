@@ -256,6 +256,26 @@ int Transduction::TrivialMerge() {
   return count;
 }
 
+int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos) {
+  if(nVerbose > 3) {
+    cout << "\t\t\tTrivial decompose " << *it << endl;
+  }
+  int count = 0;
+  while(vvFis[*it].size() > 2) {
+    int f0 = vvFis[*it].back();
+    Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1);
+    int f1 = vvFis[*it].back();
+    Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1);
+    CreateNewGate(pos);
+    Connect(pos, f0);
+    Connect(pos, f1);
+    Connect(*it, pos << 1);
+    vObjs.insert(it, pos);
+    BuildOne(pos, vFs);
+    count--;
+  }
+  return count;
+}
 int Transduction::TrivialDecompose() {
   if(nVerbose > 2) {
     cout << "\t\tTrivial decompose" << endl;
@@ -263,23 +283,8 @@ int Transduction::TrivialDecompose() {
   int count = 0;
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    if(nVerbose > 3) {
-      cout << "\t\t\tTrivial decompose " << *it << endl;
-    }
-    while(vvFis[*it].size() > 2) {
-      int f0 = vvFis[*it].back();
-      Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1);
-      int f1 = vvFis[*it].back();
-      Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1);
-      CreateNewGate(pos);
-      vObjs.insert(it, pos);
-      Connect(pos, f0);
-      Connect(pos, f1);
-      Connect(*it, pos << 1);
-      count--;
-    }
+    count += TrivialDecomposeOne(it, pos);
   }
-  Build();
   return count;
 }
 

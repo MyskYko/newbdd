@@ -55,6 +55,7 @@ private:
   void CreateNewGate(int & pos);
 
   int TrivialMergeOne(int i, bool fErase = false);
+  int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
 
   void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);
   void Build();
