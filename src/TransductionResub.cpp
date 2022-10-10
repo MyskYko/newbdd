@@ -122,27 +122,11 @@ int Transduction::ResubMono() {
     }
     // decompose
     if(vvFis[*it].size() > 2) {
-      while(vvFis[*it].size() > 2) {
-        int f0 = vvFis[*it].back();
-        Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1);
-        int f1 = vvFis[*it].back();
-        Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1);
-        int i = nObjs++;
-        vvFis.resize(nObjs);
-        vvFos.resize(nObjs);
-        vFs.resize(nObjs);
-        vGs.resize(nObjs);
-        vvCs.resize(nObjs);
-        vObjs.insert(find(vObjs.begin(), vObjs.end(), *it), i);
-        Connect(i, f0);
-        Connect(i, f1);
-        Connect(*it, i << 1);
-        count--;
-      }
-      Build();
+      list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
+      int pos = nObjs;
+      count += TrivialDecomposeOne(it2, pos);
+      count += CspfFiCone(*it);
     }
-    int diff = Cspf();
-    assert(!diff);
   }
   ClearSave();
   return count;
