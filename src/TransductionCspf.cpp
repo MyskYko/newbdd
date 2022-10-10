@@ -102,7 +102,7 @@ int Transduction::Cspf(int block) {
       continue;
     }
     if(*it != block) {
-      SortFisOne(*it);
+      SortFis(*it);
       count += RemoveRedundantFis(*it);
     }
     count += CalcC(*it);
@@ -157,7 +157,7 @@ int Transduction::CspfFiCone(int i, int block) {
       continue;
     }
     if(*it != block) {
-      SortFisOne(*it);
+      SortFis(*it);
       count += RemoveRedundantFis(*it);
     }
     count += CalcC(*it);

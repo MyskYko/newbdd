@@ -67,8 +67,7 @@ private:
 
   double Rank(int f) const;
   bool RankCompare(int a, int b) const;
-  void SortFisOne(int i);
-  void SortFis();
+  void SortFis(int i);
 
   bool TryConnect(int i, int f);
 

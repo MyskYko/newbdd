@@ -76,7 +76,7 @@ int Transduction::TrivialDecompose() {
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(vvFis[*it].size() > 2) {
-      SortFisOne(*it);
+      SortFis(*it);
       count += TrivialDecomposeOne(it, pos);
     }
   }
@@ -151,7 +151,7 @@ int Transduction::Decompose() {
       }
     }
     if(vvFis[*it].size() > 2) {
-      SortFisOne(*it);
+      SortFis(*it);
       count += TrivialDecomposeOne(it, pos);
     }
   }

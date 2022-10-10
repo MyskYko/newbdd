@@ -191,7 +191,7 @@ bool Transduction::RankCompare(int a, int b) const {
   }
   return Rank(a) < Rank(b);
 }
-void Transduction::SortFisOne(int i) {
+void Transduction::SortFis(int i) {
   if(nVerbose > 4) {
     cout << "\t\t\t\tSort fanins " << i << endl;
   }
@@ -200,11 +200,6 @@ void Transduction::SortFisOne(int i) {
     for(unsigned j = 0; j < vvFis[i].size(); j++) {
       cout << "\t\t\t\t\tFanin " << j << " : " << (vvFis[i][j] >> 1) << "(" << (vvFis[i][j] & 1) << ")" << endl;
     }
-  }
-}
-void Transduction::SortFis() {
-  for(int i : vObjs) {
-    SortFisOne(i);
   }
 }
 
