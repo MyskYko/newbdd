@@ -292,10 +292,11 @@ int Transduction::TrivialDecompose() {
   return count;
 }
 
-void Transduction::Decompose() {
+int Transduction::Decompose() {
   if(nVerbose > 2) {
     cout << "\t\tDecompose" << endl;
   }
+  int count = 0;
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(nVerbose > 3) {
@@ -303,6 +304,7 @@ void Transduction::Decompose() {
     }
     set<int> s1(vvFis[*it].begin(), vvFis[*it].end());
     if(s1.size() < vvFis[*it].size()) {
+      count += vvFis[*it].size() - s1.size();
       RemoveFis(*it);
       for(set<int>::iterator it3 = s1.begin(); it3 != s1.end(); it3++) {
         Connect(*it, *it3);
@@ -326,7 +328,7 @@ void Transduction::Decompose() {
         }
         if(s == s1) {
           if(s == s2) {
-            Replace(*it2, *it << 1);
+            count += Replace(*it2, *it << 1);
             it2 = vObjs.erase(it2);
             it2--;
           } else {
@@ -334,6 +336,7 @@ void Transduction::Decompose() {
               Disconnect(*it2, *it3);
             }
             Connect(*it2, *it << 1);
+            count += s.size() - 1;
           }
           continue;
         }
@@ -341,22 +344,12 @@ void Transduction::Decompose() {
           it = vObjs.insert(it, *it2);
           vObjs.erase(it2);
         } else {
-          while(!vvFis[pos].empty() || !vvFos[pos].empty()) {
-            pos++;
-            if(pos == nObjs) {
-              nObjs++;
-              vvFis.resize(nObjs);
-              vvFos.resize(nObjs);
-              vFs.resize(nObjs);
-              vGs.resize(nObjs);
-              vvCs.resize(nObjs);
-              break;
-            }
-          }
-          it = vObjs.insert(it, pos);
+          CreateNewGate(pos);
           for(set<int>::iterator it3 = s.begin(); it3 != s.end(); it3++) {
             Connect(pos, *it3);
           }
+          count -= s.size();
+          it = vObjs.insert(it, pos);
           BuildOne(pos, vFs);
         }
         if(nVerbose > 3) {
@@ -368,31 +361,10 @@ void Transduction::Decompose() {
     }
     if(vvFis[*it].size() > 2) {
       SortFisOne(*it);
-      while(vvFis[*it].size() > 2) {
-        int f0 = vvFis[*it].back();
-        Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1);
-        int f1 = vvFis[*it].back();
-        Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1);
-        while(!vvFis[pos].empty() || !vvFos[pos].empty()) {
-          pos++;
-          if(pos == nObjs) {
-            nObjs++;
-            vvFis.resize(nObjs);
-            vvFos.resize(nObjs);
-            vFs.resize(nObjs);
-            vGs.resize(nObjs);
-            vvCs.resize(nObjs);
-            break;
-          }
-        }
-        vObjs.insert(it, pos);
-        Connect(pos, f0);
-        Connect(pos, f1);
-        Connect(*it, pos << 1);
-        BuildOne(pos, vFs);
-      }
+      count += TrivialDecomposeOne(it, pos);
     }
   }
+  return count;
 }
 
 void Transduction::BuildOne(int i, vector<NewBdd::Node> & vFs_) {
