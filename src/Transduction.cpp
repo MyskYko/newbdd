@@ -260,7 +260,8 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
   if(nVerbose > 3) {
     cout << "\t\t\tTrivial decompose " << *it << endl;
   }
-  int count = 0;
+  assert(vvFis[*it].size() > 2);
+  int count = 2 - vvFis[*it].size();
   while(vvFis[*it].size() > 2) {
     int f0 = vvFis[*it].back();
     Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1);
@@ -272,7 +273,6 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
     Connect(*it, pos << 1);
     vObjs.insert(it, pos);
     BuildOne(pos, vFs);
-    count--;
   }
   return count;
 }
@@ -283,11 +283,10 @@ int Transduction::TrivialDecompose() {
   int count = 0;
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    if(vvFis[*it].size() <= 2) {
-      continue;
+    if(vvFis[*it].size() > 2) {
+      SortFisOne(*it);
+      count += TrivialDecomposeOne(it, pos);
     }
-    SortFisOne(*it);
-    count += TrivialDecomposeOne(it, pos);
   }
   return count;
 }
