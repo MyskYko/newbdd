@@ -8,7 +8,7 @@ namespace NewBdd {
   Node::Node() {
     man = NULL;
   }
-  Node::Node(const Node & right) {
+  Node::Node(Node const & right) {
     man = right.man;
     val = right.val;
     if(man) {
@@ -20,7 +20,7 @@ namespace NewBdd {
       man->DecRef(val);
     }
   }
-  Node & Node::operator=(const Node & right) {
+  Node & Node::operator=(Node const & right) {
     if(this == &right) {
       return *this;
     }
@@ -35,15 +35,19 @@ namespace NewBdd {
     return *this;
   }
 
+  bool Node::operator==(Node const & other) const {
+    return val == other.val;
+  }
+
   NodeNoRef::NodeNoRef(lit val) : val(val) {}
   NodeNoRef::NodeNoRef() {}
-  NodeNoRef::NodeNoRef(const NodeNoRef & right) {
+  NodeNoRef::NodeNoRef(NodeNoRef const & right) {
     val = right.val;
   }
-  NodeNoRef::NodeNoRef(const Node & right) {
+  NodeNoRef::NodeNoRef(Node const & right) {
     val = right.val;
   }
-  NodeNoRef & NodeNoRef::operator=(const NodeNoRef & right) {
+  NodeNoRef & NodeNoRef::operator=(NodeNoRef const & right) {
     if(this == &right) {
       return *this;
     }

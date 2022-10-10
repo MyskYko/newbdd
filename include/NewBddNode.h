@@ -12,9 +12,11 @@ namespace NewBdd {
 
     Node(Man * man, lit val);
     Node();
-    Node(const Node & right);
+    Node(Node const & right);
     ~Node();
-    Node & operator=(const Node & right);
+    Node & operator=(Node const & right);
+
+    bool operator==(Node const & other) const;
 
   private:
     Man * man;
@@ -27,9 +29,9 @@ namespace NewBdd {
 
     NodeNoRef(lit val);
     NodeNoRef();
-    NodeNoRef(const NodeNoRef & right);
-    NodeNoRef(const Node & right);
-    NodeNoRef & operator=(const NodeNoRef & right);
+    NodeNoRef(NodeNoRef const & right);
+    NodeNoRef(Node const & right);
+    NodeNoRef & operator=(NodeNoRef const & right);
 
   private:
     lit val;
