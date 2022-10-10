@@ -95,17 +95,16 @@ void Transduction::Aig(aigman & aig) const {
 void Transduction::SortObjs_rec(list<int>::iterator const & it) {
   for(unsigned j = 0; j < vvFis[*it].size(); j++) {
     int i0 = vvFis[*it][j] >> 1;
-    if(vvFis[i0].empty()) {
-      continue;
-    }
-    list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
-    if(it_i0 != vObjs.end()) {
-      if(nVerbose > 6) {
-        cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << endl;
+    if(!vvFis[i0].empty()) {
+      list<int>::iterator it_i0 = find(it, vObjs.end(), i0);
+      if(it_i0 != vObjs.end()) {
+        if(nVerbose > 6) {
+          cout << "\t\t\t\t\t\tMove " << i0 << " before " << *it << endl;
+        }
+        vObjs.erase(it_i0);
+        it_i0 = vObjs.insert(it, i0);
+        SortObjs_rec(it_i0);
       }
-      vObjs.erase(it_i0);
-      it_i0 = vObjs.insert(it, i0);
-      SortObjs_rec(it_i0);
     }
   }
 }

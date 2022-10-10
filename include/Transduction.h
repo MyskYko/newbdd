@@ -126,7 +126,7 @@ void Transduction::Connect(int i, int f, bool fSort) {
     std::list<int>::iterator it_i0 = std::find(it, vObjs.end(), i0);
     if(it_i0 != vObjs.end()) {
       if(nVerbose > 6) {
-        std::cout << "\t\t\t\t\t\tmove " << i0 << " before " << *it << std::endl;
+        std::cout << "\t\t\t\t\t\tMove " << i0 << " before " << *it << std::endl;
       }
       vObjs.erase(it_i0);
       it_i0 = vObjs.insert(it, i0);

@@ -7,12 +7,11 @@ int Transduction::RemoveRedundantFis(int i) {
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     NewBdd::Node x = bdd->Const1();
     for(unsigned jj = 0; jj < vvFis[i].size(); jj++) {
-      if(j == jj) {
-        continue;
+      if(j != jj) {
+        int i0 = vvFis[i][jj] >> 1;
+        int c0 = vvFis[i][jj] & 1;
+        x = bdd->And(x, bdd->NotCond(vFs[i0], c0));
       }
-      int i0 = vvFis[i][jj] >> 1;
-      int c0 = vvFis[i][jj] & 1;
-      x = bdd->And(x, bdd->NotCond(vFs[i0], c0));
     }
     x = bdd->Not(x);
     x = bdd->Or(x, vGs[i]);
