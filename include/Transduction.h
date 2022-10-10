@@ -87,9 +87,9 @@ private:
   std::vector<NewBdd::Node> vGsOld;
   std::vector<std::vector<NewBdd::Node> > vvCsOld;
 
-  void Save();
-  void Load();
-  void ClearSave();
+  inline void Save();
+  inline void Load();
+  inline void ClearSave();
 
   struct RankComparator {
     Transduction const & t;
@@ -192,6 +192,31 @@ void Transduction::CreateNewGate(int & pos) {
     vGs.resize(nObjs);
     vvCs.resize(nObjs);
   }
+}
+
+void Transduction::Save() {
+  vObjsOld = vObjs;
+  vvFisOld = vvFis;
+  vvFosOld = vvFos;
+  vFsOld = vFs;
+  vGsOld = vGs;
+  vvCsOld = vvCs;
+}
+void Transduction::Load() {
+  vObjs = vObjsOld;
+  vvFis = vvFisOld;
+  vvFos = vvFosOld;
+  vFs = vFsOld;
+  vGs = vGsOld;
+  vvCs = vvCsOld;
+}
+void Transduction::ClearSave() {
+  vObjsOld.clear();
+  vvFisOld.clear();
+  vvFosOld.clear();
+  vFsOld.clear();
+  vGsOld.clear();
+  vvCsOld.clear();
 }
 
 #endif
