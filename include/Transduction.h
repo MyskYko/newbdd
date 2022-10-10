@@ -60,7 +60,7 @@ private:
   void MarkFiCone_rec(std::vector<bool> & vMarks, int i) const;
   void MarkFoCone_rec(std::vector<bool> & vMarks, int i) const;
 
-  void Build(int i, std::vector<NewBdd::Node> & vFs_);
+  void Build(int i, std::vector<NewBdd::Node> & vFs_) const;
   void Build(int i);
   void Build();
   void BuildFoCone(int i);
@@ -83,6 +83,11 @@ private:
   int CalcG(int i);
   int CalcC(int i);
   int CspfFiCone(int i, int block = -1);
+
+  bool IsFoConeShared_rec(std::vector<int> & vVisits, int i, int visitor) const;
+  bool IsFoConeShared(int i) const;
+
+  void BuildFoConeCompl(int i, std::vector<NewBdd::Node> & vPoFsCompl) const;
 
   bool TryConnect(int i, int f);
 

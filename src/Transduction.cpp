@@ -128,7 +128,7 @@ void Transduction::MarkFoCone_rec(vector<bool> & vMarks, int i) const {
   }
 }
 
-void Transduction::Build(int i, vector<NewBdd::Node> & vFs_) {
+void Transduction::Build(int i, vector<NewBdd::Node> & vFs_) const {
   if(nVerbose > 3) {
     cout << "\t\t\tBuild " << i << endl;
   }
