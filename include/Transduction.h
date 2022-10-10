@@ -44,10 +44,11 @@ private:
 
   void SortObjs(std::list<int>::iterator const & it);
   void Connect(int i, int f, bool fSort = false);
+  unsigned FindFi(int i, int i0) const;
   void Disconnect(int i, int i0, unsigned j);
+  void Disconnect(int i, int f);
 
   int RemoveFis(int i);
-  int FindFi(int i, int i0) const;
   int Replace(int i, int c);
 
   void BuildOne(int i, std::vector<NewBdd::Node> & vFs_);

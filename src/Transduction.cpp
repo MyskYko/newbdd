@@ -147,6 +147,14 @@ void Transduction::Connect(int i, int f, bool fSort) {
     }
   }
 }
+unsigned Transduction::FindFi(int i, int i0) const {
+  for(unsigned j = 0; j < vvFis[i].size(); j++) {
+    if((vvFis[i][j] >> 1) == i0) {
+      return j;
+    }
+  }
+  abort();
+}
 void Transduction::Disconnect(int i, int i0, unsigned j) {
   if(nVerbose > 5) {
     cout << "\t\t\t\t\tDisconnect " << i0 << " from " << i << endl;
@@ -154,6 +162,12 @@ void Transduction::Disconnect(int i, int i0, unsigned j) {
   vector<int>::iterator it = find(vvFos[i0].begin(), vvFos[i0].end(), i);
   vvFos[i0].erase(it);
   vvFis[i].erase(vvFis[i].begin() + j);
+}
+void Transduction::Disconnect(int i, int f) {
+  vector<int>::iterator it = find(vvFis[i].begin(), vvFis[i].end(), f);
+  assert(it != vvFis[i].end());
+  unsigned j = it - vvFis[i].begin();
+  Disconnect(i, f >> 1, j);
 }
 
 int Transduction::RemoveFis(int i) {
@@ -169,14 +183,6 @@ int Transduction::RemoveFis(int i) {
   vvFis[i].clear();
   return count;
 }
-int Transduction::FindFi(int i, int i0) const {
-  for(unsigned j = 0; j < vvFis[i].size(); j++) {
-    if((vvFis[i][j] >> 1) == i0) {
-      return j;
-    }
-  }
-  abort();
-}
 int Transduction::Replace(int i, int c) {
   if(nVerbose > 4) {
     cout << "\t\t\t\tReplace " << i << " by " << (c >> 1) << endl;
@@ -184,7 +190,7 @@ int Transduction::Replace(int i, int c) {
   assert(i != (c >> 1));
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     int k = vvFos[i][j];
-    int l = FindFi(k, i);
+    unsigned l = FindFi(k, i);
     vvFis[k][l] = c ^ (vvFis[k][l] & 1);
     vvFos[c >> 1].push_back(k);
   }
@@ -336,7 +342,7 @@ int Transduction::CalcG(int i) {
   vGs[i] = bdd->Const1();
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     int k = vvFos[i][j];
-    int l = FindFi(k, i);
+    unsigned l = FindFi(k, i);
     vGs[i] = bdd->And(vGs[i], vvCs[k][l]);
   }
   if(bdd->IsConst1(bdd->Or(vFs[i], vGs[i]))) {
