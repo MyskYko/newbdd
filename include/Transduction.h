@@ -61,8 +61,8 @@ private:
   int CalcG(int i);
   int CalcC(int i);
 
-  void MarkFiCone_rec(std::vector<bool> & vMarks, int i);
-  void MarkFoCone_rec(std::vector<bool> & vMarks, int i);
+  void MarkFiCone_rec(std::vector<bool> & vMarks, int i) const;
+  void MarkFoCone_rec(std::vector<bool> & vMarks, int i) const;
 
   void BuildFoCone(int i);
   int CspfFiCone(int i, int block = -1);

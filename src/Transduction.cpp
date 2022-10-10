@@ -428,7 +428,7 @@ int Transduction::CspfEager(int block) {
   return count;
 }
 
-void Transduction::MarkFiCone_rec(vector<bool> & vMarks, int i) {
+void Transduction::MarkFiCone_rec(vector<bool> & vMarks, int i) const {
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     int i0 = vvFis[i][j] >> 1;
     if(!vMarks[i0]) {
@@ -437,7 +437,7 @@ void Transduction::MarkFiCone_rec(vector<bool> & vMarks, int i) {
     }
   }
 }
-void Transduction::MarkFoCone_rec(vector<bool> & vMarks, int i) {
+void Transduction::MarkFoCone_rec(vector<bool> & vMarks, int i) const {
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     int k = vvFos[i][j];
     if(!vMarks[k]) {
