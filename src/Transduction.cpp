@@ -28,6 +28,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
     Connect(i + aig.nObjs, aig.vPos[i]);
     vPos.push_back(i + aig.nObjs);
   }
+  vUpdates.resize(nObjs);
   // set up BDD
   bdd = new NewBdd::Man(aig.nPis);
   bdd->SetParameters(0, 12);
@@ -160,7 +161,7 @@ void Transduction::Build() {
   }
 }
 
-void Transduction::Update(vector<bool> & vUpdates) {
+void Transduction::Update() {
   if(nVerbose > 2) {
     cout << "\t\tUpdate" << endl;
   }
@@ -175,11 +176,9 @@ void Transduction::Update(vector<bool> & vUpdates) {
       }
     }
   }
-}
-void Transduction::Update(int i) {
-  vector<bool> vUpdates(nObjs);
-  vUpdates[i] = true;
-  Update(vUpdates);
+  vUpdates.swap(vUpdates_);
+  vUpdates.clear();
+  vUpdates.resize(nObjs);
 }
 
 double Transduction::Rank(int f) const {

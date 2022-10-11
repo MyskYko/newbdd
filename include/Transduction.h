@@ -46,6 +46,8 @@ private:
   std::vector<NewBdd::Node> vGs;
   std::vector<std::vector<NewBdd::Node> > vvCs;
 
+  std::vector<bool> vUpdates, vUpdates_;
+
   int nVerbose;
 
   inline void Connect(int i, int f, bool fSort = false);
@@ -66,8 +68,7 @@ private:
   void Build(int i);
   void Build();
 
-  void Update(std::vector<bool> & vUpdates);
-  void Update(int i);
+  void Update();
 
   double Rank(int f) const;
   bool RankCompare(int a, int b) const;
@@ -203,6 +204,7 @@ void Transduction::CreateNewGate(int & pos) {
     vFs.resize(nObjs);
     vGs.resize(nObjs);
     vvCs.resize(nObjs);
+    vUpdates.resize(nObjs);
   }
 }
 
@@ -213,6 +215,7 @@ void Transduction::Save() {
   vFsOld = vFs;
   vGsOld = vGs;
   vvCsOld = vvCs;
+  assert(std::all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
 }
 void Transduction::Load() {
   vObjs = vObjsOld;
@@ -221,6 +224,7 @@ void Transduction::Load() {
   vFs = vFsOld;
   vGs = vGsOld;
   vvCs = vvCsOld;
+  std::fill(vUpdates.begin(), vUpdates.end(), false);
 }
 void Transduction::ClearSave() {
   vObjsOld.clear();

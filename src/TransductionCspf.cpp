@@ -80,7 +80,6 @@ int Transduction::Cspf(int block) {
     cout << "\t\tCspf" << endl;
   }
   int count = 0;
-  vector<bool> vUpdates(nObjs);
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
     if(nVerbose > 3) {
       cout << "\t\t\tCspf " << *it << endl;
@@ -113,7 +112,7 @@ int Transduction::Cspf(int block) {
     }
     it++;
   }
-  Update(vUpdates);
+  Update();
   return count;
 }
 
@@ -172,7 +171,6 @@ int Transduction::CspfUpdate(vector<bool> & vCspfUpdates, int block) {
     cout << "\t\tCspf update" << endl;
   }
   int count = 0;
-  vector<bool> vUpdates(nObjs);
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
     if(nVerbose > 3) {
       cout << "\t\t\tCspf " << *it << endl;
@@ -221,6 +219,6 @@ int Transduction::CspfUpdate(vector<bool> & vCspfUpdates, int block) {
     }
     it++;
   }
-  Update(vUpdates);
+  Update();
   return count;
 }
