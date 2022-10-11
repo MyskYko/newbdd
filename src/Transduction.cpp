@@ -46,6 +46,15 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
     vGs[i + aig.nObjs] = bdd->Const0();
     vvCs[i + aig.nObjs].push_back(bdd->Const0());
   }
+  // replace const outputs
+  for(int i = 0; i < aig.nPos; i++) {
+    int i0 = aig.vPos[i] >> 1;
+    if(bdd->IsConst1(bdd->Or(vFs[i0], vGs[i + aig.nObjs]))) {
+      Replace(i0, 1);
+    } else if(bdd->IsConst1(bdd->Or(bdd->Not(vFs[i0]), vGs[i + aig.nObjs]))) {
+      Replace(i0, 0);
+    }
+  }
 }
 Transduction::~Transduction() {
   vFs.clear();
