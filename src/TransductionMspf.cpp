@@ -64,7 +64,7 @@ void Transduction::MspfCalcG(int i) {
   }
 }
 
-int Transduction::MspfCalcC(int i) {
+bool Transduction::MspfCalcC(int i) {
   vvCs[i].clear();
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     // x = Not(And(other FIs))
@@ -88,13 +88,13 @@ int Transduction::MspfCalcC(int i) {
       if(nVerbose > 4) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
-      Disconnect(i, i0, j--);
-      return 1;
+      Disconnect(i, i0, j);
+      return true;
     } else {
       vvCs[i].push_back(c);
     }
   }
-  return 0;
+  return false;
 }
 
 int Transduction::Mspf(int block) {
@@ -116,9 +116,8 @@ int Transduction::Mspf(int block) {
       SortFis(*it);
       // TODO: avoid removing fanin of *it in CalcC
     }
-    int diff = MspfCalcC(*it);
-    count += diff;
-    if(diff) {
+    if(MspfCalcC(*it)) {
+      count++;
       assert(!vvFis[*it].empty());
       if(vvFis[*it].size() == 1) {
         count += Replace(*it, vvFis[*it][0]);
