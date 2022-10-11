@@ -171,6 +171,8 @@ int Transduction::RemoveFis(int i) {
   }
   int count = vvFis[i].size();
   vvFis[i].clear();
+  vFs[i] = vGs[i] = NewBdd::Node();
+  vvCs[i].clear();
   return count;
 }
 int Transduction::Replace(int i, int f) {
