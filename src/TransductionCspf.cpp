@@ -78,6 +78,7 @@ int Transduction::Cspf(int block) {
     cout << "\t\tCspf" << endl;
   }
   int count = 0;
+  vector<bool> vUpdates(nObjs);
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
     if(nVerbose > 3) {
       cout << "\t\t\tCspf " << *it << endl;
@@ -90,18 +91,27 @@ int Transduction::Cspf(int block) {
     CalcG(*it);
     if(*it != block) {
       SortFis(*it);
-      count += RemoveRedundantFis(*it);
+      if(int diff = RemoveRedundantFis(*it)) {
+        count += diff;
+        vUpdates[*it] = true;
+      }
     }
-    count += CalcC(*it);
+    if(int diff = CalcC(*it)) {
+      count += diff;
+      vUpdates[*it] = true;
+    }
     assert(!vvFis[*it].empty());
     if(vvFis[*it].size() == 1) {
+      for(unsigned j = 0; j < vvFos[*it].size(); j++) {
+        vUpdates[vvFos[*it][j]] = true;
+      }
       count += Replace(*it, vvFis[*it][0]);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
     it++;
   }
-  Build();
+  Update(vUpdates);
   return count;
 }
 
