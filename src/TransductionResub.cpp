@@ -88,7 +88,7 @@ int Transduction::ResubMono() {
       if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
         count--;
         Update();
-        if(int diff = CspfUpdate(*it)) {
+        if(int diff = Cspf(*it)) {
           count += diff;
           count += CspfEager();
           Save();
@@ -114,7 +114,7 @@ int Transduction::ResubMono() {
         if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
           count--;
           Update();
-          if(int diff = CspfUpdate(*it)) {
+          if(int diff = Cspf(*it)) {
             count += diff;
             count += CspfEager();
             Save();
@@ -133,7 +133,7 @@ int Transduction::ResubMono() {
       list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
       int pos = nObjs;
       count += TrivialDecomposeOne(it2, pos);
-      count += CspfUpdate();
+      count += Cspf();
     }
   }
   ClearSave();

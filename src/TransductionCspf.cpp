@@ -90,99 +90,6 @@ int Transduction::Cspf(int block) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    CalcG(*it);
-    if(*it != block) {
-      SortFis(*it);
-      if(int diff = RemoveRedundantFis(*it)) {
-        count += diff;
-        vUpdates[*it] = true;
-      }
-    }
-    if(int diff = CalcC(*it)) {
-      count += diff;
-      vUpdates[*it] = true;
-    }
-    assert(!vvFis[*it].empty());
-    if(vvFis[*it].size() == 1) {
-      for(unsigned j = 0; j < vvFos[*it].size(); j++) {
-        vUpdates[vvFos[*it][j]] = true;
-      }
-      count += Replace(*it, vvFis[*it][0]);
-      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
-      continue;
-    }
-    it++;
-  }
-  fill(vCspfUpdates.begin(), vCspfUpdates.end(), false);
-  Update();
-  return count;
-}
-
-int Transduction::CspfEager(int block) {
-  if(nVerbose > 2) {
-    cout << "\t\tCspf eager" << endl;
-  }
-  int count = 0;
-  while(int diff = CspfUpdate(block)) {
-    count += diff;
-  }
-  return count;
-}
-
-int Transduction::CspfFiCone(int i, int block) {
-  if(nVerbose > 2) {
-    cout << "\t\tCspf fanin cone " << i << endl;
-  }
-  int count = 0;
-  vector<bool> vMarks(nObjs);
-  vMarks[i] = true;
-  MarkFiCone_rec(vMarks, i);
-  for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
-    if(!vMarks[*it]) {
-      it++;
-      continue;
-    }
-    if(nVerbose > 3) {
-      cout << "\t\t\tCspf " << *it << endl;
-    }
-    if(vvFos[*it].empty()) {
-      count += RemoveFis(*it);
-      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
-      continue;
-    }
-    CalcG(*it);
-    if(*it != block) {
-      SortFis(*it);
-      count += RemoveRedundantFis(*it);
-    }
-    count += CalcC(*it);
-    assert(!vvFis[*it].empty());
-    if(vvFis[*it].size() == 1) {
-      count += Replace(*it, vvFis[*it][0]);
-      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
-      continue;
-    }
-    it++;
-  }
-  Build();
-  return count;
-}
-
-int Transduction::CspfUpdate(int block) {
-  if(nVerbose > 2) {
-    cout << "\t\tCspf update" << endl;
-  }
-  assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
-  int count = 0;
-  for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
-    if(nVerbose > 3) {
-      cout << "\t\t\tCspf " << *it << endl;
-    }
-    if(vvFos[*it].empty()) {
-      count += RemoveFis(*it);
-      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
-      continue;
-    }
     vector<int> vFisOld = vvFis[*it];
     if(*it != block) {
       SortFis(*it);
@@ -224,5 +131,16 @@ int Transduction::CspfUpdate(int block) {
   }
   fill(vCspfUpdates.begin(), vCspfUpdates.end(), false);
   Update();
+  return count;
+}
+
+int Transduction::CspfEager(int block) {
+  if(nVerbose > 2) {
+    cout << "\t\tCspf eager" << endl;
+  }
+  int count = 0;
+  while(int diff = Cspf(block)) {
+    count += diff;
+  }
   return count;
 }
