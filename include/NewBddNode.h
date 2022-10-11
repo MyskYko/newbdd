@@ -17,6 +17,7 @@ namespace NewBdd {
     Node & operator=(Node const & right);
 
     bool operator==(Node const & other) const;
+    bool operator!=(Node const & other) const;
 
   private:
     Man * man;
