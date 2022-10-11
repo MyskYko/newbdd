@@ -133,7 +133,7 @@ int Transduction::ResubMono() {
       list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
       int pos = nObjs;
       count += TrivialDecomposeOne(it2, pos);
-      count += Cspf();
+      count += CspfEager();
     }
   }
   ClearSave();

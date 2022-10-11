@@ -163,7 +163,6 @@ void Transduction::Build() {
   fill(vUpdates.begin(), vUpdates.end(), false);
   fill(vCspfUpdates.begin(), vCspfUpdates.end(), true);
 }
-
 void Transduction::Update() {
   if(nVerbose > 2) {
     cout << "\t\tUpdate" << endl;

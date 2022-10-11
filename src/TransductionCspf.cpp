@@ -99,15 +99,15 @@ int Transduction::Cspf(int block) {
       continue;
     }
     CalcG(*it);
-    map<int, NewBdd::Node> m;
-    for(unsigned j = 0; j < vvCs[*it].size(); j++) {
-      m[vFisOld[j]] = vvCs[*it][j];
-    }
     if(*it != block) {
       if(int diff = RemoveRedundantFis(*it)) {
         count += diff;
         vUpdates[*it] = true;
       }
+    }
+    map<int, NewBdd::Node> m;
+    for(unsigned j = 0; j < vvCs[*it].size(); j++) {
+      m[vFisOld[j]] = vvCs[*it][j];
     }
     if(int diff = CalcC(*it)) {
       count += diff;
