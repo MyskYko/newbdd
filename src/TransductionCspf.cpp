@@ -79,6 +79,7 @@ int Transduction::Cspf(int block) {
   if(nVerbose > 2) {
     cout << "\t\tCspf" << endl;
   }
+  assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
   int count = 0;
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
     if(nVerbose > 3) {
@@ -122,7 +123,7 @@ int Transduction::CspfEager(int block) {
     cout << "\t\tCspf eager" << endl;
   }
   int count = 0;
-  while(int diff = Cspf(block)) {
+  while(int diff = CspfUpdate(block)) {
     count += diff;
   }
   return count;
@@ -171,6 +172,7 @@ int Transduction::CspfUpdate(int block) {
   if(nVerbose > 2) {
     cout << "\t\tCspf update" << endl;
   }
+  assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
   int count = 0;
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
     if(nVerbose > 3) {

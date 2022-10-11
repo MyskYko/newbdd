@@ -160,6 +160,8 @@ void Transduction::Build() {
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     Build(*it);
   }
+  fill(vUpdates.begin(), vUpdates.end(), false);
+  fill(vCspfUpdates.begin(), vCspfUpdates.end(), true);
 }
 
 void Transduction::Update() {

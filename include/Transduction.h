@@ -27,6 +27,7 @@ public:
 
   int Cspf(int block = -1);
   int CspfEager(int block = -1);
+  int CspfUpdate(int block = -1);
 
   int Mspf(int block = -1);
 
@@ -89,7 +90,6 @@ private:
   void CalcG(int i);
   int CalcC(int i);
   int CspfFiCone(int i, int block = -1);
-  int CspfUpdate(int block = -1);
 
   bool IsFoConeShared_rec(std::vector<int> & vVisits, int i, int visitor) const;
   bool IsFoConeShared(int i) const;

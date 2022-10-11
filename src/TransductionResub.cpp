@@ -12,6 +12,7 @@ bool Transduction::TryConnect(int i, int f) {
     x = bdd->Or(x, bdd->NotCond(vFs[f >> 1], f & 1));
     if(bdd->IsConst1(x)) {
       Connect(i, f, true);
+      vUpdates[i] = true;
       return true;
     }
   }
@@ -53,6 +54,7 @@ int Transduction::Resub() {
       }
     }
     if(fConnect) {
+      Update();
       count += CspfEager();
     }
   }
@@ -85,12 +87,8 @@ int Transduction::ResubMono() {
       int f = vPis[i] << 1;
       if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
         count--;
-        //int diff = CspfFiCone(*it, *it);
-        vUpdates[*it] = true;
         Update();
-        int diff = CspfUpdate(*it);
-        //int diff = CspfEager(*it);
-        if(diff) {
+        if(int diff = CspfUpdate(*it)) {
           count += diff;
           count += CspfEager();
           Save();
@@ -115,12 +113,8 @@ int Transduction::ResubMono() {
         int f = *it2 << 1;
         if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
           count--;
-          //int diff = CspfFiCone(*it, *it);
-          vUpdates[*it] = true;
           Update();
-          int diff = CspfUpdate(*it);
-          //int diff = CspfEager(*it);
-          if(diff) {
+          if(int diff = CspfUpdate(*it)) {
             count += diff;
             count += CspfEager();
             Save();
@@ -139,7 +133,7 @@ int Transduction::ResubMono() {
       list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
       int pos = nObjs;
       count += TrivialDecomposeOne(it2, pos);
-      count += CspfFiCone(*it);
+      count += CspfUpdate();
     }
   }
   ClearSave();
