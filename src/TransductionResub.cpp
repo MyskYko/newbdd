@@ -86,7 +86,7 @@ int Transduction::ResubMono() {
       if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
         count--;
         //int diff = CspfFiCone(*it, *it);
-        BuildFoCone(*it);
+        Update(*it);
         int diff = Cspf(*it);
         //int diff = CspfEager(*it);
         if(diff) {
@@ -115,7 +115,7 @@ int Transduction::ResubMono() {
         if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
           count--;
           //int diff = CspfFiCone(*it, *it);
-          BuildFoCone(*it);
+          Update(*it);
           int diff = Cspf(*it);
           //int diff = CspfEager(*it);
           if(diff) {

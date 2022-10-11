@@ -159,18 +159,27 @@ void Transduction::Build() {
     Build(*it);
   }
 }
-void Transduction::BuildFoCone(int i) {
+
+void Transduction::Update(vector<bool> & vUpdates) {
   if(nVerbose > 2) {
-    cout << "\t\tBuild fanout cone " << i << endl;
+    cout << "\t\tUpdate" << endl;
   }
-  vector<bool> vMarks(nObjs);
-  vMarks[i] = true;
-  MarkFoCone_rec(vMarks, i);
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    if(vMarks[*it]) {
+    if(vUpdates[*it]) {
+      NewBdd::Node x = vFs[*it];
       Build(*it);
+      if(x != vFs[*it]) {
+        for(unsigned j = 0; j < vvFos[*it].size(); j++) {
+          vUpdates[vvFos[*it][j]] = true;
+        }
+      }
     }
   }
+}
+void Transduction::Update(int i) {
+  vector<bool> vUpdates(nObjs);
+  vUpdates[i] = true;
+  Update(vUpdates);
 }
 
 double Transduction::Rank(int f) const {
