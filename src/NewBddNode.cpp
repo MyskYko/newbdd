@@ -36,10 +36,13 @@ namespace NewBdd {
   }
 
   bool Node::operator==(Node const & other) const {
-    return val == other.val;
+    if(man != other.man) {
+      return false;
+    }
+    return !man || val == other.val;
   }
   bool Node::operator!=(Node const & other) const {
-    return val != other.val;
+    return !(*this == other);
   }
 
   NodeNoRef::NodeNoRef(lit val) : val(val) {}
