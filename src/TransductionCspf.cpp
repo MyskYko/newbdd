@@ -112,6 +112,7 @@ int Transduction::Cspf(int block) {
     }
     it++;
   }
+  fill(vCspfUpdates.begin(), vCspfUpdates.end(), false);
   Update();
   return count;
 }
@@ -166,7 +167,7 @@ int Transduction::CspfFiCone(int i, int block) {
   return count;
 }
 
-int Transduction::CspfUpdate(vector<bool> & vCspfUpdates, int block) {
+int Transduction::CspfUpdate(int block) {
   if(nVerbose > 2) {
     cout << "\t\tCspf update" << endl;
   }
@@ -219,6 +220,7 @@ int Transduction::CspfUpdate(vector<bool> & vCspfUpdates, int block) {
     }
     it++;
   }
+  fill(vCspfUpdates.begin(), vCspfUpdates.end(), false);
   Update();
   return count;
 }

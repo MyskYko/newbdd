@@ -46,7 +46,8 @@ private:
   std::vector<NewBdd::Node> vGs;
   std::vector<std::vector<NewBdd::Node> > vvCs;
 
-  std::vector<bool> vUpdates, vUpdates_;
+  std::vector<bool> vUpdates;
+  std::vector<bool> vCspfUpdates;
 
   int nVerbose;
 
@@ -88,7 +89,7 @@ private:
   void CalcG(int i);
   int CalcC(int i);
   int CspfFiCone(int i, int block = -1);
-  int CspfUpdate(std::vector<bool> & vCspfUpdates, int block = -1);
+  int CspfUpdate(int block = -1);
 
   bool IsFoConeShared_rec(std::vector<int> & vVisits, int i, int visitor) const;
   bool IsFoConeShared(int i) const;
@@ -205,6 +206,7 @@ void Transduction::CreateNewGate(int & pos) {
     vGs.resize(nObjs);
     vvCs.resize(nObjs);
     vUpdates.resize(nObjs);
+    vCspfUpdates.resize(nObjs);
   }
 }
 
@@ -216,6 +218,7 @@ void Transduction::Save() {
   vGsOld = vGs;
   vvCsOld = vvCs;
   assert(std::all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
+  assert(std::all_of(vCspfUpdates.begin(), vCspfUpdates.end(), [](bool i) { return !i; }));
 }
 void Transduction::Load() {
   vObjs = vObjsOld;
@@ -225,6 +228,7 @@ void Transduction::Load() {
   vGs = vGsOld;
   vvCs = vvCsOld;
   std::fill(vUpdates.begin(), vUpdates.end(), false);
+  std::fill(vCspfUpdates.begin(), vCspfUpdates.end(), false);
 }
 void Transduction::ClearSave() {
   vObjsOld.clear();

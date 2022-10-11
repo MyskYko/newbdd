@@ -29,6 +29,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
     vPos.push_back(i + aig.nObjs);
   }
   vUpdates.resize(nObjs);
+  vCspfUpdates.resize(nObjs);
   // set up BDD
   bdd = new NewBdd::Man(aig.nPis);
   bdd->SetParameters(0, 12);
@@ -176,9 +177,8 @@ void Transduction::Update() {
       }
     }
   }
-  vUpdates.swap(vUpdates_);
-  vUpdates.clear();
-  vUpdates.resize(nObjs);
+  vUpdates.swap(vCspfUpdates);
+  assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
 }
 
 double Transduction::Rank(int f) const {

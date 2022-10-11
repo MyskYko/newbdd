@@ -88,7 +88,7 @@ int Transduction::ResubMono() {
         //int diff = CspfFiCone(*it, *it);
         vUpdates[*it] = true;
         Update();
-        int diff = CspfUpdate(vUpdates_, *it);
+        int diff = CspfUpdate(*it);
         //int diff = CspfEager(*it);
         if(diff) {
           count += diff;
@@ -118,7 +118,7 @@ int Transduction::ResubMono() {
           //int diff = CspfFiCone(*it, *it);
           vUpdates[*it] = true;
           Update();
-          int diff = CspfUpdate(vUpdates_, *it);
+          int diff = CspfUpdate(*it);
           //int diff = CspfEager(*it);
           if(diff) {
             count += diff;
