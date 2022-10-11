@@ -29,20 +29,13 @@ int Transduction::RemoveRedundantFis(int i) {
   return count;
 }
 
-int Transduction::CalcG(int i) {
+void Transduction::CalcG(int i) {
   vGs[i] = bdd->Const1();
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     int k = vvFos[i][j];
     unsigned l = FindFi(k, i);
     vGs[i] = bdd->And(vGs[i], vvCs[k][l]);
   }
-  if(bdd->IsConst1(bdd->Or(vFs[i], vGs[i]))) {
-    return Replace(i, 1);
-  }
-  if(bdd->IsConst1(bdd->Or(bdd->Not(vFs[i]), vGs[i]))) {
-    return Replace(i, 0);
-  }
-  return 0;
 }
 
 int Transduction::CalcC(int i) {
@@ -94,12 +87,7 @@ int Transduction::Cspf(int block) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    count += CalcG(*it);
-    if(vvFis[*it].empty()) {
-      assert(vvFos[*it].empty());
-      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
-      continue;
-    }
+    CalcG(*it);
     if(*it != block) {
       SortFis(*it);
       count += RemoveRedundantFis(*it);
@@ -149,12 +137,7 @@ int Transduction::CspfFiCone(int i, int block) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    count += CalcG(*it);
-    if(vvFis[*it].empty()) {
-      assert(vvFos[*it].empty());
-      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
-      continue;
-    }
+    CalcG(*it);
     if(*it != block) {
       SortFis(*it);
       count += RemoveRedundantFis(*it);

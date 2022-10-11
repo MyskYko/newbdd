@@ -82,14 +82,14 @@ private:
   int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
 
   int RemoveRedundantFis(int i);
-  int CalcG(int i);
+  void CalcG(int i);
   int CalcC(int i);
   int CspfFiCone(int i, int block = -1);
 
   bool IsFoConeShared_rec(std::vector<int> & vVisits, int i, int visitor) const;
   bool IsFoConeShared(int i) const;
   void BuildFoConeCompl(int i, std::vector<NewBdd::Node> & vPoFsCompl) const;
-  int MspfCalcG(int i);
+  void MspfCalcG(int i);
   int MspfCalcC(int i);
 
   bool TryConnect(int i, int f);
