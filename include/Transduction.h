@@ -54,7 +54,6 @@ private:
   inline void Connect(int i, int f, bool fSort = false);
   inline unsigned FindFi(int i, int i0) const;
   inline void Disconnect(int i, int i0, unsigned j);
-  inline void Disconnect(int i, int f);
 
   inline int RemoveFis(int i);
   inline int Replace(int i, int f);
@@ -157,10 +156,6 @@ void Transduction::Disconnect(int i, int i0, unsigned j) {
   }
   vvFos[i0].erase(std::find(vvFos[i0].begin(), vvFos[i0].end(), i));
   vvFis[i].erase(vvFis[i].begin() + j);
-}
-void Transduction::Disconnect(int i, int f) {
-  unsigned j = std::find(vvFis[i].begin(), vvFis[i].end(), f) - vvFis[i].begin();
-  Disconnect(i, f >> 1, j);
 }
 
 int Transduction::RemoveFis(int i) {

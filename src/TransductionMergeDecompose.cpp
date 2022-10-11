@@ -30,6 +30,7 @@ int Transduction::TrivialMergeOne(int i, bool fErase) {
     }
   }
   vCspfUpdates[i] = true;
+  vvCs[i].clear();
   return count;
 }
 int Transduction::TrivialMerge() {
@@ -69,6 +70,7 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
     Build(pos);
   }
   vCspfUpdates[*it] = true;
+  vvCs[*it].clear();
   return count;
 }
 int Transduction::TrivialDecompose() {
@@ -104,6 +106,7 @@ int Transduction::Decompose() {
         Connect(*it, *it3);
       }
       vCspfUpdates[*it] = true;
+      vvCs[*it].clear();
     }
     list<int>::iterator it2 = it;
     for(it2++; it2 != vObjs.end(); it2++) {
@@ -129,10 +132,13 @@ int Transduction::Decompose() {
             it2--;
           } else {
             for(set<int>::iterator it3 = s.begin(); it3 != s.end(); it3++) {
-              Disconnect(*it2, *it3);
+              unsigned j = find(vvFis[*it2].begin(), vvFis[*it2].end(), *it3) - vvFis[*it2].begin();
+              Disconnect(*it2, *it3 >> 1, j);
+              vCspfUpdates[*it3 >> 1] = true;
             }
             Connect(*it2, *it << 1);
             vCspfUpdates[*it2] = true;
+            vvCs[*it2].clear();
             count += s.size() - 1;
           }
           continue;

@@ -25,6 +25,7 @@ int Transduction::RemoveRedundantFis(int i) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j--);
+      vCspfUpdates[i0] = true;
       count++;
     }
   }
@@ -67,6 +68,7 @@ int Transduction::CalcC(int i) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j--);
+      vCspfUpdates[i0] = true;
       count++;
     } else {
       vvCs[i].push_back(c);
