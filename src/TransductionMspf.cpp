@@ -112,6 +112,10 @@ int Transduction::Mspf(int block) {
       continue;
     }
     MspfCalcG(*it);
+    if(*it != block) {
+      SortFis(*it);
+      // TODO: avoid removing fanin of *it in CalcC
+    }
     int diff = MspfCalcC(*it);
     count += diff;
     if(diff) {
