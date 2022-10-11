@@ -87,6 +87,7 @@ private:
   void CalcG(int i);
   int CalcC(int i);
   int CspfFiCone(int i, int block = -1);
+  int CspfUpdate(std::vector<bool> & vCspfUpdates, int block = -1);
 
   bool IsFoConeShared_rec(std::vector<int> & vVisits, int i, int visitor) const;
   bool IsFoConeShared(int i) const;

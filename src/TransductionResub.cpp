@@ -86,8 +86,10 @@ int Transduction::ResubMono() {
       if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
         count--;
         //int diff = CspfFiCone(*it, *it);
-        Update(*it);
-        int diff = Cspf(*it);
+        vector<bool> vUpdates(nObjs);
+        vUpdates[*it] = true;
+        Update(vUpdates);
+        int diff = CspfUpdate(vUpdates, *it);
         //int diff = CspfEager(*it);
         if(diff) {
           count += diff;
@@ -115,8 +117,10 @@ int Transduction::ResubMono() {
         if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
           count--;
           //int diff = CspfFiCone(*it, *it);
-          Update(*it);
-          int diff = Cspf(*it);
+          vector<bool> vUpdates(nObjs);
+          vUpdates[*it] = true;
+          Update(vUpdates);
+          int diff = CspfUpdate(vUpdates, *it);
           //int diff = CspfEager(*it);
           if(diff) {
             count += diff;

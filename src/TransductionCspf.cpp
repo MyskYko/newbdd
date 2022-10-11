@@ -1,3 +1,5 @@
+#include <map>
+
 #include "Transduction.h"
 
 using namespace std;
@@ -162,5 +164,63 @@ int Transduction::CspfFiCone(int i, int block) {
     it++;
   }
   Build();
+  return count;
+}
+
+int Transduction::CspfUpdate(vector<bool> & vCspfUpdates, int block) {
+  if(nVerbose > 2) {
+    cout << "\t\tCspf update" << endl;
+  }
+  int count = 0;
+  vector<bool> vUpdates(nObjs);
+  for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
+    if(nVerbose > 3) {
+      cout << "\t\t\tCspf " << *it << endl;
+    }
+    if(vvFos[*it].empty()) {
+      count += RemoveFis(*it);
+      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
+      continue;
+    }
+    vector<int> vFisOld = vvFis[*it];
+    if(*it != block) {
+      SortFis(*it);
+    }
+    if(!vCspfUpdates[*it] && vvFis[*it] == vFisOld) {
+      it++;
+      continue;
+    }
+    CalcG(*it);
+    map<int, NewBdd::Node> m;
+    for(unsigned j = 0; j < vvCs[*it].size(); j++) {
+      m[vFisOld[j]] = vvCs[*it][j];
+    }
+    if(*it != block) {
+      if(int diff = RemoveRedundantFis(*it)) {
+        count += diff;
+        vUpdates[*it] = true;
+      }
+    }
+    if(int diff = CalcC(*it)) {
+      count += diff;
+      vUpdates[*it] = true;
+    }
+    for(unsigned j = 0; j < vvFis[*it].size(); j++) {
+      if(!m.count(vvFis[*it][j]) || m[vvFis[*it][j]] != vvCs[*it][j]) {
+        vCspfUpdates[vvFis[*it][j] >> 1] = true;
+      }
+    }
+    assert(!vvFis[*it].empty());
+    if(vvFis[*it].size() == 1) {
+      for(unsigned j = 0; j < vvFos[*it].size(); j++) {
+        vUpdates[vvFos[*it][j]] = true;
+      }
+      count += Replace(*it, vvFis[*it][0]);
+      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
+      continue;
+    }
+    it++;
+  }
+  Update(vUpdates);
   return count;
 }
