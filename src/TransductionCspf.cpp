@@ -79,11 +79,13 @@ int Transduction::Cspf(int block) {
   if(nVerbose > 2) {
     cout << "\t\tCspf" << endl;
   }
+  assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
   if(fMspf) {
-    fill(vPfUpdates.begin(), vPfUpdates.end(), true);
+    for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+      vPfUpdates[*it] = true;
+    }
     fMspf = false;
   }
-  assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
   int count = 0;
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
     if(nVerbose > 3) {
@@ -109,6 +111,7 @@ int Transduction::Cspf(int block) {
       count += RemoveRedundantFis(*it);
     }
     count += CalcC(*it);
+    vPfUpdates[*it] = false;
     assert(!vvFis[*it].empty());
     if(vvFis[*it].size() == 1) {
       count += Replace(*it, vvFis[*it][0]);
@@ -117,7 +120,10 @@ int Transduction::Cspf(int block) {
     }
     it++;
   }
-  fill(vPfUpdates.begin(), vPfUpdates.end(), false);
+  for(unsigned j = 0; j < vPis.size(); j++) {
+    vPfUpdates[vPis[j]] = false;
+  }
+  assert(all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
   Build();
   return count;
 }

@@ -171,10 +171,13 @@ void Transduction::Build() {
       }
     }
   }
-  for(int i = 0; i < nObjs; i++) {
-    vPfUpdates[i] = vPfUpdates[i] || vUpdates[i];
+  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+    vPfUpdates[*it] = vPfUpdates[*it] || vUpdates[*it];
+    vUpdates[*it] = false;
   }
-  fill(vUpdates.begin(), vUpdates.end(), false);
+  for(unsigned j = 0; j < vPos.size(); j++) {
+    vUpdates[vPos[j]] = false;
+  }
   assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
 }
 
