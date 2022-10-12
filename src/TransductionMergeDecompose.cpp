@@ -29,7 +29,7 @@ int Transduction::TrivialMergeOne(int i, bool fErase) {
       }
     }
   }
-  vCspfUpdates[i] = true;
+  vPfUpdates[i] = true;
   return count;
 }
 int Transduction::TrivialMerge() {
@@ -66,9 +66,9 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
     Connect(*it, pos << 1, false, false);
     vObjs.insert(it, pos);
     Build(pos);
-    vCspfUpdates[pos] = true;
+    vPfUpdates[pos] = true;
   }
-  vCspfUpdates[*it] = true;
+  vPfUpdates[*it] = true;
   return count;
 }
 int Transduction::TrivialDecompose() {
@@ -108,7 +108,7 @@ int Transduction::Decompose() {
         }
       }
       assert(s1.size() == vvFis[*it].size());
-      vCspfUpdates[*it] = true;
+      vPfUpdates[*it] = true;
     }
     list<int>::iterator it2 = it;
     for(it2++; it2 != vObjs.end(); it2++) {
@@ -137,7 +137,7 @@ int Transduction::Decompose() {
               Disconnect(*it2, *it3 >> 1, j, false);
             }
             Connect(*it2, *it << 1, false, false);
-            vCspfUpdates[*it2] = true;
+            vPfUpdates[*it2] = true;
             count += s.size() - 1;
           }
           continue;
@@ -153,7 +153,7 @@ int Transduction::Decompose() {
           count -= s.size();
           it = vObjs.insert(it, pos);
           Build(pos);
-          vCspfUpdates[pos] = true;
+          vPfUpdates[pos] = true;
         }
         if(nVerbose > 3) {
           cout << "\t\t\tDecompose switch to " << *it << endl;

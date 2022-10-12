@@ -15,7 +15,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
   vGs.resize(nObjs);
   vvCs.resize(nObjs);
   vUpdates.resize(nObjs);
-  vCspfUpdates.resize(nObjs);
+  vPfUpdates.resize(nObjs);
   // constant
   vFs[0] = bdd->Const0();
   // inputs
@@ -172,7 +172,7 @@ void Transduction::Build() {
     }
   }
   for(int i = 0; i < nObjs; i++) {
-    vCspfUpdates[i] = vCspfUpdates[i] || vUpdates[i];
+    vPfUpdates[i] = vPfUpdates[i] || vUpdates[i];
   }
   fill(vUpdates.begin(), vUpdates.end(), false);
   assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));

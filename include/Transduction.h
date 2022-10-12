@@ -47,7 +47,7 @@ private:
   std::vector<std::vector<NewBdd::Node> > vvCs;
 
   std::vector<bool> vUpdates;
-  std::vector<bool> vCspfUpdates;
+  std::vector<bool> vPfUpdates;
 
   int nVerbose;
 
@@ -156,7 +156,7 @@ void Transduction::Disconnect(int i, int i0, unsigned j, bool fUpdate) {
   if(fUpdate) {
     vUpdates[i] = true;
   }
-  vCspfUpdates[i0] = true;
+  vPfUpdates[i0] = true;
 }
 
 int Transduction::RemoveFis(int i) {
@@ -166,7 +166,7 @@ int Transduction::RemoveFis(int i) {
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     int i0 = vvFis[i][j] >> 1;
     vvFos[i0].erase(std::find(vvFos[i0].begin(), vvFos[i0].end(), i));
-    vCspfUpdates[i0] = true;
+    vPfUpdates[i0] = true;
   }
   int count = vvFis[i].size();
   vvFis[i].clear();
@@ -189,7 +189,7 @@ int Transduction::Replace(int i, int f, bool fUpdate) {
     }
   }
   vvFos[i].clear();
-  vCspfUpdates[f >> 1] = true;
+  vPfUpdates[f >> 1] = true;
   return RemoveFis(i);
 }
 void Transduction::CreateNewGate(int & pos) {
@@ -204,7 +204,7 @@ void Transduction::CreateNewGate(int & pos) {
     vGs.resize(nObjs);
     vvCs.resize(nObjs);
     vUpdates.resize(nObjs);
-    vCspfUpdates.resize(nObjs);
+    vPfUpdates.resize(nObjs);
   }
 }
 
@@ -216,7 +216,7 @@ void Transduction::Save() {
   vGsOld = vGs;
   vvCsOld = vvCs;
   assert(std::all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
-  assert(std::all_of(vCspfUpdates.begin(), vCspfUpdates.end(), [](bool i) { return !i; }));
+  assert(std::all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
 }
 void Transduction::Load() {
   vObjs = vObjsOld;
@@ -226,7 +226,7 @@ void Transduction::Load() {
   vGs = vGsOld;
   vvCs = vvCsOld;
   std::fill(vUpdates.begin(), vUpdates.end(), false);
-  std::fill(vCspfUpdates.begin(), vCspfUpdates.end(), false);
+  std::fill(vPfUpdates.begin(), vPfUpdates.end(), false);
 }
 void Transduction::ClearSave() {
   vObjsOld.clear();

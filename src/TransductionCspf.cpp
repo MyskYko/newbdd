@@ -69,7 +69,7 @@ int Transduction::CalcC(int i) {
       count++;
     } else if(vvCs[i][j] != c) {
       vvCs[i][j] = c;
-      vCspfUpdates[i0] = true;
+      vPfUpdates[i0] = true;
     }
   }
   return count;
@@ -90,7 +90,7 @@ int Transduction::Cspf(int block) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    if(!vCspfUpdates[*it]) {
+    if(!vPfUpdates[*it]) {
       if(*it == block || !SortFis(*it)) {
         it++;
         continue;
@@ -113,7 +113,7 @@ int Transduction::Cspf(int block) {
     }
     it++;
   }
-  fill(vCspfUpdates.begin(), vCspfUpdates.end(), false);
+  fill(vPfUpdates.begin(), vPfUpdates.end(), false);
   Build();
   return count;
 }

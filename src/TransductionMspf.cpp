@@ -92,7 +92,7 @@ bool Transduction::MspfCalcC(int i) {
       return true;
     } else if(vvCs[i][j] != c) {
       vvCs[i][j] = c;
-      vCspfUpdates[i0] = true;
+      vPfUpdates[i0] = true;
     }
   }
   return false;
@@ -112,7 +112,7 @@ int Transduction::Mspf(int block) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    if(!vCspfUpdates[*it]) {
+    if(!vPfUpdates[*it]) {
       it++;
       continue;
     }
