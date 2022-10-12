@@ -137,6 +137,7 @@ int Transduction::Decompose() {
               Disconnect(*it2, *it3 >> 1, j, false);
             }
             Connect(*it2, *it << 1, false, false);
+            vCspfUpdates[*it2] = true;
             count += s.size() - 1;
           }
           continue;

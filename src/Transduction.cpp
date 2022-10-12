@@ -40,7 +40,6 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
     }
     Connect(i + aig.nObjs, aig.vPos[i]);
     vPos.push_back(i + aig.nObjs);
-    vGs[i + aig.nObjs] = bdd->Const0();
     vvCs[i + aig.nObjs][0] = bdd->Const0();
   }
   // build bdd
@@ -53,10 +52,10 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
   for(int i = 0; i < aig.nPos; i++) {
     int i0 = aig.vPos[i] >> 1;
     int c0 = aig.vPos[i] & 1;
-    if(bdd->IsConst1(bdd->Or(vFs[i0], vGs[i + aig.nObjs]))) {
+    if(bdd->IsConst1(bdd->Or(vFs[i0], vvCs[i + aig.nObjs][0]))) {
       Disconnect(i + aig.nObjs, i0, 0, false);
       Connect(i + aig.nObjs, !c0, false, false);
-    } else if(bdd->IsConst1(bdd->Or(bdd->Not(vFs[i0]), vGs[i + aig.nObjs]))) {
+    } else if(bdd->IsConst1(bdd->Or(bdd->Not(vFs[i0]), vvCs[i + aig.nObjs][0]))) {
       Disconnect(i + aig.nObjs, i0, 0, false);
       Connect(i + aig.nObjs, c0, false, false);
     }
