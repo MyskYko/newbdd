@@ -45,6 +45,10 @@ namespace NewBdd {
     return !(*this == other);
   }
 
+  bool Node::Valid() const {
+    return man;
+  }
+
   NodeNoRef::NodeNoRef(lit val) : val(val) {}
   NodeNoRef::NodeNoRef() {}
   NodeNoRef::NodeNoRef(NodeNoRef const & right) {
