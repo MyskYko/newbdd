@@ -80,11 +80,11 @@ int Transduction::Cspf(int block) {
     cout << "\t\tCspf" << endl;
   }
   assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
-  if(fMspf) {
+  if(state != PfState::cspf) {
     for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
       vPfUpdates[*it] = true;
     }
-    fMspf = false;
+    state = PfState::cspf;
   }
   int count = 0;
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {

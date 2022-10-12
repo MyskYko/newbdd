@@ -35,7 +35,7 @@ int Transduction::TrivialMergeOne(int i, bool fErase) {
       }
     }
   }
-  if(!fMspf) {
+  if(state != PfState::mspf) {
     vPfUpdates[i] = true;
   }
   return count;

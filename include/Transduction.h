@@ -48,7 +48,8 @@ private:
 
   std::vector<bool> vUpdates;
   std::vector<bool> vPfUpdates;
-  bool fMspf;
+  enum class PfState {none, cspf, mspf};
+  PfState state;
 
   int nVerbose;
 
