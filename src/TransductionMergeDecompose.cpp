@@ -18,19 +18,26 @@ int Transduction::TrivialMergeOne(int i, bool fErase) {
       count++;
       for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
         int f = vvFis[i0][jj];
-        if(find(vvFis[i].begin(), vvFis[i].end(), f) == vvFis[i].end()) {
-          Connect(i, f, false, false);
+        vector<int>::iterator it = find(vvFis[i].begin(), vvFis[i].end(), f);
+        if(it == vvFis[i].end()) {
+          Connect(i, f, false, false, vvCs[i0][jj]);
           count--;
+        } else {
+          unsigned l = it - vvFis[i].begin();
+          if(vvCs[i][l].Valid()) {
+            vvCs[i][l] = bdd->And(vvCs[i][l], vvCs[i0][jj]);
+          }
         }
       }
-      count += RemoveFis(i0);
+      count += RemoveFis(i0, false);
       if(fErase) {
         vObjs.erase(find(vObjs.begin(), vObjs.end(), i0));
       }
     }
   }
-  // TODO: transfer c and avoid pf update
-  vPfUpdates[i] = true;
+  if(!fMspf) {
+    vPfUpdates[i] = true;
+  }
   return count;
 }
 int Transduction::TrivialMerge() {
@@ -58,18 +65,18 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
   int count = 2 - vvFis[*it].size();
   while(vvFis[*it].size() > 2) {
     int f0 = vvFis[*it].back();
-    Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1, false);
+    NewBdd::Node c0 = vvCs[*it].back();
+    Disconnect(*it, f0 >> 1, vvFis[*it].size() - 1, false, false);
     int f1 = vvFis[*it].back();
-    Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1, false);
+    NewBdd::Node c1 = vvCs[*it].back();
+    Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1, false, false);
     CreateNewGate(pos);
-    Connect(pos, f0, false, false);
-    Connect(pos, f1, false, false);
+    Connect(pos, f0, false, false, c0);
+    Connect(pos, f1, false, false, c1);
     Connect(*it, pos << 1, false, false);
     vObjs.insert(it, pos);
     Build(pos);
-    vPfUpdates[pos] = true;
   }
-  // TODO: transfer c and avoid pf update
   vPfUpdates[*it] = true;
   return count;
 }

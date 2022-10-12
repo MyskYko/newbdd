@@ -137,6 +137,7 @@ int Transduction::Mspf(int block) {
       it = vObjs.rbegin();
       continue;
     }
+    vPfUpdates[*it] = false;
     it++;
   }
   return count;
