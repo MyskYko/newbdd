@@ -6,12 +6,24 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
   if(nVerbose > 2) {
     cout << "\t\tImport aig" << endl;
   }
+  // allocation
+  bdd = new NewBdd::Man(aig.nPis);
   nObjs = aig.nObjs + aig.nPos;
   vvFis.resize(nObjs);
   vvFos.resize(nObjs);
+  vFs.resize(nObjs);
+  vGs.resize(nObjs);
+  vvCs.resize(nObjs);
+  vUpdates.resize(nObjs);
+  vCspfUpdates.resize(nObjs);
+  // constant
+  vFs[0] = bdd->Const0();
+  // inputs
   for(int i = 0; i < aig.nPis; i++) {
     vPis.push_back(i + 1);
+    vFs[i + 1] = bdd->IthVar(i);
   }
+  // nodes
   for(int i = aig.nPis + 1; i < aig.nObjs; i++) {
     if(nVerbose > 3) {
       cout << "\t\t\tImport node " << i << endl;
@@ -21,40 +33,34 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
     }
     vObjs.push_back(i);
   }
+  // outputs
   for(int i = 0; i < aig.nPos; i++) {
     if(nVerbose > 3) {
       cout << "\t\t\tImport po " << i << endl;
     }
     Connect(i + aig.nObjs, aig.vPos[i]);
     vPos.push_back(i + aig.nObjs);
+    vGs[i + aig.nObjs] = bdd->Const0();
+    vvCs[i + aig.nObjs][0] = bdd->Const0();
   }
-  vUpdates.resize(nObjs);
-  vCspfUpdates.resize(nObjs);
-  // set up BDD
-  bdd = new NewBdd::Man(aig.nPis);
-  bdd->SetParameters(0, 12);
+  // build bdd
+  bdd->SetParameters(1, 12);
   bdd->SetOneCounts(true);
-  vFs.resize(nObjs);
-  vFs[0] = bdd->Const0();
-  for(int i = 0; i < aig.nPis; i++) {
-    vFs[i + 1] = bdd->IthVar(i);
-  }
-  Build();
+  Update();
   bdd->Reorder();
   bdd->SetParameters(1);
-  vGs.resize(nObjs);
-  vvCs.resize(nObjs);
-  for(int i = 0; i < aig.nPos; i++) {
-    vGs[i + aig.nObjs] = bdd->Const0();
-    vvCs[i + aig.nObjs].push_back(bdd->Const0());
-  }
-  // replace const outputs
+  // replace constant outputs
   for(int i = 0; i < aig.nPos; i++) {
     int i0 = aig.vPos[i] >> 1;
+    int c0 = aig.vPos[i] & 1;
     if(bdd->IsConst1(bdd->Or(vFs[i0], vGs[i + aig.nObjs]))) {
-      Replace(i0, 1);
+      Disconnect(i + aig.nObjs, i0, 0);
+      Connect(i + aig.nObjs, !c0);
+      vUpdates[i + aig.nObjs] = false;
     } else if(bdd->IsConst1(bdd->Or(bdd->Not(vFs[i0]), vGs[i + aig.nObjs]))) {
-      Replace(i0, 0);
+      Disconnect(i + aig.nObjs, i0, 0);
+      Connect(i + aig.nObjs, c0);
+      vUpdates[i + aig.nObjs] = false;
     }
   }
 }
@@ -153,19 +159,9 @@ void Transduction::Build(int i, vector<NewBdd::Node> & vFs_) const {
 void Transduction::Build(int i) {
   Build(i, vFs);
 }
-void Transduction::Build() {
-  if(nVerbose > 2) {
-    cout << "\t\tBuild" << endl;
-  }
-  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    Build(*it);
-  }
-  fill(vUpdates.begin(), vUpdates.end(), false);
-  fill(vCspfUpdates.begin(), vCspfUpdates.end(), true);
-}
 void Transduction::Update() {
   if(nVerbose > 2) {
-    cout << "\t\tUpdate" << endl;
+    cout << "\t\tBuild" << endl;
   }
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(vUpdates[*it]) {
@@ -208,14 +204,29 @@ bool Transduction::RankCompare(int a, int b) const {
   }
   return Rank(a) < Rank(b);
 }
-void Transduction::SortFis(int i) {
+bool Transduction::SortFis(int i) {
   if(nVerbose > 4) {
     cout << "\t\t\t\tSort fanins " << i << endl;
   }
-  sort(vvFis[i].begin(), vvFis[i].end(), RankComparator(*this));
+  bool fSort = false;
+  for(int p = 1; p < (int)vvFis[i].size(); p++) {
+    int f = vvFis[i][p];
+    NewBdd::Node c = vvCs[i][p];
+    int q = p - 1;
+    for(; q >= 0 && RankCompare(f, vvFis[i][q]); q--) {
+      vvFis[i][q + 1] = vvFis[i][q];
+      vvCs[i][q + 1] = vvCs[i][q];
+    }
+    if(q + 1 != p) {
+      fSort = true;
+      vvFis[i][q + 1] = f;
+      vvCs[i][q + 1] = c;
+    }
+  }
   if(nVerbose > 5) {
     for(unsigned j = 0; j < vvFis[i].size(); j++) {
       cout << "\t\t\t\t\tFanin " << j << " : " << (vvFis[i][j] >> 1) << "(" << (vvFis[i][j] & 1) << ")" << endl;
     }
   }
+  return fSort;
 }

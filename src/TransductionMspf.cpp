@@ -123,7 +123,7 @@ int Transduction::Mspf(int block) {
         count += Replace(*it, vvFis[*it][0]);
         vObjs.erase(--(it.base()));
       }
-      Build();
+      //Build();
       it = vObjs.rbegin();
       continue;
     }

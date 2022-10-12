@@ -56,7 +56,7 @@ private:
   inline void Disconnect(int i, int i0, unsigned j);
 
   inline int RemoveFis(int i);
-  inline int Replace(int i, int f);
+  inline int Replace(int i, int f, bool fUpdate = true);
   inline void CreateNewGate(int & pos);
 
   void SortObjs_rec(std::list<int>::iterator const & it);
@@ -66,19 +66,11 @@ private:
 
   void Build(int i, std::vector<NewBdd::Node> & vFs_) const;
   void Build(int i);
-  void Build();
   void Update();
 
   double Rank(int f) const;
   bool RankCompare(int a, int b) const;
-  struct RankComparator {
-    Transduction const & t;
-    RankComparator(Transduction const & t) : t(t) {}
-    bool operator()(int a, int b) {
-      return t.RankCompare(a, b);
-    }
-  };
-  void SortFis(int i);
+  bool SortFis(int i);
 
   int TrivialMergeOne(int i, bool fErase = false);
   int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
@@ -129,6 +121,8 @@ void Transduction::Connect(int i, int f, bool fSort) {
   }
   vvFis[i].push_back(f);
   vvFos[i0].push_back(i);
+  vUpdates[i] = true;
+  vvCs[i].push_back(NewBdd::Node());
   if(fSort && !vvFos[i].empty() && !vvFis[i0].empty()) {
     std::list<int>::iterator it = std::find(vObjs.begin(), vObjs.end(), i);
     std::list<int>::iterator it_i0 = std::find(it, vObjs.end(), i0);
@@ -156,6 +150,9 @@ void Transduction::Disconnect(int i, int i0, unsigned j) {
   }
   vvFos[i0].erase(std::find(vvFos[i0].begin(), vvFos[i0].end(), i));
   vvFis[i].erase(vvFis[i].begin() + j);
+  vvCs[i].erase(vvCs[i].begin() + j);
+  vUpdates[i] = true;
+  vCspfUpdates[i0] = true;
 }
 
 int Transduction::RemoveFis(int i) {
@@ -165,6 +162,7 @@ int Transduction::RemoveFis(int i) {
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     int i0 = vvFis[i][j] >> 1;
     vvFos[i0].erase(std::find(vvFos[i0].begin(), vvFos[i0].end(), i));
+    vCspfUpdates[i0] = true;
   }
   int count = vvFis[i].size();
   vvFis[i].clear();
@@ -172,7 +170,7 @@ int Transduction::RemoveFis(int i) {
   vvCs[i].clear();
   return count;
 }
-int Transduction::Replace(int i, int f) {
+int Transduction::Replace(int i, int f, bool fUpdate) {
   if(nVerbose > 4) {
     std::cout << "\t\t\t\tReplace " << i << " by " << (f >> 1) << "(" << (f & 1) << ")" << std::endl;
   }
@@ -182,8 +180,12 @@ int Transduction::Replace(int i, int f) {
     unsigned l = FindFi(k, i);
     vvFis[k][l] = f ^ (vvFis[k][l] & 1);
     vvFos[f >> 1].push_back(k);
+    if(fUpdate) {
+      vUpdates[k] = true;
+    }
   }
   vvFos[i].clear();
+  vCspfUpdates[f >> 1] = true;
   return RemoveFis(i);
 }
 void Transduction::CreateNewGate(int & pos) {

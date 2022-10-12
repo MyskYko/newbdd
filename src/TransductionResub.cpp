@@ -12,7 +12,6 @@ bool Transduction::TryConnect(int i, int f) {
     x = bdd->Or(x, bdd->NotCond(vFs[f >> 1], f & 1));
     if(bdd->IsConst1(x)) {
       Connect(i, f, true);
-      vUpdates[i] = true;
       return true;
     }
   }

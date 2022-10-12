@@ -25,7 +25,6 @@ int Transduction::RemoveRedundantFis(int i) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j--);
-      vCspfUpdates[i0] = true;
       count++;
     }
   }
@@ -43,7 +42,6 @@ void Transduction::CalcG(int i) {
 
 int Transduction::CalcC(int i) {
   int count = 0;
-  vvCs[i].clear();
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     // x = Not(And(FIs with larger rank))
     NewBdd::Node x = bdd->Const1();
@@ -68,10 +66,10 @@ int Transduction::CalcC(int i) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j--);
-      vCspfUpdates[i0] = true;
       count++;
-    } else {
-      vvCs[i].push_back(c);
+    } else if(vvCs[i][j] != c) {
+      vvCs[i][j] = c;
+      vCspfUpdates[i0] = true;
     }
   }
   return count;
@@ -92,39 +90,23 @@ int Transduction::Cspf(int block) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    vector<int> vFisOld = vvFis[*it];
-    if(*it != block) {
-      SortFis(*it);
-    }
-    if(!vCspfUpdates[*it] && vvFis[*it] == vFisOld) {
-      it++;
-      continue;
-    }
-    CalcG(*it);
-    if(*it != block) {
-      if(int diff = RemoveRedundantFis(*it)) {
-        count += diff;
-        vUpdates[*it] = true;
+    if(!vCspfUpdates[*it]) {
+      if(*it == block || !SortFis(*it)) {
+        it++;
+        continue;
       }
-    }
-    map<int, NewBdd::Node> m;
-    for(unsigned j = 0; j < vvCs[*it].size(); j++) {
-      m[vFisOld[j]] = vvCs[*it][j];
-    }
-    if(int diff = CalcC(*it)) {
-      count += diff;
-      vUpdates[*it] = true;
-    }
-    for(unsigned j = 0; j < vvFis[*it].size(); j++) {
-      if(!m.count(vvFis[*it][j]) || m[vvFis[*it][j]] != vvCs[*it][j]) {
-        vCspfUpdates[vvFis[*it][j] >> 1] = true;
+    } else {
+      if(*it != block) {
+        SortFis(*it);
       }
+      CalcG(*it);
     }
+    if(*it != block) {
+      count += RemoveRedundantFis(*it);
+    }
+    count += CalcC(*it);
     assert(!vvFis[*it].empty());
     if(vvFis[*it].size() == 1) {
-      for(unsigned j = 0; j < vvFos[*it].size(); j++) {
-        vUpdates[vvFos[*it][j]] = true;
-      }
       count += Replace(*it, vvFis[*it][0]);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
