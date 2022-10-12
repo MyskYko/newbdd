@@ -48,6 +48,7 @@ private:
 
   std::vector<bool> vUpdates;
   std::vector<bool> vPfUpdates;
+  bool fMspf;
 
   int nVerbose;
 

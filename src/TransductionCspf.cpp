@@ -79,6 +79,10 @@ int Transduction::Cspf(int block) {
   if(nVerbose > 2) {
     cout << "\t\tCspf" << endl;
   }
+  if(fMspf) {
+    fill(vPfUpdates.begin(), vPfUpdates.end(), true);
+    fMspf = false;
+  }
   assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
   int count = 0;
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {

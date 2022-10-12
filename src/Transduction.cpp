@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose) {
+Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose), fMspf(false) {
   if(nVerbose > 2) {
     cout << "\t\tImport aig" << endl;
   }

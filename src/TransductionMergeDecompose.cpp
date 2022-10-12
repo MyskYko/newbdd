@@ -29,6 +29,7 @@ int Transduction::TrivialMergeOne(int i, bool fErase) {
       }
     }
   }
+  // TODO: transfer c and avoid pf update
   vPfUpdates[i] = true;
   return count;
 }
@@ -68,6 +69,7 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
     Build(pos);
     vPfUpdates[pos] = true;
   }
+  // TODO: transfer c and avoid pf update
   vPfUpdates[*it] = true;
   return count;
 }
@@ -108,7 +110,7 @@ int Transduction::Decompose() {
         }
       }
       assert(s1.size() == vvFis[*it].size());
-      vPfUpdates[*it] = true;
+      assert(vPfUpdates[*it]);
     }
     list<int>::iterator it2 = it;
     for(it2++; it2 != vObjs.end(); it2++) {
