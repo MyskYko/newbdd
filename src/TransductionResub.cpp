@@ -18,11 +18,11 @@ bool Transduction::TryConnect(int i, int f) {
   return false;
 }
 
-int Transduction::Resub() {
+int Transduction::Resub(bool fMspf) {
   if(nVerbose) {
     cout << "Resubstitution" << endl;
   }
-  int count = CspfEager();
+  int count = fMspf? Mspf(): CspfEager();
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -54,17 +54,17 @@ int Transduction::Resub() {
     }
     if(fConnect) {
       Build();
-      count += CspfEager();
+      count += fMspf? Mspf(): CspfEager();
     }
   }
   return count;
 }
 
-int Transduction::ResubMono() {
+int Transduction::ResubMono(bool fMspf) {
   if(nVerbose) {
     cout << "Resubstitution monotonic" << endl;
   }
-  int count = CspfEager();
+  int count = fMspf? Mspf(): CspfEager();
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -76,7 +76,9 @@ int Transduction::ResubMono() {
     }
     // merge
     count += TrivialMergeOne(*it, true);
-    count += CspfEager();
+    if(!fMspf) {
+      count += CspfEager();
+    }
     // resub
     Save();
     for(unsigned i = 0; i < vPis.size(); i++) {
@@ -87,9 +89,9 @@ int Transduction::ResubMono() {
       if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
         count--;
         Build();
-        if(int diff = Cspf(*it)) {
+        if(int diff = fMspf? Mspf(*it, f >> 1): Cspf(*it)) {
           count += diff;
-          count += CspfEager();
+          count += fMspf? Mspf(): CspfEager();
           Save();
         } else {
           Load();
@@ -113,9 +115,9 @@ int Transduction::ResubMono() {
         if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
           count--;
           Build();
-          if(int diff = Cspf(*it)) {
+          if(int diff = fMspf? Mspf(*it, f >> 1): Cspf(*it)) {
             count += diff;
-            count += CspfEager();
+            count += fMspf? Mspf(): CspfEager();
             Save();
           } else {
             Load();
@@ -132,7 +134,7 @@ int Transduction::ResubMono() {
       list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
       int pos = nObjs;
       count += TrivialDecomposeOne(it2, pos);
-      count += CspfEager();
+      count += fMspf? Mspf(): CspfEager();
     }
   }
   ClearSave();

@@ -30,8 +30,8 @@ public:
 
   int Mspf(int block_i = -1, int block_i0 = -1);
 
-  int Resub();
-  int ResubMono();
+  int Resub(bool fMspf = false);
+  int ResubMono(bool fMspf = false);
 
 private:
   int nObjs;
