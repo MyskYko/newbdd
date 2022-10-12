@@ -299,9 +299,7 @@ namespace NewBdd {
   }
 
   void Man::CacheClear() {
-    size i = vCache.size();
-    vCache.clear();
-    vCache.resize(i);
+    fill(vCache.begin(), vCache.end(), 0);
   }
 
   void Man::RemoveBvar(bvar a) {
