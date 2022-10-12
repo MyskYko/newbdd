@@ -171,7 +171,10 @@ void Transduction::Build() {
       }
     }
   }
-  vUpdates.swap(vCspfUpdates);
+  for(int i = 0; i < nObjs; i++) {
+    vCspfUpdates[i] = vCspfUpdates[i] || vUpdates[i];
+  }
+  fill(vUpdates.begin(), vUpdates.end(), false);
   assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
 }
 

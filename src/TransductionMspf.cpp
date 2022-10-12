@@ -38,6 +38,7 @@ void Transduction::BuildFoConeCompl(int i, vector<NewBdd::Node> & vPoFsCompl) co
   for(list<int>::const_iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(vMarks[*it]) {
       Build(*it, vFsCompl);
+      // TOOD: skip non-updated nodes
     }
   }
   for(unsigned j = 0; j < vPos.size(); j++) {
@@ -65,7 +66,6 @@ void Transduction::MspfCalcG(int i) {
 }
 
 bool Transduction::MspfCalcC(int i) {
-  vvCs[i].clear();
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     // x = Not(And(other FIs))
     NewBdd::Node x = bdd->Const1();
@@ -90,8 +90,9 @@ bool Transduction::MspfCalcC(int i) {
       }
       Disconnect(i, i0, j);
       return true;
-    } else {
-      vvCs[i].push_back(c);
+    } else if(vvCs[i][j] != c) {
+      vvCs[i][j] = c;
+      vCspfUpdates[i0] = true;
     }
   }
   return false;
@@ -111,6 +112,10 @@ int Transduction::Mspf(int block) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
+    if(!vCspfUpdates[*it]) {
+      it++;
+      continue;
+    }
     MspfCalcG(*it);
     if(*it != block) {
       SortFis(*it);
@@ -123,7 +128,7 @@ int Transduction::Mspf(int block) {
         count += Replace(*it, vvFis[*it][0]);
         vObjs.erase(--(it.base()));
       }
-      //Build();
+      Build();
       it = vObjs.rbegin();
       continue;
     }
