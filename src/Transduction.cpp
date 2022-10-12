@@ -46,7 +46,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
   // build bdd
   bdd->SetParameters(1, 12);
   bdd->SetOneCounts(true);
-  Update();
+  Build();
   bdd->Reorder();
   bdd->SetParameters(1);
   // replace constant outputs
@@ -157,7 +157,7 @@ void Transduction::Build(int i, vector<NewBdd::Node> & vFs_) const {
 void Transduction::Build(int i) {
   Build(i, vFs);
 }
-void Transduction::Update() {
+void Transduction::Build() {
   if(nVerbose > 2) {
     cout << "\t\tBuild" << endl;
   }

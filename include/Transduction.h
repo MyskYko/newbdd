@@ -66,7 +66,7 @@ private:
 
   void Build(int i, std::vector<NewBdd::Node> & vFs_) const;
   void Build(int i);
-  void Update();
+  void Build();
 
   double Rank(int f) const;
   bool RankCompare(int a, int b) const;

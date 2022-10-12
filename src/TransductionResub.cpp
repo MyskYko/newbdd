@@ -53,7 +53,7 @@ int Transduction::Resub() {
       }
     }
     if(fConnect) {
-      Update();
+      Build();
       count += CspfEager();
     }
   }
@@ -86,7 +86,7 @@ int Transduction::ResubMono() {
       int f = vPis[i] << 1;
       if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
         count--;
-        Update();
+        Build();
         if(int diff = Cspf(*it)) {
           count += diff;
           count += CspfEager();
@@ -112,7 +112,7 @@ int Transduction::ResubMono() {
         int f = *it2 << 1;
         if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
           count--;
-          Update();
+          Build();
           if(int diff = Cspf(*it)) {
             count += diff;
             count += CspfEager();

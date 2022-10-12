@@ -114,7 +114,7 @@ int Transduction::Cspf(int block) {
     it++;
   }
   fill(vCspfUpdates.begin(), vCspfUpdates.end(), false);
-  Update();
+  Build();
   return count;
 }
 
