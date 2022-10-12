@@ -28,7 +28,7 @@ public:
   int Cspf(int block = -1);
   int CspfEager(int block = -1);
 
-  int Mspf(int block = -1);
+  int Mspf(int block_i = -1, int block_i0 = -1);
 
   int Resub();
   int ResubMono();
@@ -84,7 +84,7 @@ private:
   bool IsFoConeShared(int i) const;
   void BuildFoConeCompl(int i, std::vector<NewBdd::Node> & vPoFsCompl) const;
   void MspfCalcG(int i);
-  bool MspfCalcC(int i);
+  bool MspfCalcC(int i, int block_i, int block_i0);
 
   bool TryConnect(int i, int f);
 

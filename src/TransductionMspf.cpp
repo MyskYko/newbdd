@@ -72,7 +72,7 @@ void Transduction::MspfCalcG(int i) {
   }
 }
 
-bool Transduction::MspfCalcC(int i) {
+bool Transduction::MspfCalcC(int i, int block_i, int block_i0) {
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     // x = Not(And(other FIs))
     NewBdd::Node x = bdd->Const1();
@@ -91,7 +91,7 @@ bool Transduction::MspfCalcC(int i) {
     int i0 = vvFis[i][j] >> 1;
     int c0 = vvFis[i][j] & 1;
     NewBdd::Node f_i_j = bdd->NotCond(vFs[i0], c0);
-    if(bdd->IsConst1(bdd->Or(c, f_i_j))) {
+    if((i != block_i || i0 != block_i0) && bdd->IsConst1(bdd->Or(c, f_i_j))) {
       if(nVerbose > 4) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
@@ -105,7 +105,7 @@ bool Transduction::MspfCalcC(int i) {
   return false;
 }
 
-int Transduction::Mspf(int block) {
+int Transduction::Mspf(int block_i, int block_i0) {
   if(nVerbose > 2) {
     cout << "\t\tMspf" << endl;
   }
@@ -131,11 +131,10 @@ int Transduction::Mspf(int block) {
       continue;
     }
     MspfCalcG(*it);
-    if(*it != block) {
+    if(*it != block_i) {
       SortFis(*it);
-      // TODO: avoid removing fanin of *it in CalcC
     }
-    if(MspfCalcC(*it)) {
+    if(MspfCalcC(*it, block_i, block_i0)) {
       count++;
       assert(!vvFis[*it].empty());
       if(vvFis[*it].size() == 1) {
