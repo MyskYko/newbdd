@@ -26,8 +26,8 @@ int Transduction::Resub(bool fMspf) {
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
-      cout << "\tResubstitute " << *it;
-      cout << " : nodes " << CountNodes() << " gates " << CountGates() << " wires " << CountWires() << endl;
+      cout << "\tResubstitute " << *it << " : ";
+      PrintStats();
     }
     if(vvFos[*it].empty()) {
       continue;
@@ -68,8 +68,8 @@ int Transduction::ResubMono(bool fMspf) {
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
-      cout << "\tResubstitute monotonic " << *it;
-      cout << " : nodes " << CountNodes() << " gates " << CountGates() << " wires " << CountWires() << endl;
+      cout << "\tResubstitute monotonic " << *it << " : ";
+      PrintStats();
     }
     if(vvFos[*it].empty()) {
       continue;

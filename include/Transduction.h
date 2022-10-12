@@ -20,6 +20,7 @@ public:
   inline int CountGates() const;
   inline int CountWires() const;
   inline int CountNodes() const;
+  inline void PrintStats() const;
 
   int TrivialMerge();
   int TrivialDecompose();
@@ -114,6 +115,12 @@ int Transduction::CountWires() const {
 }
 int Transduction::CountNodes() const {
   return CountWires() - CountGates();
+}
+void Transduction::PrintStats() const {
+  int gates = CountGates();
+  int wires = CountWires();
+  int nodes = wires - gates;
+  std::cout << "nodes " << nodes << " gates " << gates << " wires " << wires << std::endl;
 }
 
 void Transduction::Connect(int i, int f, bool fSort, bool fUpdate, NewBdd::Node c) {
