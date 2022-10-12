@@ -54,13 +54,11 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : nVerbose(nVerbose
     int i0 = aig.vPos[i] >> 1;
     int c0 = aig.vPos[i] & 1;
     if(bdd->IsConst1(bdd->Or(vFs[i0], vGs[i + aig.nObjs]))) {
-      Disconnect(i + aig.nObjs, i0, 0);
-      Connect(i + aig.nObjs, !c0);
-      vUpdates[i + aig.nObjs] = false;
+      Disconnect(i + aig.nObjs, i0, 0, false);
+      Connect(i + aig.nObjs, !c0, false, false);
     } else if(bdd->IsConst1(bdd->Or(bdd->Not(vFs[i0]), vGs[i + aig.nObjs]))) {
-      Disconnect(i + aig.nObjs, i0, 0);
-      Connect(i + aig.nObjs, c0);
-      vUpdates[i + aig.nObjs] = false;
+      Disconnect(i + aig.nObjs, i0, 0, false);
+      Connect(i + aig.nObjs, c0, false, false);
     }
   }
 }

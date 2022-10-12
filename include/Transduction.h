@@ -51,9 +51,9 @@ private:
 
   int nVerbose;
 
-  inline void Connect(int i, int f, bool fSort = false);
+  inline void Connect(int i, int f, bool fSort = false, bool fUpdate = true);
   inline unsigned FindFi(int i, int i0) const;
-  inline void Disconnect(int i, int i0, unsigned j);
+  inline void Disconnect(int i, int i0, unsigned j, bool fUpdate = true);
 
   inline int RemoveFis(int i);
   inline int Replace(int i, int f, bool fUpdate = true);
@@ -114,14 +114,16 @@ int Transduction::CountNodes() const {
   return CountWires() - CountGates();
 }
 
-void Transduction::Connect(int i, int f, bool fSort) {
+void Transduction::Connect(int i, int f, bool fSort, bool fUpdate) {
   int i0 = f >> 1;
   if(nVerbose > 5) {
     std::cout << "\t\t\t\t\tConnect " << i0 << "(" << (f & 1) << ")" << " to " << i << std::endl;
   }
   vvFis[i].push_back(f);
   vvFos[i0].push_back(i);
-  vUpdates[i] = true;
+  if(fUpdate) {
+    vUpdates[i] = true;
+  }
   vvCs[i].push_back(NewBdd::Node());
   if(fSort && !vvFos[i].empty() && !vvFis[i0].empty()) {
     std::list<int>::iterator it = std::find(vObjs.begin(), vObjs.end(), i);
@@ -144,14 +146,16 @@ unsigned Transduction::FindFi(int i, int i0) const {
   }
   abort();
 }
-void Transduction::Disconnect(int i, int i0, unsigned j) {
+void Transduction::Disconnect(int i, int i0, unsigned j, bool fUpdate) {
   if(nVerbose > 5) {
     std::cout << "\t\t\t\t\tDisconnect " << i0 << "(" << (vvFis[i][j] & 1) << ")" << " from " << i << std::endl;
   }
   vvFos[i0].erase(std::find(vvFos[i0].begin(), vvFos[i0].end(), i));
   vvFis[i].erase(vvFis[i].begin() + j);
   vvCs[i].erase(vvCs[i].begin() + j);
-  vUpdates[i] = true;
+  if(fUpdate) {
+    vUpdates[i] = true;
+  }
   vCspfUpdates[i0] = true;
 }
 
