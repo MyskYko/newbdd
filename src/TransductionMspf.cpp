@@ -33,12 +33,19 @@ void Transduction::BuildFoConeCompl(int i, vector<NewBdd::Node> & vPoFsCompl) co
   }
   vector<NewBdd::Node> vFsCompl = vFs;
   vFsCompl[i] = bdd->Not(vFs[i]);
-  vector<bool> vMarks(nObjs);
-  MarkFoCone_rec(vMarks, i);
+  vector<bool> vUpdatesCompl(nObjs);
+  for(unsigned j = 0; j < vvFos[i].size(); j++) {
+    vUpdatesCompl[vvFos[i][j]] = true;
+  }
   for(list<int>::const_iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    if(vMarks[*it]) {
+    if(vUpdatesCompl[*it]) {
+      NewBdd::Node x = vFsCompl[*it];
       Build(*it, vFsCompl);
-      // TOOD: skip non-updated nodes
+      if(x != vFsCompl[*it]) {
+        for(unsigned j = 0; j < vvFos[*it].size(); j++) {
+          vUpdatesCompl[vvFos[*it][j]] = true;
+        }
+      }
     }
   }
   for(unsigned j = 0; j < vPos.size(); j++) {
