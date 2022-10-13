@@ -49,6 +49,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::no
   bdd->Reorder();
   bdd->SetParameters(1);
   // check and store outputs
+  bool fRemoved = false;
   for(int i = 0; i < aig.nPos; i++) {
     int i0 = aig.vPos[i] >> 1;
     int c0 = aig.vPos[i] & 1;
@@ -57,12 +58,25 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::no
       Disconnect(i + aig.nObjs, i0, 0, false);
       Connect(i + aig.nObjs, 1, false, false);
       x = bdd->Const1();
+      fRemoved |= vvFos[i0].empty();
     } else if(bdd->IsConst1(bdd->Or(bdd->Not(x), vvCs[i + aig.nObjs][0]))) {
       Disconnect(i + aig.nObjs, i0, 0, false);
       Connect(i + aig.nObjs, 0, false, false);
       x = bdd->Const0();
+      fRemoved |= vvFos[i0].empty();
     }
     vPoFs.push_back(x);
+  }
+  // remove unused nodes
+  if(fRemoved) {
+    for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
+      if(vvFos[*it].empty()) {
+        RemoveFis(*it);
+        it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
+        continue;
+      }
+      it++;
+    }
   }
 }
 Transduction::~Transduction() {
