@@ -64,10 +64,8 @@ void Transduction::MspfCalcG(int i) {
   BuildFoConeCompl(i, vPoFsCompl);
   vGs[i] = bdd->Const1();
   for(unsigned j = 0; j < vPos.size(); j++) {
-    int i0 = vvFis[vPos[j]][0] >> 1;
-    int c0 = vvFis[vPos[j]][0] & 1;
-    NewBdd::Node x = bdd->Not(bdd->Xor(bdd->NotCond(vFs[i0], c0), vPoFsCompl[j]));
-    x = bdd->Or(x, vGs[vPos[j]]);
+    NewBdd::Node x = bdd->Not(bdd->Xor(vPoFs[j], vPoFsCompl[j]));
+    x = bdd->Or(x, vvCs[vPos[j]][0]);
     vGs[i] = bdd->And(vGs[i], x);
   }
 }

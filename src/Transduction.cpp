@@ -38,9 +38,9 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::no
     if(nVerbose > 3) {
       cout << "\t\t\tImport po " << i << endl;
     }
-    Connect(i + aig.nObjs, aig.vPos[i]);
     vPos.push_back(i + aig.nObjs);
-    vvCs[i + aig.nObjs][0] = bdd->Const0();
+    Connect(vPos[i], aig.vPos[i]);
+    vvCs[vPos[i]][0] = bdd->Const0();
   }
   // build bdd
   bdd->SetParameters(1, 12);
@@ -54,14 +54,14 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::no
     int i0 = aig.vPos[i] >> 1;
     int c0 = aig.vPos[i] & 1;
     NewBdd::Node x = bdd->NotCond(vFs[i0], c0);
-    if(bdd->IsConst1(bdd->Or(x, vvCs[i + aig.nObjs][0]))) {
-      Disconnect(i + aig.nObjs, i0, 0, false);
-      Connect(i + aig.nObjs, 1, false, false);
+    if(bdd->IsConst1(bdd->Or(x, vvCs[vPos[i]][0]))) {
+      Disconnect(vPos[i], i0, 0, false);
+      Connect(vPos[i], 1, false, false);
       x = bdd->Const1();
       fRemoved |= vvFos[i0].empty();
-    } else if(bdd->IsConst1(bdd->Or(bdd->Not(x), vvCs[i + aig.nObjs][0]))) {
-      Disconnect(i + aig.nObjs, i0, 0, false);
-      Connect(i + aig.nObjs, 0, false, false);
+    } else if(bdd->IsConst1(bdd->Or(bdd->Not(x), vvCs[vPos[i]][0]))) {
+      Disconnect(vPos[i], i0, 0, false);
+      Connect(vPos[i], 0, false, false);
       x = bdd->Const0();
       fRemoved |= vvFos[i0].empty();
     }
