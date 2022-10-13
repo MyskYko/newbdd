@@ -48,23 +48,28 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::no
   Build();
   bdd->Reorder();
   bdd->SetParameters(1);
-  // replace constant outputs
+  // check and store outputs
   for(int i = 0; i < aig.nPos; i++) {
     int i0 = aig.vPos[i] >> 1;
     int c0 = aig.vPos[i] & 1;
-    if(bdd->IsConst1(bdd->Or(vFs[i0], vvCs[i + aig.nObjs][0]))) {
+    NewBdd::Node x = bdd->NotCond(vFs[i0], c0);
+    if(bdd->IsConst1(bdd->Or(x, vvCs[i + aig.nObjs][0]))) {
       Disconnect(i + aig.nObjs, i0, 0, false);
-      Connect(i + aig.nObjs, !c0, false, false);
-    } else if(bdd->IsConst1(bdd->Or(bdd->Not(vFs[i0]), vvCs[i + aig.nObjs][0]))) {
+      Connect(i + aig.nObjs, 1, false, false);
+      x = bdd->Const1();
+    } else if(bdd->IsConst1(bdd->Or(bdd->Not(x), vvCs[i + aig.nObjs][0]))) {
       Disconnect(i + aig.nObjs, i0, 0, false);
-      Connect(i + aig.nObjs, c0, false, false);
+      Connect(i + aig.nObjs, 0, false, false);
+      x = bdd->Const0();
     }
+    vPoFs.push_back(x);
   }
 }
 Transduction::~Transduction() {
   vFs.clear();
   vGs.clear();
   vvCs.clear();
+  vPoFs.clear();
   delete bdd;
 }
 

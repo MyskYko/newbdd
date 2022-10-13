@@ -21,6 +21,7 @@ public:
   inline int CountWires() const;
   inline int CountNodes() const;
   inline void PrintStats() const;
+  inline bool Verify() const;
 
   int TrivialMerge();
   int TrivialDecompose();
@@ -46,6 +47,7 @@ private:
   std::vector<NewBdd::Node> vFs;
   std::vector<NewBdd::Node> vGs;
   std::vector<std::vector<NewBdd::Node> > vvCs;
+  std::vector<NewBdd::Node> vPoFs;
 
   std::vector<bool> vUpdates;
   std::vector<bool> vPfUpdates;
@@ -121,6 +123,16 @@ void Transduction::PrintStats() const {
   int wires = CountWires();
   int nodes = wires - gates;
   std::cout << "nodes " << nodes << " gates " << gates << " wires " << wires << std::endl;
+}
+bool Transduction::Verify() const {
+  for(unsigned j = 0; j < vPos.size(); j++) {
+    int i0 = vvFis[vPos[j]][0] >> 1;
+    int c0 = vvFis[vPos[j]][0] & 1;
+    if(bdd->NotCond(vFs[i0], c0) != vPoFs[j]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void Transduction::Connect(int i, int f, bool fSort, bool fUpdate, NewBdd::Node c) {

@@ -50,6 +50,10 @@ int main(int argc, char ** argv) {
       return 1;
     }
     t.PrintStats();
+    if(!t.Verify()) {
+      std::cout << "Circuits are not equivalent!" << std::endl;
+      return 1;
+    }
     if(count - diff != t.CountWires()) {
       std::cout << "Wrong wire count!" << std::endl;
       return 1;
