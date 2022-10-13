@@ -151,11 +151,17 @@ namespace NewBdd {
   }
 
   lit Man::And_rec(lit x, lit y) {
-    if(x == 0 || y == 1 || x == y) {
+    if(x == 0 || y == 1) {
       return x;
     }
     if(x == 1 || y == 0) {
       return y;
+    }
+    if(Lit2Bvar(x) == Lit2Bvar(y)) {
+      if(x == y) {
+        return x;
+      }
+      return 0;
     }
     if(x > y) {
       swap(x, y);
