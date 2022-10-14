@@ -55,19 +55,21 @@ void Transduction::BuildFoConeCompl(int i, vector<NewBdd::Node> & vPoFsCompl) co
   }
 }
 
-void Transduction::MspfCalcG(int i) {
+bool Transduction::MspfCalcG(int i) {
+  NewBdd::Node g = vGs[i];
   if(!IsFoConeShared(i)) {
     CalcG(i);
-    return;
+  } else {
+    vector<NewBdd::Node> vPoFsCompl;
+    BuildFoConeCompl(i, vPoFsCompl);
+    vGs[i] = bdd->Const1();
+    for(unsigned j = 0; j < vPos.size(); j++) {
+      NewBdd::Node x = bdd->Not(bdd->Xor(vPoFs[j], vPoFsCompl[j]));
+      x = bdd->Or(x, vvCs[vPos[j]][0]);
+      vGs[i] = bdd->And(vGs[i], x);
+    }
   }
-  vector<NewBdd::Node> vPoFsCompl;
-  BuildFoConeCompl(i, vPoFsCompl);
-  vGs[i] = bdd->Const1();
-  for(unsigned j = 0; j < vPos.size(); j++) {
-    NewBdd::Node x = bdd->Not(bdd->Xor(vPoFs[j], vPoFsCompl[j]));
-    x = bdd->Or(x, vvCs[vPos[j]][0]);
-    vGs[i] = bdd->And(vGs[i], x);
-  }
+  return vGs[i] != g;
 }
 
 bool Transduction::MspfCalcC(int i, int block_i, int block_i0) {
@@ -124,11 +126,10 @@ int Transduction::Mspf(int block_i, int block_i0) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    if(!vPfUpdates[*it]) {
+    if(!MspfCalcG(*it) && !vPfUpdates[*it]) {
       it++;
       continue;
     }
-    MspfCalcG(*it);
     if(*it != block_i) {
       SortFis(*it);
     }

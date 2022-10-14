@@ -87,7 +87,7 @@ private:
   bool IsFoConeShared_rec(std::vector<int> & vVisits, int i, int visitor) const;
   bool IsFoConeShared(int i) const;
   void BuildFoConeCompl(int i, std::vector<NewBdd::Node> & vPoFsCompl) const;
-  void MspfCalcG(int i);
+  bool MspfCalcG(int i);
   bool MspfCalcC(int i, int block_i, int block_i0);
 
   bool TryConnect(int i, int f);
