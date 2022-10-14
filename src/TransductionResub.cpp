@@ -41,7 +41,6 @@ int Transduction::Resub(bool fMspf) {
       }
     }
     vector<bool> vMarks(nObjs);
-    vMarks[*it] = true;
     MarkFoCone_rec(vMarks, *it);
     for(list<int>::iterator it2 = targets.begin(); it2 != targets.end(); it2++) {
       if(!vMarks[*it2] && !vvFos[*it2].empty()) {
@@ -103,7 +102,6 @@ int Transduction::ResubMono(bool fMspf) {
       continue;
     }
     vector<bool> vMarks(nObjs);
-    vMarks[*it] = true;
     MarkFoCone_rec(vMarks, *it);
     list<int> targets2 = vObjs;
     for(list<int>::iterator it2 = targets2.begin(); it2 != targets2.end(); it2++) {

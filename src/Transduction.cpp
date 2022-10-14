@@ -145,21 +145,21 @@ void Transduction::SortObjs_rec(list<int>::iterator const & it) {
 }
 
 void Transduction::MarkFiCone_rec(vector<bool> & vMarks, int i) const {
+  if(vMarks[i]) {
+    return;
+  }
+  vMarks[i] = true;
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
-    int i0 = vvFis[i][j] >> 1;
-    if(!vMarks[i0]) {
-      vMarks[i0] = true;
-      MarkFiCone_rec(vMarks, i0);
-    }
+    MarkFiCone_rec(vMarks, vvFis[i][j] >> 1);
   }
 }
 void Transduction::MarkFoCone_rec(vector<bool> & vMarks, int i) const {
+  if(vMarks[i]) {
+    return;
+  }
+  vMarks[i] = true;
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
-    int k = vvFos[i][j];
-    if(!vMarks[k]) {
-      vMarks[k] = true;
-      MarkFoCone_rec(vMarks, k);
-    }
+    MarkFoCone_rec(vMarks, vvFos[i][j]);
   }
 }
 
