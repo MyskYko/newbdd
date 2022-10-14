@@ -205,18 +205,36 @@ int Transduction::Replace(int i, int f, bool fUpdate) {
     std::cout << "\t\t\t\tReplace " << i << " by " << (f >> 1) << "(" << (f & 1) << ")" << std::endl;
   }
   assert(i != (f >> 1));
+  int count = 0;
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     int k = vvFos[i][j];
     unsigned l = FindFi(k, i);
-    vvFis[k][l] = f ^ (vvFis[k][l] & 1);
-    vvFos[f >> 1].push_back(k);
+    int fc = f ^ (vvFis[k][l] & 1);
+    std::vector<int>::iterator it = std::find(vvFis[k].begin(), vvFis[k].end(), fc);
+    if(it != vvFis[k].end()) {
+      unsigned ll = it - vvFis[k].begin();
+      if(state == PfState::cspf && vvCs[k][l].Valid() && vvCs[k][ll].Valid()) {
+        vvCs[k][ll] = bdd->And(vvCs[k][l], vvCs[k][ll]);
+      } else {
+        vvCs[k][ll] = NewBdd::Node();
+      }
+      vvCs[k].erase(vvCs[k].begin() + l);
+      vvFis[k].erase(vvFis[k].begin() + l);
+      count++;
+      if(!fUpdate) {
+        vPfUpdates[k] = true;
+      }
+    } else {
+      vvFis[k][l] = f ^ (vvFis[k][l] & 1);
+      vvFos[f >> 1].push_back(k);
+    }
     if(fUpdate) {
       vUpdates[k] = true;
     }
   }
   vvFos[i].clear();
   vPfUpdates[f >> 1] = true;
-  return RemoveFis(i);
+  return count + RemoveFis(i);
 }
 void Transduction::CreateNewGate(int & pos) {
   while(pos != nObjs && (!vvFis[pos].empty() || !vvFos[pos].empty())) {
