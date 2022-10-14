@@ -54,16 +54,18 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::no
     int i0 = aig.vPos[i] >> 1;
     int c0 = aig.vPos[i] & 1;
     NewBdd::Node x = bdd->NotCond(vFs[i0], c0);
-    if(bdd->IsConst1(bdd->Or(x, vvCs[vPos[i]][0]))) {
-      Disconnect(vPos[i], i0, 0, false);
-      Connect(vPos[i], 1, false, false);
-      x = bdd->Const1();
-      fRemoved |= vvFos[i0].empty();
-    } else if(bdd->IsConst1(bdd->Or(bdd->Not(x), vvCs[vPos[i]][0]))) {
-      Disconnect(vPos[i], i0, 0, false);
-      Connect(vPos[i], 0, false, false);
-      x = bdd->Const0();
-      fRemoved |= vvFos[i0].empty();
+    if(i0) {
+      if(bdd->IsConst1(bdd->Or(x, vvCs[vPos[i]][0]))) {
+        Disconnect(vPos[i], i0, 0, false);
+        Connect(vPos[i], 1, false, false);
+        x = bdd->Const1();
+        fRemoved |= vvFos[i0].empty();
+      } else if(bdd->IsConst1(bdd->Or(bdd->Not(x), vvCs[vPos[i]][0]))) {
+        Disconnect(vPos[i], i0, 0, false);
+        Connect(vPos[i], 0, false, false);
+        x = bdd->Const0();
+        fRemoved |= vvFos[i0].empty();
+      }
     }
     vPoFs.push_back(x);
   }
