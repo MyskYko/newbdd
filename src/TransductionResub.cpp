@@ -32,6 +32,12 @@ int Transduction::Resub(bool fMspf) {
     if(vvFos[*it].empty()) {
       continue;
     }
+    // merge
+    count += TrivialMergeOne(*it, true);
+    if(!fMspf) {
+      count += CspfEager();
+    }
+    // resub
     bool fConnect = false;
     for(unsigned i = 0; i < vPis.size(); i++) {
       int f = vPis[i] << 1;
