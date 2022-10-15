@@ -97,6 +97,50 @@ int Transduction::TrivialDecompose() {
   return count;
 }
 
+int Transduction::Merge(bool fMspf) {
+  if(nVerbose) {
+    cout << "Merge" << endl;
+  }
+  int count = fMspf? Mspf(): CspfEager();
+  list<int> targets = vObjs;
+  for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
+    if(nVerbose > 1) {
+      cout << "\tMerge " << *it << endl;
+    }
+    if(vvFos[*it].empty()) {
+      continue;
+    }
+    count += TrivialMergeOne(*it, true);
+    if(!fMspf) {
+      count += CspfEager();
+    }
+    bool fConnect = false;
+    for(unsigned i = 0; i < vPis.size(); i++) {
+      int f = vPis[i] << 1;
+      if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
+        fConnect |= true;
+        count--;
+      }
+    }
+    vector<bool> vMarks(nObjs);
+    MarkFoCone_rec(vMarks, *it);
+    for(list<int>::iterator it2 = targets.begin(); it2 != targets.end(); it2++) {
+      if(!vMarks[*it2] && !vvFos[*it2].empty()) {
+        int f = *it2 << 1;
+        if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
+          fConnect |= true;
+          count--;
+        }
+      }
+    }
+    if(fConnect) {
+      Build();
+      count += fMspf? Mspf(): CspfEager();
+    }
+  }
+  return count;
+}
+
 int Transduction::Decompose() {
   if(nVerbose > 2) {
     cout << "\t\tDecompose" << endl;

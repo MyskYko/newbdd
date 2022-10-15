@@ -25,6 +25,7 @@ public:
 
   int TrivialMerge();
   int TrivialDecompose();
+  int Merge(bool fMspf = false);
   int Decompose();
 
   int Cspf(int block = -1);

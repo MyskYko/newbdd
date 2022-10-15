@@ -32,6 +32,9 @@ int Transduction::Resub(bool fMspf) {
     if(vvFos[*it].empty()) {
       continue;
     }
+    Save();
+    int nodes = CountNodes();
+    int count_ = count;
     // merge
     count += TrivialMergeOne(*it, true);
     if(!fMspf) {
@@ -39,16 +42,10 @@ int Transduction::Resub(bool fMspf) {
     }
     // resub
     bool fConnect = false;
-    for(unsigned i = 0; i < vPis.size(); i++) {
-      int f = vPis[i] << 1;
-      if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
-        fConnect |= true;
-        count--;
-      }
-    }
     vector<bool> vMarks(nObjs);
     MarkFoCone_rec(vMarks, *it);
-    for(list<int>::iterator it2 = targets.begin(); it2 != targets.end(); it2++) {
+    list<int> targets2 = vObjs;
+    for(list<int>::iterator it2 = targets2.begin(); it2 != targets2.end(); it2++) {
       if(!vMarks[*it2] && !vvFos[*it2].empty()) {
         int f = *it2 << 1;
         if(TryConnect(*it, f) || TryConnect(*it, f ^ 1)) {
@@ -61,7 +58,23 @@ int Transduction::Resub(bool fMspf) {
       Build();
       count += fMspf? Mspf(): CspfEager();
     }
+    if(nodes < CountNodes()) {
+      Load();
+      count = count_;
+      continue;
+    }
+    if(vvFos[*it].empty()) {
+      continue;
+    }
+    // decompose
+    if(vvFis[*it].size() > 2) {
+      list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
+      int pos = nObjs;
+      count += TrivialDecomposeOne(it2, pos);
+      count += fMspf? Mspf(): CspfEager();
+    }
   }
+  ClearSave();
   return count;
 }
 
