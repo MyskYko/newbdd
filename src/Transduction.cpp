@@ -16,22 +16,31 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::no
   vvCs.resize(nObjs);
   vUpdates.resize(nObjs);
   vPfUpdates.resize(nObjs);
+  // import
+  vector<int> v(aig.nObjs, -1);
   // constant
   vFs[0] = bdd->Const0();
+  v[0] = 0;
   // inputs
   for(int i = 0; i < aig.nPis; i++) {
     vPis.push_back(i + 1);
     vFs[i + 1] = bdd->IthVar(i);
+    v[i + 1] = (i + 1) << 1;
   }
   // nodes
   for(int i = aig.nPis + 1; i < aig.nObjs; i++) {
     if(nVerbose > 3) {
       cout << "\t\t\tImport node " << i << endl;
     }
-    for(int ii = i + i;  ii <= i + i + 1; ii++) {
-      Connect(i, aig.vObjs[ii]);
+    if(aig.vObjs[i + i] == aig.vObjs[i + i + 1]) {
+      v[i] = v[aig.vObjs[i + i] >> 1] ^ (aig.vObjs[i + i] & 1);
+    } else {
+      for(int ii = i + i;  ii <= i + i + 1; ii++) {
+        Connect(i, v[aig.vObjs[ii] >> 1] ^ (aig.vObjs[ii] & 1));
+      }
+      vObjs.push_back(i);
+      v[i] = i << 1;
     }
-    vObjs.push_back(i);
   }
   // outputs
   for(int i = 0; i < aig.nPos; i++) {
@@ -39,7 +48,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::no
       cout << "\t\t\tImport po " << i << endl;
     }
     vPos.push_back(i + aig.nObjs);
-    Connect(vPos[i], aig.vPos[i]);
+    Connect(vPos[i], v[aig.vPos[i] >> 1] ^ (aig.vPos[i] & 1));
     vvCs[vPos[i]][0] = bdd->Const0();
   }
   // build bdd
@@ -50,9 +59,9 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::no
   bdd->SetParameters(1);
   // check and store outputs
   bool fRemoved = false;
-  for(int i = 0; i < aig.nPos; i++) {
-    int i0 = aig.vPos[i] >> 1;
-    int c0 = aig.vPos[i] & 1;
+  for(unsigned i = 0; i < vPos.size(); i++) {
+    int i0 = vvFis[vPos[i]][0] >> 1;
+    int c0 = vvFis[vPos[i]][0] & 1;
     NewBdd::Node x = bdd->NotCond(vFs[i0], c0);
     if(i0) {
       if(bdd->IsConst1(bdd->Or(x, vvCs[vPos[i]][0]))) {

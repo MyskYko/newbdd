@@ -24,8 +24,10 @@ int Transduction::TrivialMergeOne(int i, bool fErase) {
           count--;
         } else {
           unsigned l = it - vvFis[i].begin();
-          if(vvCs[i][l].Valid()) {
+          if(state == PfState::cspf && vvCs[i][l].Valid() && vvCs[i0][jj].Valid()) {
             vvCs[i][l] = bdd->And(vvCs[i][l], vvCs[i0][jj]);
+          } else {
+            vvCs[i][l] = NewBdd::Node();
           }
         }
       }
@@ -102,9 +104,6 @@ int Transduction::Decompose() {
   int count = 0;
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    if(nVerbose > 3) {
-      cout << "\t\t\tDecompose " << *it << endl;
-    }
     set<int> s1(vvFis[*it].begin(), vvFis[*it].end());
     if(s1.size() < vvFis[*it].size()) {
       count += vvFis[*it].size() - s1.size();
@@ -119,6 +118,12 @@ int Transduction::Decompose() {
       assert(s1.size() == vvFis[*it].size());
       assert(vPfUpdates[*it]);
     }
+  }
+  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+    if(nVerbose > 3) {
+      cout << "\t\t\tDecompose " << *it << endl;
+    }
+    set<int> s1(vvFis[*it].begin(), vvFis[*it].end());
     list<int>::iterator it2 = it;
     for(it2++; it2 != vObjs.end(); it2++) {
       if(nVerbose > 4) {
@@ -145,9 +150,12 @@ int Transduction::Decompose() {
               unsigned j = find(vvFis[*it2].begin(), vvFis[*it2].end(), *it3) - vvFis[*it2].begin();
               Disconnect(*it2, *it3 >> 1, j, false);
             }
-            Connect(*it2, *it << 1, false, false);
+            count += s.size();
+            if(find(vvFis[*it2].begin(), vvFis[*it2].end(), *it << 1) == vvFis[*it2].end()) {
+              Connect(*it2, *it << 1, false, false);
+              count--;
+            }
             vPfUpdates[*it2] = true;
-            count += s.size() - 1;
           }
           continue;
         }

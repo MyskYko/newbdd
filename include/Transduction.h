@@ -140,6 +140,7 @@ void Transduction::Connect(int i, int f, bool fSort, bool fUpdate, NewBdd::Node 
   if(nVerbose > 5) {
     std::cout << "\t\t\t\t\tConnect " << i0 << "(" << (f & 1) << ")" << " to " << i << std::endl;
   }
+  assert(std::find(vvFis[i].begin(), vvFis[i].end(), f) == vvFis[i].end());
   vvFis[i].push_back(f);
   vvFos[i0].push_back(i);
   if(fUpdate) {
