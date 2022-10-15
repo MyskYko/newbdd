@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(newbdd CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_compile_options(-g -Wall -Wextra -Wpedantic) # -DNDEBUG -O3
+add_compile_options(-g -Wall -Wextra -Wpedantic -O3) # -DNDEBUG
 
 add_subdirectory(lib)
 
