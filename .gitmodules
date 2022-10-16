@@ -4,3 +4,9 @@
 [submodule "lib/argparse"]
 	path = lib/argparse
 	url = https://github.com/p-ranav/argparse.git
+[submodule "test/mcnc-comb"]
+	path = test/mcnc-comb
+	url = git@github.com:MyskYko/mcnc-comb.git
+[submodule "test/mcnc-pla"]
+	path = test/mcnc-pla
+	url = git@github.com:MyskYko/mcnc-pla.git
