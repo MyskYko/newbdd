@@ -10,3 +10,6 @@
 [submodule "test/mcnc-pla"]
 	path = test/mcnc-pla
 	url = git@github.com:MyskYko/mcnc-pla.git
+[submodule "test/oldbdd"]
+	path = test/oldbdd
+	url = git@github.com:MyskYko/bdd.git
