@@ -18,9 +18,13 @@ int main(int argc, char ** argv) {
   // prepare tests
   int N = 100;
   std::srand(time(NULL));
+  int M = 14;
+#ifdef CSPF_ONLY
+  M = 9;
+#endif
   std::vector<int> tests;
   for(int i = 0; i < N; i++) {
-    tests.push_back(std::rand() % 14);
+    tests.push_back(std::rand() % M);
   }
   std::cout << "Tests = {";
   std::string delim;
@@ -52,23 +56,31 @@ int main(int argc, char ** argv) {
       count -= t.CspfEager();
       break;
     case 5:
-      count -= t.Mspf();
+      count -= t.Resub();
       break;
     case 6:
+      count -= t.ResubMono();
+      break;
     case 7:
-      count -= t.Resub(tests[i] % 2);
+      count -= t.Merge();
       break;
     case 8:
+      count -= t.MergeDecomposeEager();
+      break;
     case 9:
-      count -= t.ResubMono(tests[i] % 2);
+      count -= t.Mspf();
       break;
     case 10:
+      count -= t.Resub(true);
+      break;
     case 11:
-      count -= t.Merge(tests[i] % 2);
+      count -= t.ResubMono(true);
       break;
     case 12:
+      count -= t.Merge(true);
+      break;
     case 13:
-      count -= t.MergeDecomposeEager(tests[i] % 2);
+      count -= t.MergeDecomposeEager(true);
       break;
     default:
       std::cout << "Wrong test pattern!" << std::endl;

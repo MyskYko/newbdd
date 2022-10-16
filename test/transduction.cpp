@@ -26,12 +26,16 @@ int main(int argc, char ** argv) {
   int nodes = aig.nGates;
   Transduction t(aig, 0);
   int count = t.CountWires();
-  auto start = std::chrono::steady_clock::now();
+  bool fCspfOnly = false;
+#ifdef CSPF_ONLY
+  fCspfOnly = true;
+#endif
   // transduction
+  auto start = std::chrono::steady_clock::now();
   while(true) {
-    count -= t.Merge(true) + t.Decompose();
+    count -= t.Merge(!fCspfOnly) + t.Decompose();
     Print(t, start, "MergeDecompose");
-    for(int i = 0; i < 2; i++) {
+    for(int i = 0; i < 2 - (int)fCspfOnly; i++) {
       int diff;
       do {
         diff = 0;
