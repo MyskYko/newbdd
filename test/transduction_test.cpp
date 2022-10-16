@@ -20,7 +20,7 @@ int main(int argc, char ** argv) {
   std::srand(time(NULL));
   std::vector<int> tests;
   for(int i = 0; i < N; i++) {
-    tests.push_back(std::rand() % 12);
+    tests.push_back(std::rand() % 14);
   }
   std::cout << "Tests = {";
   std::string delim;
@@ -65,6 +65,10 @@ int main(int argc, char ** argv) {
     case 10:
     case 11:
       count -= t.Merge(tests[i] % 2);
+      break;
+    case 12:
+    case 13:
+      count -= t.MergeDecomposeEager(tests[i] % 2);
       break;
     default:
       std::cout << "Wrong test pattern!" << std::endl;
