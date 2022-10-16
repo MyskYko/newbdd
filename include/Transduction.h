@@ -28,6 +28,7 @@ public:
   int TrivialDecompose();
   int Merge(bool fMspf = false);
   int Decompose();
+  int MergeDecomposeEager(bool fMspf = false);
 
   int Cspf(int block = -1);
   int CspfEager(int block = -1);
