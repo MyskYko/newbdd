@@ -6,13 +6,13 @@
 #include "Transduction.h"
 
 int main(int argc, char ** argv) {
-  if(argc == 1) {
-    std::cout << "Specify aig name" << std::endl;
+  if(argc <= 2) {
+    std::cout << "Specify input and output aig names" << std::endl;
     return 1;
   }
   // read
   std::string aigname = argv[1];
-  std::string outname = aigname + ".out.aig";
+  std::string outname = argv[2];
   aigman aig;
   aig.read(aigname);
   // prepare tests
