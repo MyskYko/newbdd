@@ -2,6 +2,7 @@
 #define TRANSDUCTION_H
 
 #include <iostream>
+#include <iomanip>
 #include <list>
 #include <algorithm>
 #include <cassert>
@@ -123,7 +124,7 @@ void Transduction::PrintStats() const {
   int gates = CountGates();
   int wires = CountWires();
   int nodes = wires - gates;
-  std::cout << "nodes " << nodes << " gates " << gates << " wires " << wires << std::endl;
+  std::cout << "nodes " << std::setw(5) << nodes << " gates " << std::setw(5) << gates << " wires " << std::setw(5) << wires << std::endl;
 }
 bool Transduction::Verify() const {
   for(unsigned j = 0; j < vPos.size(); j++) {
