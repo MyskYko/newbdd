@@ -20,7 +20,7 @@ int main(int argc, char ** argv) {
   std::srand(time(NULL));
   std::vector<int> tests;
   for(int i = 0; i < N; i++) {
-    tests.push_back(std::rand() % 11);
+    tests.push_back(std::rand() % 12);
   }
   std::cout << "Tests = {";
   std::string delim;
@@ -63,7 +63,8 @@ int main(int argc, char ** argv) {
       count -= t.ResubMono(tests[i] % 2);
       break;
     case 10:
-      count -= t.Merge();
+    case 11:
+      count -= t.Merge(tests[i] % 2);
       break;
     default:
       std::cout << "Wrong test pattern!" << std::endl;
