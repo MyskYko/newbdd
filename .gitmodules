@@ -1,3 +1,9 @@
 [submodule "lib/aig"]
 	path = lib/aig
 	url = https://github.com/MyskYko/aig.git
+[submodule "test/mcnc-comb"]
+	path = test/mcnc-comb
+	url = git@github.com:MyskYko/mcnc-comb.git
+[submodule "test/mcnc-pla"]
+	path = test/mcnc-pla
+	url = git@github.com:MyskYko/mcnc-pla.git
