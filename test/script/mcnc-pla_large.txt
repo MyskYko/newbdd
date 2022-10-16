@@ -1,0 +1,13 @@
+../mcnc-pla/apex1.pla.fx.aig
+../mcnc-pla/apex3.pla.fx.aig
+../mcnc-pla/cps.pla.fx.aig
+../mcnc-pla/ex4.pla.fx.aig
+../mcnc-pla/ex5.pla.fx.aig
+../mcnc-pla/duke2.pla.fx.aig
+../mcnc-pla/e64.pla.fx.aig
+../mcnc-pla/misex3.pla.fx.aig
+../mcnc-pla/misex3c.pla.fx.aig
+../mcnc-pla/o64.pla.fx.aig
+../mcnc-pla/pdc.pla.fx.aig
+../mcnc-pla/seq.pla.fx.aig
+../mcnc-pla/spla.pla.fx.aig
