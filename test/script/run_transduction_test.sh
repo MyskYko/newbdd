@@ -1,18 +1,23 @@
-d="log"
+if [ -z $1 ] || [ -z $2 ]
+then
+    echo "Specify list and directory"
+    exit 1    
+fi
 
 i=0
 j=0
 
-for f in `cat mcnc-pla_small.txt`
+for f in `cat $1`
 do
     i=$((i+1))
     g=`basename $f`
-    #transduction_test $f $d/$g | tee $d/$g.log
+    #echo $f
+    #transduction_test $f $2/$g | tee $2/$g.log
     #if [ ${PIPESTATUS[1]} -eq 0 ]
-    transduction_test $f $d/$g > $d/$g.log
+    transduction_test $f $2/$g > $2/$g.log
     if [ $? -eq 0 ]
     then
-        a=`abc -c "cec $f $d/$g"`
+        a=`abc -c "cec $f $2/$g"`
         c=`echo $a | sed -e 's/.*Networks are \(.*\)\. Time.*/\1/'`
         if [ "$c" = "equivalent" ] || [ "$c" = "equivalent after structural hashing" ]
         then
