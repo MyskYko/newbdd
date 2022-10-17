@@ -1,9 +1,17 @@
 #include <iostream>
+#include <chrono>
 #include <string>
 #include <random>
 #include <ctime>
 
 #include "Transduction.h"
+
+void Print(Transduction const & t, std::chrono::steady_clock::time_point const & start, std::string name) {
+  auto end = std::chrono::steady_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end - start;
+  std::cout << std::left << std::setw(20) << name << " : " << std::right << std::setw(10) << elapsed_seconds.count() << "s ";
+  t.PrintStats();
+}
 
 int main(int argc, char ** argv) {
   if(argc <= 2) {
@@ -17,11 +25,12 @@ int main(int argc, char ** argv) {
   aig.read(aigname);
   // prepare tests
   int N = 100;
-  std::srand(time(NULL));
   int M = 14;
 #ifdef CSPF_ONLY
+  N = 10;
   M = 9;
 #endif
+  std::srand(time(NULL));
   std::vector<int> tests;
   for(int i = 0; i < N; i++) {
     tests.push_back(std::rand() % M);
@@ -33,12 +42,13 @@ int main(int argc, char ** argv) {
     delim = ", ";
   }
   std::cout << "}" << std::endl;
-  // transduction
+  // init
   Transduction t(aig, 0);
   int nodes = aig.nGates;
   int count = t.CountWires();
+  // transduction
+  auto start = std::chrono::steady_clock::now();
   for(unsigned i = 0; i < tests.size(); i++) {
-    std::cout << "Test " << tests[i] << " : ";
     switch(tests[i]) {
     case 0:
       count -= t.TrivialMerge();
@@ -86,7 +96,7 @@ int main(int argc, char ** argv) {
       std::cout << "Wrong test pattern!" << std::endl;
       return 1;
     }
-    t.PrintStats();
+    Print(t, start, "Test " + std::to_string(tests[i]));
     if(!t.Verify()) {
       std::cout << "Circuits are not equivalent!" << std::endl;
       return 1;

@@ -13,7 +13,7 @@ void Print(Transduction const & t, std::chrono::steady_clock::time_point const &
 }
 
 int main(int argc, char ** argv) {
-  if(argc == 1) {
+  if(argc <= 2) {
     std::cout << "Specify input and output aig names" << std::endl;
     return 1;
   }
