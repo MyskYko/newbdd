@@ -13,3 +13,6 @@
 [submodule "test/oldbdd"]
 	path = test/oldbdd
 	url = git@github.com:MyskYko/bdd.git
+[submodule "test/iwls2022"]
+	path = test/iwls2022
+	url = git@github.com:MyskYko/iwls2022.git
