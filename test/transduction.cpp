@@ -12,6 +12,29 @@ void Print(Transduction const & t, std::chrono::steady_clock::time_point const &
   t.PrintStats();
 }
 
+int RepeatResub(Transduction & t, std::chrono::steady_clock::time_point const & start, bool fCspfOnly, bool fMore) {
+  int count = 0;
+  int diff;
+  do {
+    diff = 0;
+    for(int fMspf = 0; fMspf < 2 - (int)fCspfOnly; fMspf++) {
+      int diff2;
+      do {
+        diff2 = t.ResubMono(fMspf);
+        diff += diff2;
+        Print(t, start, "ResubMono(" + std::to_string(fMspf) + ")");
+      } while(diff2);
+      do {
+        diff2 = t.Resub(fMspf);
+        diff += diff2;
+        Print(t, start, "Resub(" + std::to_string(fMspf) + ")");
+      } while(diff2);
+    }
+    count += diff;
+  } while(fMore && diff);
+  return count;
+}
+
 int main(int argc, char ** argv) {
   if(argc <= 2) {
     std::cout << "Specify input and output aig names" << std::endl;
@@ -24,50 +47,45 @@ int main(int argc, char ** argv) {
   aig.read(aigname);
   // init
   int nodes = aig.nGates;
-  Transduction t(aig, 0);
-  int count = t.CountWires();
+  aigman aigout = aig;
   bool fCspfOnly = false;
 #ifdef CSPF_ONLY
   fCspfOnly = true;
 #endif
   // transduction
   auto start = std::chrono::steady_clock::now();
-  while(true) {
-    count -= t.Merge(!fCspfOnly) + t.Decompose();
-    Print(t, start, "MergeDecompose");
-    for(int i = 0; i < 2 - (int)fCspfOnly; i++) {
-      int diff;
-      do {
-        diff = 0;
-        while(true) {
-          int diff2 = t.ResubMono(i);
-          diff += diff2;
-          Print(t, start, "ResubMono(" + std::to_string(i) + ")");
-          if(!diff2) {
-            break;
+  for(int fEager = 0; fEager < 2; fEager++) {
+    for(int fFirst = 0; fFirst < 2; fFirst++) {
+      for(int fMspf = 0; fMspf < 2 - (int)fCspfOnly; fMspf++) {
+        for(int fMore = 0; fMore < 2; fMore++) {
+          std::cout << "Heuristic : Eager " << fEager << " First " << fFirst << " Mspf " << fMspf << " More " << fMore << std::endl;
+          Transduction t(aig, 0);
+          int nodes_ = t.CountNodes();
+          int count = t.CountWires();
+          if(fFirst) {
+            count -= fEager? t.MergeDecomposeEager(fMspf): t.Merge(fMspf) + t.Decompose();
+            Print(t, start, "MergeDecompose");
           }
-        }
-        while(true) {
-          int diff2 = t.Resub(i);
-          diff += diff2;
-          Print(t, start, "Resub(" + std::to_string(i) + ")");
-          if(!diff2) {
-            break;
+          while(true) {
+            count -= RepeatResub(t, start, fCspfOnly, fMore);
+            if(nodes_ <= t.CountNodes()) {
+              break;
+            }
+            nodes_ = t.CountNodes();
+            if(nodes > nodes_) {
+              nodes = nodes_;
+              t.Aig(aigout);
+            }
+            count -= fEager? t.MergeDecomposeEager(fMspf): t.Merge(fMspf) + t.Decompose();
+            Print(t, start, "MergeDecompose");
           }
+          assert(count == t.CountWires());
         }
-        count -= diff;
-      } while(diff);
-    }
-    if(nodes > t.CountNodes()) {
-      nodes = t.CountNodes();
-      t.Aig(aig);
-    } else {
-      break;
+      }
     }
   }
-  assert(count == t.CountWires());
   // write
   std::cout << nodes << std::endl;
-  aig.write(outname);
+  aigout.write(outname);
   return 0;
 }
