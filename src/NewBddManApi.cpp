@@ -67,6 +67,12 @@ namespace NewBdd {
     }
     vCache.resize((size)nCache * 3);
     CacheMask = nCache - 1;
+#ifdef COUNT_ONES
+    if(nVars > 1023) {
+      throw length_error("Cannot count ones for more than 1023 variables");
+    }
+    vOneCounts.resize(nObjsAlloc);
+#endif
     nObjs = 1;
     vVars[0] = VarMax();
     for(var v = 0; v < nVars; v++) {
@@ -125,22 +131,6 @@ namespace NewBdd {
       Level2Var[Var2Level[v]] = v;
     }
   }
-  void Man::SetOneCounts(bool f) {
-    if(f) {
-      if(nVars > 1023) {
-        throw length_error("Cannot count ones for more than 1023 variables");
-      }
-      if(nObjs != (bvar)nVars + 1) {
-        throw logic_error("Counting ones should be set before creating non-variable nodes");
-      }
-      vOneCounts.resize(nObjsAlloc);
-      for(bvar a = 1; a <= (bvar)nVars; a++) {
-        vOneCounts[a] = pow(2.0, nVars - 1);
-      }
-    } else {
-      vOneCounts.clear();
-    }
-  }
 
   var Man::GetNumVars() const {
     return nVars;
@@ -170,12 +160,6 @@ namespace NewBdd {
   bool Man::IsConst1(Node const & x) const {
     return x.val == 1;
   }
-  double Man::OneCount(Node const & x) const {
-    return OneCount(x.val);
-  }
-  double Man::ZeroCount(Node const & x) const {
-    return OneCount(LitNot(x.val));
-  }
   Node Man::Const0() {
     return Node(this, 0);
   }
@@ -202,6 +186,15 @@ namespace NewBdd {
     Node z1 = And(x, Not(y));
     return Or(z0, z1);
   }
+
+#ifdef COUNT_ONES
+  double Man::OneCount(Node const & x) const {
+    return OneCount(x.val);
+  }
+  double Man::ZeroCount(Node const & x) const {
+    return OneCount(LitNot(x.val));
+  }
+#endif
 
   var Man::Var(NodeNoRef const & x) const {
     return Var(x.val);

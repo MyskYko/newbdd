@@ -53,7 +53,6 @@ Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::no
   }
   // build bdd
   bdd->SetParameters(1, 12);
-  bdd->SetOneCounts(true);
   Build();
   bdd->Reorder();
   bdd->SetParameters(1);
@@ -213,9 +212,12 @@ void Transduction::Build() {
 
 double Transduction::Rank(int f) const {
   int i = f >> 1;
+#ifdef COUNT_ONES
   return bdd->OneCount(vFs[i]);
   //return bdd->OneCount(bdd->NotCond(vFs[i], f & 1));
   //return bdd->ZeroCount(vFs[i]);
+#endif
+  return i;
 }
 bool Transduction::RankCompare(int a, int b) const {
   int a0 = a >> 1;

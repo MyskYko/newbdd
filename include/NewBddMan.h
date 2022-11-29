@@ -17,7 +17,6 @@ namespace NewBdd {
 
     void SetParameters(int nGbc_ = 0, int nReoLog = -1, double MaxGrowth_ = 1.2, bool fReoVerbose_ = false);
     void SetInitialOrdering(std::vector<var> const & Var2Level_);
-    void SetOneCounts(bool f);
 
     var GetNumVars() const;
     bvar GetNumObjs() const;
@@ -29,8 +28,6 @@ namespace NewBdd {
     Node Else(Node const & x);
     bool IsConst0(Node const & x) const;
     bool IsConst1(Node const & x) const;
-    double OneCount(Node const & x) const;
-    double ZeroCount(Node const & x) const;
     Node Const0();
     Node Const1();
     Node IthVar(var v);
@@ -64,7 +61,6 @@ namespace NewBdd {
     std::vector<bool> vMarks;
     std::vector<ref> vRefs;
     std::vector<edge> vEdges;
-    std::vector<double> vOneCounts;
 
     std::vector<std::vector<bvar> > vvUnique;
     std::vector<lit> vUniqueMasks;
@@ -108,7 +104,6 @@ namespace NewBdd {
     inline bool Mark(lit x) const;
     inline ref Ref(lit x) const;
     inline edge Edge(lit x) const;
-    inline double OneCount(lit x) const;
 
     inline void SetMark(lit x);
     inline void ResetMark(lit x);
@@ -159,6 +154,15 @@ namespace NewBdd {
 
     bvar CountNodes_rec(lit x);
     bvar CountNodes();
+
+#ifdef COUNT_ONES
+  public:
+    double OneCount(Node const & x) const;
+    double ZeroCount(Node const & x) const;
+  private:
+    std::vector<double> vOneCounts;
+    inline double OneCount(lit x) const;
+#endif
 
 #ifdef REO_DEBUG
     void UncountEdges_rec(lit x);
@@ -216,12 +220,6 @@ namespace NewBdd {
   }
   inline edge Man::Edge(lit x) const {
     return vEdges[Lit2Bvar(x)];
-  }
-  inline double Man::OneCount(lit x) const {
-    if(LitIsCompl(x)) {
-      return std::pow(2.0, nVars) - vOneCounts[Lit2Bvar(x)];
-    }
-    return vOneCounts[Lit2Bvar(x)];
   }
 
   inline void Man::SetMark(lit x) {
@@ -282,6 +280,14 @@ namespace NewBdd {
     vMarks[a] = false;
   }
 
+#ifdef COUNT_ONES
+  inline double Man::OneCount(lit x) const {
+    if(LitIsCompl(x)) {
+      return std::pow(2.0, nVars) - vOneCounts[Lit2Bvar(x)];
+    }
+    return vOneCounts[Lit2Bvar(x)];
+  }
+#endif
 }
 
 #endif
