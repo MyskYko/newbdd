@@ -59,7 +59,7 @@ int main(int argc, char ** argv) {
       for(int fMspf = 0; fMspf < 2 - (int)fCspfOnly; fMspf++) {
         for(int fMore = 0; fMore < 2; fMore++) {
           std::cout << "Heuristic : Eager " << fEager << " First " << fFirst << " Mspf " << fMspf << " More " << fMore << std::endl;
-          Transduction t(aig, 0);
+          Transduction t(aig);
           int nodes_ = t.CountNodes();
           int count = t.CountWires();
           if(fFirst) {

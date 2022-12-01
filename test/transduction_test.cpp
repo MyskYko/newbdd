@@ -43,7 +43,7 @@ int main(int argc, char ** argv) {
   }
   std::cout << "}" << std::endl;
   // init
-  Transduction t(aig, 0);
+  Transduction t(aig);
   int nodes = aig.nGates;
   int count = t.CountWires();
   // transduction

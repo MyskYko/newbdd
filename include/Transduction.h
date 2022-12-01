@@ -13,7 +13,8 @@
 
 class Transduction {
 public:
-  Transduction(aigman const & aig, int nVerbose = 0);
+  int SortType;
+  Transduction(aigman const & aig, int SortType = 0, int nVerbose = 0);
   ~Transduction();
   
   void Aig(aigman & aig) const;

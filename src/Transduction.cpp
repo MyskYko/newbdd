@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Transduction::Transduction(aigman const & aig, int nVerbose) : state(PfState::none), nVerbose(nVerbose) {
+Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : SortType(SortType), state(PfState::none), nVerbose(nVerbose) {
   if(nVerbose > 2) {
     cout << "\t\tImport aig" << endl;
   }
@@ -212,12 +212,18 @@ void Transduction::Build() {
 
 double Transduction::Rank(int f) const {
   int i = f >> 1;
+  switch(SortType) {
 #ifdef COUNT_ONES
-  return bdd->OneCount(vFs[i]);
-  //return bdd->OneCount(bdd->NotCond(vFs[i], f & 1));
-  //return bdd->ZeroCount(vFs[i]);
+  case 1:
+    return bdd->OneCount(bdd->NotCond(vFs[i], f & 1));
+  case 2:
+    return bdd->OneCount(vFs[i]);
+  case 3:
+    return bdd->ZeroCount(vFs[i]);
 #endif
-  return i;
+  default:
+    return -distance(vObjs.begin(), find(vObjs.begin(), vObjs.end(), i));
+  }
 }
 bool Transduction::RankCompare(int a, int b) const {
   int a0 = a >> 1;
