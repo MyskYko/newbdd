@@ -97,6 +97,13 @@ Transduction::~Transduction() {
   delete bdd;
 }
 
+void Transduction::ShufflePis(int seed) {
+  srand(seed);
+  for(int i = (int)vPis.size() - 1; i > 0; i--) {
+    swap(vPis[i], vPis[rand() % (i + 1)]);
+  }
+}
+
 void Transduction::Aig(aigman & aig) const {
   aig.clear();
   aig.nPis = vPis.size();
@@ -229,7 +236,7 @@ bool Transduction::RankCompare(int a, int b) const {
   int a0 = a >> 1;
   int b0 = b >> 1;
   if(vvFis[a0].empty() && vvFis[b0].empty()) {
-    return a0 < b0;
+    return find(vPis.begin(), vPis.end(), a0) < find(vPis.begin(), vPis.end(), b0);
   }
   if(vvFis[a0].empty() && !vvFis[b0].empty()) {
     return false;

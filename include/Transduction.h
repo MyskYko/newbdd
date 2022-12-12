@@ -16,7 +16,9 @@ public:
   int SortType;
   Transduction(aigman const & aig, int SortType = 0, int nVerbose = 0);
   ~Transduction();
-  
+
+  void ShufflePis(int seed);
+
   void Aig(aigman & aig) const;
 
   inline int CountGates() const;

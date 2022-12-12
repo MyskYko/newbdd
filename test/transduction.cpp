@@ -47,6 +47,7 @@ int RepeatResubOuter(Transduction & t, bool fMspfResub, bool fInner, bool fOuter
 }
 
 struct Param {
+  int Shuffle = 0;
   int SortType = 0;
   int fEagerMerge = 0;
   int fFirstMerge = 0;
@@ -55,6 +56,7 @@ struct Param {
   int fInner = 0;
   int fOuter = 0;
   void Print() const {
+    std::cout << "Shuffle " << Shuffle << " ";
     std::cout << "SortType " << SortType << " ";
     std::cout << "EagerMerge " << fEagerMerge << " ";
     std::cout << "FirstMerge " << fFirstMerge << " ";
@@ -68,6 +70,9 @@ struct Param {
 void Run(aigman &aig, Param const &p) {
   p.Print();
   Transduction t(aig, p.SortType);
+  if(p.Shuffle) {
+    t.ShufflePis(p.Shuffle);
+  }
   int nodes = t.CountNodes();
   int count = t.CountWires();
   if(p.fFirstMerge) {
@@ -111,6 +116,7 @@ int main(int argc, char ** argv) {
   p.fMspfResub = true;
 #endif
   start = std::chrono::steady_clock::now();
+  for(p.Shuffle = 0; p.Shuffle < 5; p.Shuffle++)
   for(p.SortType = 0; p.SortType < 4; p.SortType++)
   for(p.fEagerMerge = 0; p.fEagerMerge < 2; p.fEagerMerge++)
   for(p.fFirstMerge = 0; p.fFirstMerge < 2; p.fFirstMerge++)
