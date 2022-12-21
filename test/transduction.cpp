@@ -109,13 +109,14 @@ int main(int argc, char ** argv) {
   std::string outname = argv[2];
   aigman aig;
   aig.read(aigname);
-  aigman aigout = aig;
   // transduction
   Param p;
 #ifndef CSPF_ONLY
   p.fMspfResub = true;
 #endif
   start = std::chrono::steady_clock::now();
+  while(true) {
+  aigman aigout = aig;
   for(p.Shuffle = 0; p.Shuffle < 5; p.Shuffle++)
   for(p.SortType = 0; p.SortType < 4; p.SortType++)
   for(p.fEagerMerge = 0; p.fEagerMerge < 2; p.fEagerMerge++)
@@ -132,8 +133,14 @@ int main(int argc, char ** argv) {
         aigout = aigtmp;
       }
     }
+  if(aigout.nGates < aig.nGates) {
+    aig = aigout;
+  } else {
+    break;
+  }
+  }
   // write
-  std::cout << aigout.nGates << std::endl;
-  aigout.write(outname);
+  std::cout << aig.nGates << std::endl;
+  aig.write(outname);
   return 0;
 }
