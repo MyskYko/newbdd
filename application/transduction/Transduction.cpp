@@ -19,12 +19,12 @@ Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : Sor
   // import
   vector<int> v(aig.nObjs, -1);
   // constant
-  vFs[0] = bdd->Const0();
+  vFs[0] = NewBdd::Const0(bdd);
   v[0] = 0;
   // inputs
   for(int i = 0; i < aig.nPis; i++) {
     vPis.push_back(i + 1);
-    vFs[i + 1] = bdd->IthVar(i);
+    vFs[i + 1] = NewBdd::IthVar(bdd, i);
     v[i + 1] = (i + 1) << 1;
   }
   // nodes
@@ -49,7 +49,7 @@ Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : Sor
     }
     vPos.push_back(i + aig.nObjs);
     Connect(vPos[i], v[aig.vPos[i] >> 1] ^ (aig.vPos[i] & 1));
-    vvCs[vPos[i]][0] = bdd->Const0();
+    vvCs[vPos[i]][0] = NewBdd::Const0(bdd);
   }
   // build bdd
   bdd->SetParameters(1, 12);
@@ -60,18 +60,18 @@ Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : Sor
   bool fRemoved = false;
   for(unsigned i = 0; i < vPos.size(); i++) {
     int i0 = vvFis[vPos[i]][0] >> 1;
-    int c0 = vvFis[vPos[i]][0] & 1;
-    NewBdd::Node x = bdd->NotCond(vFs[i0], c0);
+    bool c0 = vvFis[vPos[i]][0] & 1;
+    NewBdd::Node x = vFs[i0] ^ c0;
     if(i0) {
-      if(bdd->IsConst1(bdd->Or(x, vvCs[vPos[i]][0]))) {
+      if((x | vvCs[vPos[i]][0]).IsConst1()) {
         Disconnect(vPos[i], i0, 0, false);
         Connect(vPos[i], 1, false, false);
-        x = bdd->Const1();
+        x = NewBdd::Const1(bdd);
         fRemoved |= vvFos[i0].empty();
-      } else if(bdd->IsConst1(bdd->Or(bdd->Not(x), vvCs[vPos[i]][0]))) {
+      } else if((~x | vvCs[vPos[i]][0]).IsConst1()) {
         Disconnect(vPos[i], i0, 0, false);
         Connect(vPos[i], 0, false, false);
-        x = bdd->Const0();
+        x = NewBdd::Const0(bdd);
         fRemoved |= vvFos[i0].empty();
       }
     }
@@ -182,11 +182,11 @@ void Transduction::Build(int i, vector<NewBdd::Node> & vFs_) const {
   if(nVerbose > 3) {
     cout << "\t\t\tBuild " << i << endl;
   }
-  vFs_[i] = bdd->Const1();
+  vFs_[i] = NewBdd::Const1(bdd);
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     int i0 = vvFis[i][j] >> 1;
-    int c0 = vvFis[i][j] & 1;
-    vFs_[i] = bdd->And(vFs_[i], bdd->NotCond(vFs_[i0], c0));
+    bool c0 = vvFis[i][j] & 1;
+    vFs_[i] = vFs_[i] & (vFs_[i0] ^ c0);
   }
 }
 void Transduction::Build(int i) {
@@ -219,14 +219,15 @@ void Transduction::Build() {
 
 double Transduction::Rank(int f) const {
   int i = f >> 1;
+  bool c = f & 1;
   switch(SortType) {
 #ifdef COUNT_ONES
   case 1:
-    return bdd->OneCount(bdd->NotCond(vFs[i], f & 1));
+    return (vFs[i] ^ c).OneCount();
   case 2:
-    return bdd->OneCount(vFs[i]);
+    return vFs[i].OneCount();
   case 3:
-    return bdd->ZeroCount(vFs[i]);
+    return vFs[i].ZeroCount();
 #endif
   default:
     return -distance(vObjs.begin(), find(vObjs.begin(), vObjs.end(), i));

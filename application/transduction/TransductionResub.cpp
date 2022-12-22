@@ -8,9 +8,10 @@ using namespace std;
 
 bool Transduction::TryConnect(int i, int f) {
   if(find(vvFis[i].begin(), vvFis[i].end(), f) == vvFis[i].end()) {
-    NewBdd::Node x = bdd->Or(bdd->Not(vFs[i]), vGs[i]);
-    x = bdd->Or(x, bdd->NotCond(vFs[f >> 1], f & 1));
-    if(bdd->IsConst1(x)) {
+    int i0 = f >> 1;
+    bool c0 = f & 1;
+    NewBdd::Node x = ~vFs[i] | vGs[i] | (vFs[i0] ^ c0);
+    if(x.IsConst1()) {
       Connect(i, f, true);
       return true;
     }

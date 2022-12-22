@@ -25,7 +25,7 @@ int Transduction::TrivialMergeOne(int i, bool fErase) {
         } else {
           unsigned l = it - vvFis[i].begin();
           if(state == PfState::cspf && vvCs[i][l].Valid() && vvCs[i0][jj].Valid()) {
-            vvCs[i][l] = bdd->And(vvCs[i][l], vvCs[i0][jj]);
+            vvCs[i][l] = vvCs[i][l] & vvCs[i0][jj];
           } else {
             vvCs[i][l] = NewBdd::Node();
           }

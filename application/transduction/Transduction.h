@@ -9,7 +9,7 @@
 
 #include <aig.hpp>
 
-#include "NewBdd.h"
+#include "NewBddNode.h"
 
 class Transduction {
 public:
@@ -133,8 +133,8 @@ void Transduction::PrintStats() const {
 bool Transduction::Verify() const {
   for(unsigned j = 0; j < vPos.size(); j++) {
     int i0 = vvFis[vPos[j]][0] >> 1;
-    int c0 = vvFis[vPos[j]][0] & 1;
-    if(bdd->NotCond(vFs[i0], c0) != vPoFs[j]) {
+    bool c0 = vvFis[vPos[j]][0] & 1;
+    if((vFs[i0] ^ c0) != vPoFs[j]) {
       return false;
     }
   }
@@ -221,7 +221,7 @@ int Transduction::Replace(int i, int f, bool fUpdate) {
     if(it != vvFis[k].end()) {
       unsigned ll = it - vvFis[k].begin();
       if(state == PfState::cspf && vvCs[k][l].Valid() && vvCs[k][ll].Valid()) {
-        vvCs[k][ll] = bdd->And(vvCs[k][l], vvCs[k][ll]);
+        vvCs[k][ll] = vvCs[k][l] & vvCs[k][ll];
       } else {
         vvCs[k][ll] = NewBdd::Node();
       }

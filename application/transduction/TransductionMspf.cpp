@@ -32,7 +32,7 @@ void Transduction::BuildFoConeCompl(int i, vector<NewBdd::Node> & vPoFsCompl) co
     cout << "\t\tBuild with complemented " << i << endl;
   }
   vector<NewBdd::Node> vFsCompl = vFs;
-  vFsCompl[i] = bdd->Not(vFs[i]);
+  vFsCompl[i] = ~vFs[i];
   vector<bool> vUpdatesCompl(nObjs);
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     vUpdatesCompl[vvFos[i][j]] = true;
@@ -50,8 +50,8 @@ void Transduction::BuildFoConeCompl(int i, vector<NewBdd::Node> & vPoFsCompl) co
   }
   for(unsigned j = 0; j < vPos.size(); j++) {
     int i0 = vvFis[vPos[j]][0] >> 1;
-    int c0 = vvFis[vPos[j]][0] & 1;
-    vPoFsCompl.push_back(bdd->NotCond(vFsCompl[i0], c0));
+    bool c0 = vvFis[vPos[j]][0] & 1;
+    vPoFsCompl.push_back(vFsCompl[i0] ^ c0);
   }
 }
 
@@ -62,11 +62,11 @@ bool Transduction::MspfCalcG(int i) {
   } else {
     vector<NewBdd::Node> vPoFsCompl;
     BuildFoConeCompl(i, vPoFsCompl);
-    vGs[i] = bdd->Const1();
+    vGs[i] = NewBdd::Const1(bdd);
     for(unsigned j = 0; j < vPos.size(); j++) {
-      NewBdd::Node x = bdd->Not(bdd->Xor(vPoFs[j], vPoFsCompl[j]));
-      x = bdd->Or(x, vvCs[vPos[j]][0]);
-      vGs[i] = bdd->And(vGs[i], x);
+      NewBdd::Node x = ~(vPoFs[j] ^ vPoFsCompl[j]);
+      x = x | vvCs[vPos[j]][0];
+      vGs[i] = vGs[i] & x;
     }
   }
   return vGs[i] != g;
@@ -75,23 +75,23 @@ bool Transduction::MspfCalcG(int i) {
 bool Transduction::MspfCalcC(int i, int block_i, int block_i0) {
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     // x = Not(And(other FIs))
-    NewBdd::Node x = bdd->Const1();
+    NewBdd::Node x = NewBdd::Const1(bdd);
     for(unsigned jj = 0; jj < vvFis[i].size(); jj++) {
       if(j != jj) {
         int i0 = vvFis[i][jj] >> 1;
-        int c0 = vvFis[i][jj] & 1;
-        x = bdd->And(x, bdd->NotCond(vFs[i0], c0));
+        bool c0 = vvFis[i][jj] & 1;
+        x = x & (vFs[i0] ^ c0);
       }
     }
-    x = bdd->Not(x);
+    x = ~x;
     // c = Or(x, g[i])
-    NewBdd::Node c = bdd->Or(x, vGs[i]);
+    NewBdd::Node c = x | vGs[i];
     x = NewBdd::Node();
     // Or(c, f[i_j]) == const1 -> redundant
     int i0 = vvFis[i][j] >> 1;
-    int c0 = vvFis[i][j] & 1;
-    NewBdd::Node f_i_j = bdd->NotCond(vFs[i0], c0);
-    if((i != block_i || i0 != block_i0) && bdd->IsConst1(bdd->Or(c, f_i_j))) {
+    bool c0 = vvFis[i][j] & 1;
+    NewBdd::Node f_i_j = vFs[i0] ^ c0;
+    if((i != block_i || i0 != block_i0) && (c | f_i_j).IsConst1()) {
       if(nVerbose > 4) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }

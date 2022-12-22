@@ -40,6 +40,9 @@ foreach(testfilename ${REOTESTFILENAMES})
   target_link_libraries(${testname} aigbdd_reodebug)
 endforeach()
 
+add_executable(transduction_test test/transduction_test.cpp)
+target_link_libraries(transduction_test transduction)
+
 #foreach(testfilename ${TRTESTFILENAMES})
 #  get_filename_component(testname ${testfilename} NAME_WE)
 #  add_executable(${testname} ${testfilename})
