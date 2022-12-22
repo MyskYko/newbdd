@@ -4,14 +4,12 @@
 #include <vector>
 #include <cmath>
 
-#include "NewBdd.h"
+#include "NewBddTypes.h"
 
 namespace NewBdd {
 
   class Man {
   public:
-    friend class Node;
-
     Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4);
     ~Man();
 
@@ -21,34 +19,33 @@ namespace NewBdd {
     var GetNumVars() const;
     bvar GetNumObjs() const;
 
-    var Var(Node const & x) const;
-    bvar Id(Node const & x) const;
-    bool IsCompl(Node const & x) const;
-    Node Then(Node const & x);
-    Node Else(Node const & x);
-    bool IsConst0(Node const & x) const;
-    bool IsConst1(Node const & x) const;
-    Node Const0();
-    Node Const1();
-    Node IthVar(var v);
-    Node Not(Node const & x);
-    Node NotCond(Node const & x, bool c);
-    Node And(Node const & x, Node const & y);
-    Node Or(Node const & x, Node const & y);
-    Node Xor(Node const & x, Node const & y);
+    inline lit Const0() const;
+    inline lit Const1() const;
+    inline lit IthVar(var v) const;
 
-    var Var(NodeNoRef const & x) const;
-    bvar Id(NodeNoRef const & x) const;
-    bool IsCompl(NodeNoRef const & x) const;
-    NodeNoRef Then(NodeNoRef const & x) const;
-    NodeNoRef Else(NodeNoRef const & x) const;
+    inline bvar Lit2Bvar(lit x) const;
+    inline lit LitNot(lit x) const;
+    inline lit LitNotCond(lit x, bool c) const;
+    inline bool LitIsCompl(lit x) const;
+    inline var Var(lit x) const;
+    inline lit Then(lit x) const;
+    inline lit Else(lit x) const;
 
-    void SetRef(std::vector<Node> const & vNodes);
+#ifdef COUNT_ONES
+    inline double OneCount(lit x) const;
+#endif
+
+    inline void IncRef(lit x);
+    inline void DecRef(lit x);
+
+    lit And(lit x, lit y);
+
+    void SetRef(std::vector<lit> const & vLits);
 
     void Reorder(bool fVerbose = false);
     void GetOrdering(std::vector<var> & Var2Level_);
 
-    bvar CountNodes(std::vector<Node> const & vNodes);
+    bvar CountNodes(std::vector<lit> const & vLits);
 
   private:
     var nVars;
@@ -61,6 +58,10 @@ namespace NewBdd {
     std::vector<bool> vMarks;
     std::vector<ref> vRefs;
     std::vector<edge> vEdges;
+
+#ifdef COUNT_ONES
+    std::vector<double> vOneCounts;
+#endif
 
     std::vector<std::vector<bvar> > vvUnique;
     std::vector<lit> vUniqueMasks;
@@ -89,26 +90,17 @@ namespace NewBdd {
 
     inline lit Bvar2Lit(bvar a) const;
     inline lit Bvar2Lit(bvar a, bool c) const;
-    inline bvar Lit2Bvar(lit x) const;
 
     inline lit LitRegular(lit x) const;
     inline lit LitIrregular(lit x) const;
-    inline lit LitNot(lit x) const;
-    inline lit LitNotCond(lit x, bool c) const;
 
-    inline bool LitIsCompl(lit x) const;
-    inline var Var(lit x) const;
     inline var Level(lit x) const;
-    inline lit Then(lit x) const;
-    inline lit Else(lit x) const;
     inline bool Mark(lit x) const;
     inline ref Ref(lit x) const;
     inline edge Edge(lit x) const;
 
     inline void SetMark(lit x);
     inline void ResetMark(lit x);
-    inline void IncRef(lit x);
-    inline void DecRef(lit x);
     inline void IncEdge(lit x);
     inline void DecEdge(lit x);
 
@@ -131,6 +123,11 @@ namespace NewBdd {
     void CountEdges_rec(lit x);
     void CountEdges();
 
+#ifdef REO_DEBUG
+    void UncountEdges_rec(lit x);
+    void UncountEdges();
+#endif
+
     lit UniqueCreateInt(var v, lit x1, lit x0);
     lit UniqueCreate(var v, lit x1, lit x0);
 
@@ -138,7 +135,6 @@ namespace NewBdd {
     void CacheInsert(lit x, lit y, lit z);
 
     lit And_rec(lit x, lit y);
-    lit And(lit x, lit y);
 
     bool Resize();
     void ResizeUnique(var v);
@@ -154,21 +150,17 @@ namespace NewBdd {
 
     bvar CountNodes_rec(lit x);
     bvar CountNodes();
-
-#ifdef COUNT_ONES
-  public:
-    double OneCount(Node const & x) const;
-    double ZeroCount(Node const & x) const;
-  private:
-    std::vector<double> vOneCounts;
-    inline double OneCount(lit x) const;
-#endif
-
-#ifdef REO_DEBUG
-    void UncountEdges_rec(lit x);
-    void UncountEdges();
-#endif
   };
+
+  inline lit Man::Const0() const {
+    return 0;
+  }
+  inline lit Man::Const1() const {
+    return 1;
+  }
+  inline lit Man::IthVar(var v) const {
+    return Bvar2Lit((bvar)v + 1);
+  }
 
   inline lit Man::Hash(lit Arg0, lit Arg1) const {
     return Arg0 + 4256249 * Arg1;
@@ -288,6 +280,7 @@ namespace NewBdd {
     return vOneCounts[Lit2Bvar(x)];
   }
 #endif
+
 }
 
 #endif

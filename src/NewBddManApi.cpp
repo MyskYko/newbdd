@@ -139,84 +139,11 @@ namespace NewBdd {
     return nObjs;
   }
 
-  var Man::Var(Node const & x) const {
-    return Var(x.val);
-  }
-  bvar Man::Id(Node const & x) const {
-    return Lit2Bvar(x.val);
-  }
-  bool Man::IsCompl(Node const & x) const {
-    return LitIsCompl(x.val);
-  }
-  Node Man::Then(Node const & x) {
-    return Node(this, Then(x.val));
-  }
-  Node Man::Else(Node const & x) {
-    return Node(this, Else(x.val));
-  }
-  bool Man::IsConst0(Node const & x) const {
-    return x.val == 0;
-  }
-  bool Man::IsConst1(Node const & x) const {
-    return x.val == 1;
-  }
-  Node Man::Const0() {
-    return Node(this, 0);
-  }
-  Node Man::Const1() {
-    return Node(this, 1);
-  }
-  Node Man::IthVar(var v) {
-    return Node(this, Bvar2Lit((bvar)v + 1));
-  }
-  Node Man::Not(Node const & x) {
-    return Node(this, LitNot(x.val));
-  }
-  Node Man::NotCond(Node const & x, bool c) {
-    return c? Not(x): x;
-  }
-  Node Man::And(Node const & x, Node const & y) {
-    return Node(this, And(x.val, y.val));
-  }
-  Node Man::Or(Node const & x, Node const & y) {
-    return Node(this, LitNot(And(LitNot(x.val), LitNot(y.val))));
-  }
-  Node Man::Xor(Node const & x, Node const & y) {
-    Node z0 = And(Not(x), y);
-    Node z1 = And(x, Not(y));
-    return Or(z0, z1);
-  }
-
-#ifdef COUNT_ONES
-  double Man::OneCount(Node const & x) const {
-    return OneCount(x.val);
-  }
-  double Man::ZeroCount(Node const & x) const {
-    return OneCount(LitNot(x.val));
-  }
-#endif
-
-  var Man::Var(NodeNoRef const & x) const {
-    return Var(x.val);
-  }
-  bvar Man::Id(NodeNoRef const & x) const {
-    return Lit2Bvar(x.val);
-  }
-  bool Man::IsCompl(NodeNoRef const & x) const {
-    return LitIsCompl(x.val);
-  }
-  NodeNoRef Man::Then(NodeNoRef const & x) const {
-    return NodeNoRef(Then(x.val));
-  }
-  NodeNoRef Man::Else(NodeNoRef const & x) const {
-    return NodeNoRef(Else(x.val));
-  }
-
-  void Man::SetRef(vector<Node> const & vNodes) {
+  void Man::SetRef(vector<lit> const & vLits) {
     vRefs.clear();
     vRefs.resize(nObjsAlloc);
-    for(size i = 0; i < vNodes.size(); i++) {
-      IncRef(vNodes[i].val);
+    for(size i = 0; i < vLits.size(); i++) {
+      IncRef(vLits[i]);
     }
   }
 
@@ -230,13 +157,13 @@ namespace NewBdd {
     Var2Level_ = Var2Level;
   }
 
-  bvar Man::CountNodes(vector<Node> const & vNodes) {
+  bvar Man::CountNodes(vector<lit> const & vLits) {
     bvar count = 0;
-    for(size i = 0; i < vNodes.size(); i++) {
-      count += CountNodes_rec(vNodes[i].val);
+    for(size i = 0; i < vLits.size(); i++) {
+      count += CountNodes_rec(vLits[i]);
     }
-    for(size i = 0; i < vNodes.size(); i++) {
-      ResetMark_rec(vNodes[i].val);
+    for(size i = 0; i < vLits.size(); i++) {
+      ResetMark_rec(vLits[i]);
     }
     return count + 1;
   }

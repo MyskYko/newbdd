@@ -13,6 +13,6 @@ int main(int argc, char ** argv) {
   NewBdd::Man bdd(aig.nPis);
   std::vector<NewBdd::Node> vNodes;
   Aig2Bdd(aig, bdd, vNodes);
-  std::cout << bdd.CountNodes(vNodes) << std::endl;
+  std::cout << CountNodes(vNodes) << std::endl;
   return 0;
 }

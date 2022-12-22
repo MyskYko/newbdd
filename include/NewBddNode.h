@@ -1,20 +1,42 @@
 #ifndef NEW_BDD_NODE_H
 #define NEW_BDD_NODE_H
 
-#include "NewBdd.h"
+#include "NewBddMan.h"
 
 namespace NewBdd {
 
   class Node {
   public:
-    friend class Man;
-    friend class NodeNoRef;
+    friend Node Const0(Man * man);
+    friend Node Const1(Man * man);
+    friend Node IthVar(Man * man, var v);
+    friend void SetRef(std::vector<Node> const & vNodes);
+    friend bvar CountNodes(std::vector<Node> const & vNodes);
 
     Node(Man * man, lit val);
     Node();
     Node(Node const & right);
     ~Node();
     Node & operator=(Node const & right);
+
+    var Var() const;
+    bvar Id() const;
+    bool IsCompl() const;
+    Node Then() const;
+    Node Else() const;
+    bool IsConst0() const;
+    bool IsConst1() const;
+
+#ifdef COUNT_ONES
+    double OneCount() const;
+    double ZeroCount() const;
+#endif
+
+    Node operator~() const;
+    Node operator^(bool c) const;
+    Node operator&(Node const & other) const;
+    Node operator|(Node const & other) const;
+    Node operator^(Node const & other) const;
 
     bool operator==(Node const & other) const;
     bool operator!=(Node const & other) const;
@@ -26,19 +48,11 @@ namespace NewBdd {
     lit val;
   };
 
-  class NodeNoRef {
-  public:
-    friend class Man;
-
-    NodeNoRef(lit val);
-    NodeNoRef();
-    NodeNoRef(NodeNoRef const & right);
-    NodeNoRef(Node const & right);
-    NodeNoRef & operator=(NodeNoRef const & right);
-
-  private:
-    lit val;
-  };
+  Node Const0(Man * man);
+  Node Const1(Man * man);
+  Node IthVar(Man * man, var v);
+  void SetRef(std::vector<Node> const & vNodes);
+  bvar CountNodes(std::vector<Node> const & vNodes);
 
 }
 
