@@ -50,17 +50,13 @@ int Transduction::CalcC(int i) {
       x = x & (vFs[i0] ^ c0);
     }
     x = ~x;
-    // y = And(Not(f[i]), f[i_j])
+    // x = Or(x, g[i])
+    NewBdd::Node c = x | vGs[i];
+    x = NewBdd::Node();
     int i0 = vvFis[i][j] >> 1;
     bool c0 = vvFis[i][j] & 1;
-    NewBdd::Node f_i_j = vFs[i0] ^ c0;
-    NewBdd::Node y = ~vFs[i] & f_i_j;
-    // c = Or(x, y, g[i])
-    NewBdd::Node c = x | y;
-    x = y = NewBdd::Node();
-    c = c | vGs[i];
-    // Or(c, f[i_j]) == const1 -> redundant
-    if((c | f_i_j).IsConst1()) {
+    // Or(x, f[i_j]) == const1 -> redundant
+    if((c | (vFs[i0] ^ c0)).IsConst1()) {
       if(nVerbose > 4) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
@@ -96,16 +92,10 @@ int Transduction::Cspf(int block) {
       continue;
     }
     if(!vPfUpdates[*it]) {
-      if(*it == block || !SortFis(*it)) {
-        it++;
-        continue;
-      }
-    } else {
-      if(*it != block) {
-        SortFis(*it);
-      }
-      CalcG(*it);
+      it++;
+      continue;
     }
+    CalcG(*it);
     if(*it != block) {
       count += RemoveRedundantFis(*it);
     }
@@ -122,8 +112,8 @@ int Transduction::Cspf(int block) {
   for(unsigned j = 0; j < vPis.size(); j++) {
     vPfUpdates[vPis[j]] = false;
   }
+  Build(false);
   assert(all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
-  Build();
   return count;
 }
 
