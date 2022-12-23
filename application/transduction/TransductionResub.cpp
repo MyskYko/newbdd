@@ -37,7 +37,7 @@ int Transduction::Resub(bool fMspf) {
     int nodes = CountNodes();
     int count_ = count;
     // merge
-    count += TrivialMergeOne(*it, true);
+    count += TrivialMergeOne(*it);
     if(!fMspf) {
       count += CspfEager();
     }
@@ -94,7 +94,7 @@ int Transduction::ResubMono(bool fMspf) {
       continue;
     }
     // merge
-    count += TrivialMergeOne(*it, true);
+    count += TrivialMergeOne(*it);
     if(!fMspf) {
       count += CspfEager();
     }

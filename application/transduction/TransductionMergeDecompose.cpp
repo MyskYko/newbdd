@@ -5,40 +5,46 @@
 
 using namespace std;
 
-int Transduction::TrivialMergeOne(int i, bool fErase) {
+int Transduction::TrivialMergeOne(int i) {
   if(nVerbose > 3) {
     cout << "\t\t\tTrivial merge " << i << endl;
   }
   int count = 0;
-  for(unsigned j = 0; j < vvFis[i].size(); j++) {
-    int i0 = vvFis[i][j] >> 1;
-    int c0 = vvFis[i][j] & 1;
-    if(!vvFis[i0].empty() && vvFos[i0].size() == 1 && !c0) {
-      Disconnect(i, i0, j--, false);
-      count++;
-      for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
-        int f = vvFis[i0][jj];
-        vector<int>::iterator it = find(vvFis[i].begin(), vvFis[i].end(), f);
-        if(it == vvFis[i].end()) {
-          Connect(i, f, false, false, vvCs[i0][jj]);
-          count--;
-        } else {
-          unsigned l = it - vvFis[i].begin();
-          if(state == PfState::cspf && vvCs[i][l].Valid() && vvCs[i0][jj].Valid()) {
-            vvCs[i][l] = vvCs[i][l] & vvCs[i0][jj];
-          } else {
-            vvCs[i][l] = NewBdd::Node();
-          }
-        }
-      }
-      count += RemoveFis(i0, false);
-      if(fErase) {
-        vObjs.erase(find(vObjs.begin(), vObjs.end(), i0));
+  vector<int> vFisOld = vvFis[i];
+  vector<NewBdd::Node> vCsOld = vvCs[i];
+  vvFis[i].clear();
+  vvCs[i].clear();
+  for(unsigned j = 0; j < vFisOld.size(); j++) {
+    int i0 = vFisOld[j] >> 1;
+    int c0 = vFisOld[j] & 1;
+    if(vvFis[i0].empty() || vvFos[i0].size() > 1 || c0) {
+      vvFis[i].push_back(vFisOld[j]);
+      vvCs[i].push_back(vCsOld[j]);
+      continue;
+    }
+    vvFos[i0].erase(std::find(vvFos[i0].begin(), vvFos[i0].end(), i));
+    count++;
+    vector<int>::iterator itfi = vFisOld.begin() + j;
+    vector<NewBdd::Node>::iterator itc = vCsOld.begin() + j;
+    for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
+      int f = vvFis[i0][jj];
+      vector<int>::iterator it = find(vvFis[i].begin(), vvFis[i].end(), f);
+      if(it == vvFis[i].end()) {
+        vvFos[f >> 1].push_back(i);
+        itfi = vFisOld.insert(itfi, f);
+        itc = vCsOld.insert(itc, vvCs[i0][jj]);
+        itfi++;
+        itc++;
+        count--;
+      } else {
+        assert(state == PfState::none);
       }
     }
-  }
-  if(state != PfState::mspf) {
-    vPfUpdates[i] = true;
+    count += RemoveFis(i0, false);
+    vObjs.erase(find(vObjs.begin(), vObjs.end(), i0));
+    vFisOld.erase(itfi);
+    vCsOld.erase(itc);
+    j--;
   }
   return count;
 }
@@ -110,7 +116,7 @@ int Transduction::Merge(bool fMspf) {
     if(vvFos[*it].empty()) {
       continue;
     }
-    count += TrivialMergeOne(*it, true);
+    count += TrivialMergeOne(*it);
     if(!fMspf) {
       count += CspfEager();
     }

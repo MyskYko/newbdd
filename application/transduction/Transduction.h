@@ -82,7 +82,7 @@ private:
   bool RankCompare(int a, int b) const;
   bool SortFis(int i);
 
-  int TrivialMergeOne(int i, bool fErase = false);
+  int TrivialMergeOne(int i);
   int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
 
   int RemoveRedundantFis(int i);
