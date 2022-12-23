@@ -76,8 +76,7 @@ private:
   void MarkFoCone_rec(std::vector<bool> & vMarks, int i) const;
 
   void Build(int i, std::vector<NewBdd::Node> & vFs_) const;
-  void Build(int i);
-  void Build();
+  void Build(bool fPfUpdate = true);
 
   double Rank(int f) const;
   bool RankCompare(int a, int b) const;

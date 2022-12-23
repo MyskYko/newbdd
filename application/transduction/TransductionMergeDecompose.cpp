@@ -73,11 +73,11 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
     NewBdd::Node c1 = vvCs[*it].back();
     Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1, false, false);
     CreateNewGate(pos);
-    Connect(pos, f0, false, false, c0);
     Connect(pos, f1, false, false, c1);
-    Connect(*it, pos << 1, false, false);
+    Connect(pos, f0, false, false, c0);
+    Connect(*it, pos << 1, false, false); // should be g in cspf, no need for pfupdate. we'd have to update all in mspf
     vObjs.insert(it, pos);
-    Build(pos);
+    Build(pos, vFs);
   }
   vPfUpdates[*it] = true;
   return count;
@@ -213,7 +213,7 @@ int Transduction::Decompose() {
           }
           count -= s.size();
           it = vObjs.insert(it, pos);
-          Build(pos);
+          Build(pos, vFs);
         }
         if(nVerbose > 3) {
           cout << "\t\t\tDecompose switch to " << *it << endl;

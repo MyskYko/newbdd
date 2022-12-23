@@ -53,7 +53,7 @@ Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : Sor
   }
   // build bdd
   bdd->SetParameters(1, 12);
-  Build();
+  Build(false);
   bdd->Reorder();
   bdd->SetParameters(1);
   // check and store outputs
@@ -189,17 +189,14 @@ void Transduction::Build(int i, vector<NewBdd::Node> & vFs_) const {
     vFs_[i] = vFs_[i] & (vFs_[i0] ^ c0);
   }
 }
-void Transduction::Build(int i) {
-  Build(i, vFs);
-}
-void Transduction::Build() {
+void Transduction::Build(bool fPfUpdate) {
   if(nVerbose > 2) {
     cout << "\t\tBuild" << endl;
   }
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(vUpdates[*it]) {
       NewBdd::Node x = vFs[*it];
-      Build(*it);
+      Build(*it, vFs);
       if(x != vFs[*it]) {
         for(unsigned j = 0; j < vvFos[*it].size(); j++) {
           vUpdates[vvFos[*it][j]] = true;
@@ -207,8 +204,12 @@ void Transduction::Build() {
       }
     }
   }
+  if(fPfUpdate) {
+    for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+      vPfUpdates[*it] = vPfUpdates[*it] || vUpdates[*it];
+    }
+  }
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    vPfUpdates[*it] = vPfUpdates[*it] || vUpdates[*it];
     vUpdates[*it] = false;
   }
   for(unsigned j = 0; j < vPos.size(); j++) {
