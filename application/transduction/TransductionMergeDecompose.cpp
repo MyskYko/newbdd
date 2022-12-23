@@ -81,11 +81,16 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
     CreateNewGate(pos);
     Connect(pos, f1, false, false, c1);
     Connect(pos, f0, false, false, c0);
-    Connect(*it, pos << 1, false, false); // should be g in cspf, no need for pfupdate. we'd have to update all in mspf
+    if(state == PfState::cspf) {
+      Connect(*it, pos << 1, false, false, vGs[*it]);
+      vGs[pos] = vGs[*it];
+    } else {
+      Connect(*it, pos << 1, false, false); // should be g in cspf, no need for pfupdate. reperform calcg (without fo-check) in mspf, c should be same
+      vPfUpdates[*it] = true;
+    }
     vObjs.insert(it, pos);
     Build(pos, vFs);
   }
-  vPfUpdates[*it] = true;
   return count;
 }
 int Transduction::TrivialDecompose() {
