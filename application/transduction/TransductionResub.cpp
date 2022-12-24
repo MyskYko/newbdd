@@ -58,6 +58,8 @@ int Transduction::Resub(bool fMspf) {
         count += Mspf();
       } else {
         vPfUpdates[*it] = true;
+        count += Cspf(*it);
+        vPfUpdates[*it] = true;
         count += Cspf();
       }
     }
