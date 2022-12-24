@@ -57,17 +57,13 @@ void Transduction::BuildFoConeCompl(int i, vector<NewBdd::Node> & vPoFsCompl) co
 
 bool Transduction::MspfCalcG(int i) {
   NewBdd::Node g = vGs[i];
-  if(!IsFoConeShared(i)) {
-    CalcG(i);
-  } else {
-    vector<NewBdd::Node> vPoFsCompl;
-    BuildFoConeCompl(i, vPoFsCompl);
-    vGs[i] = NewBdd::Const1(bdd);
-    for(unsigned j = 0; j < vPos.size(); j++) {
-      NewBdd::Node x = ~(vPoFs[j] ^ vPoFsCompl[j]);
-      x = x | vvCs[vPos[j]][0];
-      vGs[i] = vGs[i] & x;
-    }
+  vector<NewBdd::Node> vPoFsCompl;
+  BuildFoConeCompl(i, vPoFsCompl);
+  vGs[i] = NewBdd::Const1(bdd);
+  for(unsigned j = 0; j < vPos.size(); j++) {
+    NewBdd::Node x = ~(vPoFs[j] ^ vPoFsCompl[j]);
+    x = x | vvCs[vPos[j]][0];
+    vGs[i] = vGs[i] & x;
   }
   return vGs[i] != g;
 }
@@ -90,8 +86,7 @@ bool Transduction::MspfCalcC(int i, int block_i, int block_i0) {
     // Or(c, f[i_j]) == const1 -> redundant
     int i0 = vvFis[i][j] >> 1;
     bool c0 = vvFis[i][j] & 1;
-    NewBdd::Node f_i_j = vFs[i0] ^ c0;
-    if((i != block_i || i0 != block_i0) && (c | f_i_j).IsConst1()) {
+    if((i != block_i || i0 != block_i0) && (c | (vFs[i0] ^ c0)).IsConst1()) {
       if(nVerbose > 4) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
@@ -126,12 +121,15 @@ int Transduction::Mspf(int block_i, int block_i0) {
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
-    if(!MspfCalcG(*it) && !vPfUpdates[*it]) {
+    if(vvFos[*it].size() == 1 || !IsFoConeShared(*it)) {
+      if(!vPfUpdates[*it]) {
+        it++;
+        continue;
+      }
+      CalcG(*it);
+    } else if(!MspfCalcG(*it) && !vPfUpdates[*it]) {
       it++;
       continue;
-    }
-    if(*it != block_i) {
-      SortFis(*it);
     }
     if(MspfCalcC(*it, block_i, block_i0)) {
       count++;
