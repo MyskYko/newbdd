@@ -218,18 +218,10 @@ int Transduction::Replace(int i, int f, bool fUpdate) {
     int fc = f ^ (vvFis[k][l] & 1);
     std::vector<int>::iterator it = std::find(vvFis[k].begin(), vvFis[k].end(), fc);
     if(it != vvFis[k].end()) {
-      unsigned ll = it - vvFis[k].begin();
-      if(state == PfState::cspf && vvCs[k][l].Valid() && vvCs[k][ll].Valid()) {
-        vvCs[k][ll] = vvCs[k][l] & vvCs[k][ll];
-      } else {
-        vvCs[k][ll] = NewBdd::Node();
-      }
+      assert(state == PfState::none);
       vvCs[k].erase(vvCs[k].begin() + l);
       vvFis[k].erase(vvFis[k].begin() + l);
       count++;
-      if(!fUpdate) {
-        vPfUpdates[k] = true;
-      }
     } else {
       vvFis[k][l] = f ^ (vvFis[k][l] & 1);
       vvFos[f >> 1].push_back(k);

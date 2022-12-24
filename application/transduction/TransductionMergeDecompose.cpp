@@ -22,6 +22,7 @@ int Transduction::TrivialMergeOne(int i) {
       vvCs[i].push_back(vCsOld[j]);
       continue;
     }
+    vPfUpdates[i] = vPfUpdates[i] | vPfUpdates[i0];
     vvFos[i0].erase(std::find(vvFos[i0].begin(), vvFos[i0].end(), i));
     count++;
     vector<int>::iterator itfi = vFisOld.begin() + j;
@@ -81,17 +82,19 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
     CreateNewGate(pos);
     Connect(pos, f1, false, false, c1);
     Connect(pos, f0, false, false, c0);
-    if(state == PfState::cspf) {
-      vGs[pos] = vGs[*it];
-    } if(state == PfState::mspf) {
-      NewBdd::Node x = NewBdd::Const1(bdd);
-      for(unsigned j = 0; j < vvFis[*it].size(); j++) {
-        int i0 = vvFis[*it][j] >> 1;
-        bool c0 = vvFis[*it][j] & 1;
-        x = x & (vFs[i0] ^ c0);
+    if(!vPfUpdates[*it]) {
+      if(state == PfState::cspf) {
+        vGs[pos] = vGs[*it];
+      } else if(state == PfState::mspf) {
+        NewBdd::Node x = NewBdd::Const1(bdd);
+        for(unsigned j = 0; j < vvFis[*it].size(); j++) {
+          int i0 = vvFis[*it][j] >> 1;
+          bool c0 = vvFis[*it][j] & 1;
+          x = x & (vFs[i0] ^ c0);
+        }
+        x = ~x;
+        vGs[pos] = x | vGs[*it];
       }
-      x = ~x;
-      vGs[pos] = x | vGs[*it];
     }
     Connect(*it, pos << 1, false, false, vGs[pos]);
     vObjs.insert(it, pos);
@@ -107,7 +110,6 @@ int Transduction::TrivialDecompose() {
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(vvFis[*it].size() > 2) {
-      SortFis(*it);
       count += TrivialDecomposeOne(it, pos);
     }
   }
@@ -118,7 +120,7 @@ int Transduction::Merge(bool fMspf) {
   if(nVerbose) {
     cout << "Merge" << endl;
   }
-  int count = fMspf? Mspf(): CspfEager();
+  int count = fMspf? Mspf(): Cspf();
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -128,9 +130,6 @@ int Transduction::Merge(bool fMspf) {
       continue;
     }
     count += TrivialMergeOne(*it);
-    if(!fMspf) {
-      count += CspfEager();
-    }
     bool fConnect = false;
     for(unsigned i = 0; i < vPis.size(); i++) {
       int f = vPis[i] << 1;
@@ -151,8 +150,17 @@ int Transduction::Merge(bool fMspf) {
       }
     }
     if(fConnect) {
-      Build();
-      count += fMspf? Mspf(): CspfEager();
+      if(fMspf) {
+        Build();
+        count += Mspf();
+      } else {
+        vPfUpdates[*it] = true;
+        count += Cspf(*it);
+        if(!vvFos[*it].empty()) {
+          vPfUpdates[*it] = true;
+          count += Cspf();
+        }
+      }
     }
   }
   return count;
@@ -165,26 +173,11 @@ int Transduction::Decompose() {
   int count = 0;
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    set<int> s1(vvFis[*it].begin(), vvFis[*it].end());
-    if(s1.size() < vvFis[*it].size()) {
-      count += vvFis[*it].size() - s1.size();
-      for(unsigned j = 0; j < vvFis[*it].size(); j++) {
-        for(unsigned jj = j + 1; jj < vvFis[*it].size(); jj++) {
-          if(vvFis[*it][j] == vvFis[*it][jj]) {
-            Disconnect(*it, vvFis[*it][jj] >> 1, jj, false);
-            jj--;
-          }
-        }
-      }
-      assert(s1.size() == vvFis[*it].size());
-      assert(vPfUpdates[*it]);
-    }
-  }
-  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(nVerbose > 3) {
       cout << "\t\t\tDecompose " << *it << endl;
     }
     set<int> s1(vvFis[*it].begin(), vvFis[*it].end());
+    assert(s1.size() == vvFis[*it].size());
     list<int>::iterator it2 = it;
     for(it2++; it2 != vObjs.end(); it2++) {
       if(nVerbose > 4) {
@@ -240,7 +233,6 @@ int Transduction::Decompose() {
       }
     }
     if(vvFis[*it].size() > 2) {
-      SortFis(*it);
       count += TrivialDecomposeOne(it, pos);
     }
   }
@@ -248,10 +240,10 @@ int Transduction::Decompose() {
 }
 
 int Transduction::MergeDecomposeEager(bool fMspf) {
-  int count = Merge(fMspf) + Decompose() + (fMspf? Mspf(): CspfEager());
+  int count = Merge(fMspf) + Decompose() + (fMspf? Mspf(): Cspf());
   Save();
   while(true) {
-    int diff = Merge(fMspf) + Decompose() + (fMspf? Mspf(): CspfEager());
+    int diff = Merge(fMspf) + Decompose() + (fMspf? Mspf(): Cspf());
     if(diff <= 0) {
       Load();
       break;

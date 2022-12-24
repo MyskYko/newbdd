@@ -59,8 +59,10 @@ int Transduction::Resub(bool fMspf) {
       } else {
         vPfUpdates[*it] = true;
         count += Cspf(*it);
-        vPfUpdates[*it] = true;
-        count += Cspf();
+        if(!vvFos[*it].empty()) {
+          vPfUpdates[*it] = true;
+          count += Cspf();
+        }
       }
     }
     if(nodes < CountNodes()) {
