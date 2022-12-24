@@ -64,12 +64,12 @@ Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : Sor
     NewBdd::Node x = vFs[i0] ^ c0;
     if(i0) {
       if((x | vvCs[vPos[i]][0]).IsConst1()) {
-        Disconnect(vPos[i], i0, 0, false);
+        Disconnect(vPos[i], i0, 0, false, false);
         Connect(vPos[i], 1, false, false);
         x = NewBdd::Const1(bdd);
         fRemoved |= vvFos[i0].empty();
       } else if((~x | vvCs[vPos[i]][0]).IsConst1()) {
-        Disconnect(vPos[i], i0, 0, false);
+        Disconnect(vPos[i], i0, 0, false, false);
         Connect(vPos[i], 0, false, false);
         x = NewBdd::Const0(bdd);
         fRemoved |= vvFos[i0].empty();
@@ -81,7 +81,7 @@ Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : Sor
   if(fRemoved) {
     for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
       if(vvFos[*it].empty()) {
-        RemoveFis(*it);
+        RemoveFis(*it, false);
         it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
         continue;
       }
