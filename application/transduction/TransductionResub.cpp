@@ -23,7 +23,7 @@ int Transduction::Resub(bool fMspf) {
   if(nVerbose) {
     cout << "Resubstitution" << endl;
   }
-  int count = fMspf? Mspf(): CspfEager();
+  int count = fMspf? Mspf(): Cspf();
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -38,9 +38,6 @@ int Transduction::Resub(bool fMspf) {
     int count_ = count;
     // merge
     count += TrivialMergeOne(*it);
-    if(!fMspf) {
-      count += CspfEager();
-    }
     // resub
     bool fConnect = false;
     vector<bool> vMarks(nObjs);
@@ -56,8 +53,13 @@ int Transduction::Resub(bool fMspf) {
       }
     }
     if(fConnect) {
-      Build();
-      count += fMspf? Mspf(): CspfEager();
+      if(fMspf) {
+        Build();
+        count += Mspf();
+      } else {
+        vPfUpdates[*it] = true;
+        count += Cspf();
+      }
     }
     if(nodes < CountNodes()) {
       Load();
@@ -72,7 +74,9 @@ int Transduction::Resub(bool fMspf) {
       list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
       int pos = nObjs;
       count += TrivialDecomposeOne(it2, pos);
-      count += fMspf? Mspf(): CspfEager();
+      if(fMspf) {
+        count += Mspf();
+      }
     }
   }
   ClearSave();
