@@ -74,7 +74,6 @@ int Transduction::Cspf(int block) {
   if(nVerbose > 2) {
     cout << "\t\tCspf" << endl;
   }
-  assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
   if(state != PfState::cspf) {
     for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
       vPfUpdates[*it] = true;
