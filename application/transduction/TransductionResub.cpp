@@ -24,6 +24,8 @@ int Transduction::Resub(bool fMspf) {
     cout << "Resubstitution" << endl;
   }
   int count = fMspf? Mspf(): Cspf();
+  int nodes = CountNodes();
+  Save();
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -33,8 +35,6 @@ int Transduction::Resub(bool fMspf) {
     if(vvFos[*it].empty()) {
       continue;
     }
-    Save();
-    int nodes = CountNodes();
     int count_ = count;
     // merge
     count += TrivialMergeOne(*it);
@@ -66,18 +66,14 @@ int Transduction::Resub(bool fMspf) {
       count = count_;
       continue;
     }
-    if(vvFos[*it].empty()) {
-      continue;
-    }
-    // decompose
-    if(vvFis[*it].size() > 2) {
+    if(!vvFos[*it].empty() && vvFis[*it].size() > 2) {
+      // decompose
       list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
       int pos = nObjs;
       count += TrivialDecomposeOne(it2, pos);
-      if(fMspf) {
-        count += Mspf();
-      }
     }
+    nodes = CountNodes();
+    Save();
   }
   ClearSave();
   return count;
@@ -118,7 +114,8 @@ int Transduction::ResubMono(bool fMspf) {
         }
         if(diff) {
           count += diff;
-          if(fMspf) {
+          if(fMspf && !vvFos[*it].empty()) {
+            vPfUpdates[*it] = true;
             count += Mspf();
           }
           Save();
@@ -152,7 +149,8 @@ int Transduction::ResubMono(bool fMspf) {
           }
           if(diff) {
             count += diff;
-            if(fMspf) {
+            if(fMspf && !vvFos[*it].empty()) {
+              vPfUpdates[*it] = true;
               count += Mspf();
             }
             Save();
@@ -171,9 +169,6 @@ int Transduction::ResubMono(bool fMspf) {
       list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
       int pos = nObjs;
       count += TrivialDecomposeOne(it2, pos);
-      if(fMspf) {
-        count += Mspf();
-      }
     }
   }
   ClearSave();
