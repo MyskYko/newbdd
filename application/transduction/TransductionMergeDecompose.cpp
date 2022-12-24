@@ -82,12 +82,18 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
     Connect(pos, f1, false, false, c1);
     Connect(pos, f0, false, false, c0);
     if(state == PfState::cspf) {
-      Connect(*it, pos << 1, false, false, vGs[*it]);
       vGs[pos] = vGs[*it];
-    } else {
-      Connect(*it, pos << 1, false, false); // should be g in cspf, no need for pfupdate. reperform calcg (without fo-check) in mspf, c should be same
-      vPfUpdates[*it] = true;
+    } if(state == PfState::mspf) {
+      NewBdd::Node x = NewBdd::Const1(bdd);
+      for(unsigned j = 0; j < vvFis[*it].size(); j++) {
+        int i0 = vvFis[*it][j] >> 1;
+        bool c0 = vvFis[*it][j] & 1;
+        x = x & (vFs[i0] ^ c0);
+      }
+      x = ~x;
+      vGs[pos] = x | vGs[*it];
     }
+    Connect(*it, pos << 1, false, false, vGs[pos]);
     vObjs.insert(it, pos);
     Build(pos, vFs);
   }
