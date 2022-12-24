@@ -58,11 +58,7 @@ int Transduction::Resub(bool fMspf) {
         count += Mspf();
       } else {
         vPfUpdates[*it] = true;
-        count += Cspf(*it);
-        if(!vvFos[*it].empty()) {
-          vPfUpdates[*it] = true;
-          count += Cspf();
-        }
+        count += Cspf();
       }
     }
     if(nodes < CountNodes()) {
@@ -114,7 +110,7 @@ int Transduction::ResubMono(bool fMspf) {
           diff = Mspf(*it, f >> 1);
         } else {
           vPfUpdates[*it] = true;
-          diff = Cspf(*it);
+          diff = Cspf();
         }
         if(diff) {
           count += diff;
@@ -149,7 +145,7 @@ int Transduction::ResubMono(bool fMspf) {
             diff = Mspf(*it, f >> 1);
           } else {
             vPfUpdates[*it] = true;
-            diff = Cspf(*it);
+            diff = Cspf();
           }
           if(diff) {
             count += diff;

@@ -155,11 +155,7 @@ int Transduction::Merge(bool fMspf) {
         count += Mspf();
       } else {
         vPfUpdates[*it] = true;
-        count += Cspf(*it);
-        if(!vvFos[*it].empty()) {
-          vPfUpdates[*it] = true;
-          count += Cspf();
-        }
+        count += Cspf();
       }
     }
   }
