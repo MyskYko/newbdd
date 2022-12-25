@@ -44,7 +44,7 @@ public:
   int ResubMono(bool fMspf = false);
 
 private:
-  int nObjs;
+  int nObjsAlloc;
   std::vector<int> vPis;
   std::vector<int> vPos;
   std::list<int> vObjs;
@@ -99,7 +99,7 @@ private:
   bool TryConnect(int i, int f);
 
 private:
-  int nObjsOld;
+  int nObjsAllocOld;
   std::list<int> vObjsOld;
   std::vector<std::vector<int> > vvFisOld;
   std::vector<std::vector<int> > vvFosOld;
@@ -240,23 +240,23 @@ int Transduction::Replace(int i, int f, bool fUpdate) {
   return count + RemoveFis(i);
 }
 void Transduction::CreateNewGate(int & pos) {
-  while(pos != nObjs && (!vvFis[pos].empty() || !vvFos[pos].empty())) {
+  while(pos != nObjsAlloc && (!vvFis[pos].empty() || !vvFos[pos].empty())) {
     pos++;
   }
-  if(pos == nObjs) {
-    nObjs++;
-    vvFis.resize(nObjs);
-    vvFos.resize(nObjs);
-    vFs.resize(nObjs);
-    vGs.resize(nObjs);
-    vvCs.resize(nObjs);
-    vUpdates.resize(nObjs);
-    vPfUpdates.resize(nObjs);
+  if(pos == nObjsAlloc) {
+    nObjsAlloc++;
+    vvFis.resize(nObjsAlloc);
+    vvFos.resize(nObjsAlloc);
+    vFs.resize(nObjsAlloc);
+    vGs.resize(nObjsAlloc);
+    vvCs.resize(nObjsAlloc);
+    vUpdates.resize(nObjsAlloc);
+    vPfUpdates.resize(nObjsAlloc);
   }
 }
 
 void Transduction::Save() {
-  nObjsOld = nObjs;
+  nObjsAllocOld = nObjsAlloc;
   vObjsOld = vObjs;
   vvFisOld = vvFis;
   vvFosOld = vvFos;
@@ -267,7 +267,7 @@ void Transduction::Save() {
   assert(std::all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
 }
 void Transduction::Load() {
-  nObjs = nObjsOld;
+  nObjsAlloc = nObjsAllocOld;
   vObjs = vObjsOld;
   vvFis = vvFisOld;
   vvFos = vvFosOld;

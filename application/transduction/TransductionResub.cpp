@@ -40,7 +40,7 @@ int Transduction::Resub(bool fMspf) {
     count += TrivialMergeOne(*it);
     // resub
     bool fConnect = false;
-    vector<bool> vMarks(nObjs);
+    vector<bool> vMarks(nObjsAlloc);
     MarkFoCone_rec(vMarks, *it);
     list<int> targets2 = vObjs;
     for(list<int>::iterator it2 = targets2.begin(); it2 != targets2.end(); it2++) {
@@ -69,7 +69,7 @@ int Transduction::Resub(bool fMspf) {
     if(!vvFos[*it].empty() && vvFis[*it].size() > 2) {
       // decompose
       list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
-      int pos = nObjs;
+      int pos = nObjsAlloc;
       count += TrivialDecomposeOne(it2, pos);
     }
     nodes = CountNodes();
@@ -128,7 +128,7 @@ int Transduction::ResubMono(bool fMspf) {
     if(vvFos[*it].empty()) {
       continue;
     }
-    vector<bool> vMarks(nObjs);
+    vector<bool> vMarks(nObjsAlloc);
     MarkFoCone_rec(vMarks, *it);
     list<int> targets2 = vObjs;
     for(list<int>::iterator it2 = targets2.begin(); it2 != targets2.end(); it2++) {
@@ -167,7 +167,7 @@ int Transduction::ResubMono(bool fMspf) {
     // decompose
     if(vvFis[*it].size() > 2) {
       list<int>::iterator it2 = find(vObjs.begin(), vObjs.end(), *it);
-      int pos = nObjs;
+      int pos = nObjsAlloc;
       count += TrivialDecomposeOne(it2, pos);
     }
   }

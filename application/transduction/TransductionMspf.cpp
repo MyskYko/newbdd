@@ -18,7 +18,7 @@ bool Transduction::IsFoConeShared_rec(vector<int> & vVisits, int i, int visitor)
   return false;
 }
 bool Transduction::IsFoConeShared(int i) const {
-  vector<int> vVisits(nObjs);
+  vector<int> vVisits(nObjsAlloc);
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     if(IsFoConeShared_rec(vVisits, vvFos[i][j], j + 1)) {
       return true;
@@ -33,7 +33,7 @@ void Transduction::BuildFoConeCompl(int i, vector<NewBdd::Node> & vPoFsCompl) co
   }
   vector<NewBdd::Node> vFsCompl = vFs;
   vFsCompl[i] = ~vFs[i];
-  vector<bool> vUpdatesCompl(nObjs);
+  vector<bool> vUpdatesCompl(nObjsAlloc);
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     vUpdatesCompl[vvFos[i][j]] = true;
   }

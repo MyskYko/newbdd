@@ -8,14 +8,14 @@ Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : Sor
   }
   // allocation
   bdd = new NewBdd::Man(aig.nPis);
-  nObjs = aig.nObjs + aig.nPos;
-  vvFis.resize(nObjs);
-  vvFos.resize(nObjs);
-  vFs.resize(nObjs);
-  vGs.resize(nObjs);
-  vvCs.resize(nObjs);
-  vUpdates.resize(nObjs);
-  vPfUpdates.resize(nObjs);
+  nObjsAlloc = aig.nObjs + aig.nPos;
+  vvFis.resize(nObjsAlloc);
+  vvFos.resize(nObjsAlloc);
+  vFs.resize(nObjsAlloc);
+  vGs.resize(nObjsAlloc);
+  vvCs.resize(nObjsAlloc);
+  vUpdates.resize(nObjsAlloc);
+  vPfUpdates.resize(nObjsAlloc);
   // import
   vector<int> v(aig.nObjs, -1);
   // constant
@@ -109,7 +109,7 @@ void Transduction::Aig(aigman & aig) const {
   aig.nPis = vPis.size();
   aig.nObjs = aig.nPis + 1;
   aig.vObjs.resize(aig.nObjs * 2);
-  vector<int> values(nObjs);
+  vector<int> values(nObjsAlloc);
   for(int i = 0; i < aig.nPis; i++) {
     values[i + 1] = (i + 1) << 1;
   }

@@ -139,7 +139,7 @@ int Transduction::Merge(bool fMspf) {
         count--;
       }
     }
-    vector<bool> vMarks(nObjs);
+    vector<bool> vMarks(nObjsAlloc);
     MarkFoCone_rec(vMarks, *it);
     for(list<int>::iterator it2 = targets.begin(); it2 != targets.end(); it2++) {
       if(!vMarks[*it2] && !vvFos[*it2].empty()) {
