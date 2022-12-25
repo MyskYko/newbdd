@@ -56,7 +56,8 @@ int Transduction::TrivialMerge() {
   int count = 0;
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
     if(vvFos[*it].empty()) {
-      assert(vvFis[*it].empty());
+      assert(state == PfState::none);
+      count += RemoveFis(*it, false);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
     }
@@ -155,6 +156,9 @@ int Transduction::Merge(bool fMspf) {
         count += Mspf();
       } else {
         vPfUpdates[*it] = true;
+        count += Cspf();
+        count += RemoveRedundantFis(*it);
+        Build();
         count += Cspf();
       }
     }

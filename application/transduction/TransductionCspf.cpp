@@ -113,13 +113,10 @@ int Transduction::Cspf() {
   return count;
 }
 
-int Transduction::CspfEager(int block) {
-  if(nVerbose > 2) {
-    cout << "\t\tCspf eager" << endl;
-  }
-  int count = 0;
-  while(int diff = Cspf()) {
-    count += diff;
-  }
-  return count;
+bool Transduction::CspfDebug() {
+  vector<NewBdd::Node> vGsOld = vGs;
+  vector<vector<NewBdd::Node> > vvCsOld = vvCs;
+  state = PfState::none;
+  Cspf();
+  return vGsOld != vGs || vvCsOld != vvCs;
 }

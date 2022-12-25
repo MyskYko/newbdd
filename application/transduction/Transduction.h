@@ -13,6 +13,7 @@
 
 class Transduction {
 public:
+  enum class PfState {none, cspf, mspf};
   int SortType;
   Transduction(aigman const & aig, int SortType = 0, int nVerbose = 0);
   ~Transduction();
@@ -21,6 +22,7 @@ public:
 
   void Aig(aigman & aig) const;
 
+  inline PfState State() const;
   inline int CountGates() const;
   inline int CountWires() const;
   inline int CountNodes() const;
@@ -34,7 +36,7 @@ public:
   int MergeDecomposeEager(bool fMspf = false);
 
   int Cspf();
-  int CspfEager(int block = -1);
+  bool CspfDebug();
 
   int Mspf(int block_i = -1, int block_i0 = -1);
 
@@ -57,7 +59,6 @@ private:
 
   std::vector<bool> vUpdates;
   std::vector<bool> vPfUpdates;
-  enum class PfState {none, cspf, mspf};
   PfState state;
 
   int nVerbose;
@@ -98,6 +99,7 @@ private:
   bool TryConnect(int i, int f);
 
 private:
+  int nObjsOld;
   std::list<int> vObjsOld;
   std::vector<std::vector<int> > vvFisOld;
   std::vector<std::vector<int> > vvFosOld;
@@ -110,6 +112,9 @@ private:
   inline void ClearSave();
 };
 
+Transduction::PfState Transduction::State() const {
+  return state;
+}
 int Transduction::CountGates() const {
   return vObjs.size();
 }
@@ -251,6 +256,7 @@ void Transduction::CreateNewGate(int & pos) {
 }
 
 void Transduction::Save() {
+  nObjsOld = nObjs;
   vObjsOld = vObjs;
   vvFisOld = vvFis;
   vvFosOld = vvFos;
@@ -261,6 +267,7 @@ void Transduction::Save() {
   assert(std::all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
 }
 void Transduction::Load() {
+  nObjs = nObjsOld;
   vObjs = vObjsOld;
   vvFis = vvFisOld;
   vvFos = vvFosOld;

@@ -26,6 +26,7 @@ int main(int argc, char ** argv) {
   // prepare tests
   int N = 100;
   int M = 14;
+  M = 8;
 #ifdef CSPF_ONLY
   N = 10;
   M = 9;
@@ -52,30 +53,44 @@ int main(int argc, char ** argv) {
     switch(tests[i]) {
     case 0:
       count -= t.TrivialMerge();
+      if(t.State() == Transduction::PfState::cspf) {
+        assert(!t.CspfDebug());
+      }
       break;
     case 1:
       count -= t.TrivialDecompose();
+      if(t.State() == Transduction::PfState::cspf) {
+        assert(!t.CspfDebug());
+      }
       break;
     case 2:
       count -= t.Decompose();
+      if(t.State() == Transduction::PfState::cspf) {
+        count -= t.Cspf();
+        assert(!t.CspfDebug());
+      }
       break;
     case 3:
       count -= t.Cspf();
+      assert(!t.CspfDebug());
       break;
     case 4:
-      count -= t.CspfEager();
+      count -= t.Resub();
+      assert(!t.CspfDebug());
       break;
     case 5:
-      count -= t.Resub();
+      count -= t.ResubMono();
+      assert(!t.CspfDebug());
       break;
     case 6:
-      count -= t.ResubMono();
+      count -= t.Merge();
+      assert(!t.CspfDebug());
       break;
     case 7:
-      count -= t.Merge();
+      count -= t.MergeDecomposeEager();
+      assert(!t.CspfDebug());
       break;
     case 8:
-      count -= t.MergeDecomposeEager();
       break;
     case 9:
       count -= t.Mspf();
