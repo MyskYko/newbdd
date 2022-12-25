@@ -25,11 +25,10 @@ int main(int argc, char ** argv) {
   aig.read(aigname);
   // prepare tests
   int N = 100;
-  int M = 14;
-  M = 8;
+  int M = 13;
 #ifdef CSPF_ONLY
   N = 10;
-  M = 9;
+  M = 8;
 #endif
   std::srand(time(NULL));
   std::vector<int> tests;
@@ -91,20 +90,18 @@ int main(int argc, char ** argv) {
       assert(!t.CspfDebug());
       break;
     case 8:
-      break;
-    case 9:
       count -= t.Mspf();
       break;
-    case 10:
+    case 9:
       count -= t.Resub(true);
       break;
-    case 11:
+    case 10:
       count -= t.ResubMono(true);
       break;
-    case 12:
+    case 11:
       count -= t.Merge(true);
       break;
-    case 13:
+    case 12:
       count -= t.MergeDecomposeEager(true);
       break;
     default:
