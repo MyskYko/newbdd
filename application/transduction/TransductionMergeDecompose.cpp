@@ -224,6 +224,7 @@ int Transduction::Decompose() {
           count -= s.size();
           it = vObjs.insert(it, pos);
           Build(pos, vFs);
+          vPfUpdates[*it] = true;
         }
         if(nVerbose > 3) {
           cout << "\t\t\tDecompose switch to " << *it << endl;
