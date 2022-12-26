@@ -39,6 +39,7 @@ public:
   bool CspfDebug();
 
   int Mspf(int block_i = -1, int block_i0 = -1);
+  bool MspfDebug();
 
   int Resub(bool fMspf = false);
   int ResubMono(bool fMspf = false);

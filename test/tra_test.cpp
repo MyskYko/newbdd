@@ -54,12 +54,16 @@ int main(int argc, char ** argv) {
       count -= t.TrivialMerge();
       if(t.State() == Transduction::PfState::cspf) {
         assert(!t.CspfDebug());
+      } else if(t.State() == Transduction::PfState::mspf) {
+        assert(!t.MspfDebug());
       }
       break;
     case 1:
       count -= t.TrivialDecompose();
       if(t.State() == Transduction::PfState::cspf) {
         assert(!t.CspfDebug());
+      } else if(t.State() == Transduction::PfState::mspf) {
+        assert(!t.MspfDebug());
       }
       break;
     case 2:
@@ -67,6 +71,9 @@ int main(int argc, char ** argv) {
       if(t.State() == Transduction::PfState::cspf) {
         count -= t.Cspf();
         assert(!t.CspfDebug());
+      } else if(t.State() == Transduction::PfState::mspf) {
+        count -= t.Mspf();
+        assert(!t.MspfDebug());
       }
       break;
     case 3:
@@ -91,18 +98,23 @@ int main(int argc, char ** argv) {
       break;
     case 8:
       count -= t.Mspf();
+      assert(!t.MspfDebug());
       break;
     case 9:
       count -= t.Resub(true);
+      assert(!t.MspfDebug());
       break;
     case 10:
       count -= t.ResubMono(true);
+      assert(!t.MspfDebug());
       break;
     case 11:
       count -= t.Merge(true);
+      assert(!t.MspfDebug());
       break;
     case 12:
       count -= t.MergeDecomposeEager(true);
+      assert(!t.MspfDebug());
       break;
     default:
       std::cout << "Wrong test pattern!" << std::endl;

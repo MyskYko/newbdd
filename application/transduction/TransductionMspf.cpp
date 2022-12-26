@@ -152,3 +152,11 @@ int Transduction::Mspf(int block_i, int block_i0) {
   assert(all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
   return count;
 }
+
+bool Transduction::MspfDebug() {
+  vector<NewBdd::Node> vGsOld = vGs;
+  vector<vector<NewBdd::Node> > vvCsOld = vvCs;
+  state = PfState::none;
+  Mspf();
+  return vGsOld != vGs || vvCsOld != vvCs;
+}
