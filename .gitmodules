@@ -1,3 +1,6 @@
 [submodule "lib/aig"]
 	path = lib/aig
 	url = https://github.com/MyskYko/aig.git
+[submodule "lib/argparse"]
+	path = lib/argparse
+	url = https://github.com/p-ranav/argparse.git
