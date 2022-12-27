@@ -70,7 +70,7 @@ int Transduction::CalcC(int i) {
   return count;
 }
 
-int Transduction::Cspf() {
+int Transduction::Cspf(bool fRRF, int block) {
   if(nVerbose > 2) {
     cout << "\t\tCspf" << endl;
   }
@@ -95,6 +95,9 @@ int Transduction::Cspf() {
       continue;
     }
     CalcG(*it);
+    if(fRRF && *it != block) {
+      count += RemoveRedundantFis(*it);
+    }
     count += CalcC(*it);
     vPfUpdates[*it] = false;
     assert(!vvFis[*it].empty());

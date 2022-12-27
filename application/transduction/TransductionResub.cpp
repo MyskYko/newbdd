@@ -23,7 +23,7 @@ int Transduction::Resub(bool fMspf) {
   if(nVerbose) {
     cout << "Resubstitution" << endl;
   }
-  int count = fMspf? Mspf(): Cspf();
+  int count = fMspf? Mspf(): Cspf(true);
   int nodes = CountNodes();
   Save();
   list<int> targets = vObjs;
@@ -55,10 +55,14 @@ int Transduction::Resub(bool fMspf) {
     if(fConnect) {
       if(fMspf) {
         Build();
-        count += Mspf();
+        count += Mspf(); // TODO: what if we keep fis
       } else {
         vPfUpdates[*it] = true;
-        count += Cspf();
+        count += Cspf(true, *it);
+        if(!vvFos[*it].empty()) {
+          vPfUpdates[*it] = true;
+          count += Cspf(true);
+        }
       }
     }
     if(nodes < CountNodes()) {
@@ -83,7 +87,7 @@ int Transduction::ResubMono(bool fMspf) {
   if(nVerbose) {
     cout << "Resubstitution monotonic" << endl;
   }
-  int count = fMspf? Mspf(): Cspf();
+  int count = fMspf? Mspf(): Cspf(true);
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -110,13 +114,13 @@ int Transduction::ResubMono(bool fMspf) {
           diff = Mspf(*it, f >> 1);
         } else {
           vPfUpdates[*it] = true;
-          diff = Cspf();
+          diff = Cspf(true, *it);
         }
         if(diff) {
           count += diff;
-          if(fMspf && !vvFos[*it].empty()) {
+          if(!vvFos[*it].empty()) {
             vPfUpdates[*it] = true;
-            count += Mspf();
+            count += fMspf? Mspf(): Cspf(true);
           }
           Save();
         } else {
@@ -145,13 +149,13 @@ int Transduction::ResubMono(bool fMspf) {
             diff = Mspf(*it, f >> 1);
           } else {
             vPfUpdates[*it] = true;
-            diff = Cspf();
+            diff = Cspf(true, *it);
           }
           if(diff) {
             count += diff;
-            if(fMspf && !vvFos[*it].empty()) {
+            if(!vvFos[*it].empty()) {
               vPfUpdates[*it] = true;
-              count += Mspf();
+              count += fMspf? Mspf(): Cspf(true);
             }
             Save();
           } else {

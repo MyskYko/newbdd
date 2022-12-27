@@ -35,7 +35,7 @@ public:
   int Decompose();
   int MergeDecomposeEager(bool fMspf = false);
 
-  int Cspf();
+  int Cspf(bool fRRF = false, int block = -1);
   bool CspfDebug();
 
   int Mspf(int block_i = -1, int block_i0 = -1);

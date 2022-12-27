@@ -69,7 +69,7 @@ int main(int argc, char ** argv) {
     case 2:
       count -= t.Decompose();
       if(t.State() == Transduction::PfState::cspf) {
-        count -= t.Cspf();
+        count -= t.Cspf(true);
         assert(!t.CspfDebug());
       } else if(t.State() == Transduction::PfState::mspf) {
         count -= t.Mspf();
@@ -77,7 +77,7 @@ int main(int argc, char ** argv) {
       }
       break;
     case 3:
-      count -= t.Cspf();
+      count -= t.Cspf(true);
       assert(!t.CspfDebug());
       break;
     case 4:
