@@ -96,6 +96,7 @@ int Transduction::Cspf(bool fRRF, int block) {
     }
     CalcG(*it);
     if(fRRF && *it != block) {
+      SortFis(*it);
       count += RemoveRedundantFis(*it);
     }
     count += CalcC(*it);
