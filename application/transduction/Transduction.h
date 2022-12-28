@@ -62,6 +62,8 @@ private:
   std::vector<bool> vPfUpdates;
   PfState state;
 
+  std::vector<bool> vFoConeShared;
+
   int nVerbose;
 
   inline void Connect(int i, int f, bool fSort = false, bool fUpdate = true, NewBdd::Node c = NewBdd::Node());
@@ -107,6 +109,7 @@ private:
   std::vector<NewBdd::Node> vFsOld;
   std::vector<NewBdd::Node> vGsOld;
   std::vector<std::vector<NewBdd::Node> > vvCsOld;
+  std::vector<bool> vFoConeSharedOld;
 
   inline void Save();
   inline void Load();
@@ -264,6 +267,7 @@ void Transduction::Save() {
   vFsOld = vFs;
   vGsOld = vGs;
   vvCsOld = vvCs;
+  vFoConeSharedOld = vFoConeShared;
   assert(std::all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
   assert(std::all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
 }
@@ -275,6 +279,7 @@ void Transduction::Load() {
   vFs = vFsOld;
   vGs = vGsOld;
   vvCs = vvCsOld;
+  vFoConeShared = vFoConeSharedOld;
   std::fill(vUpdates.begin(), vUpdates.end(), false);
   std::fill(vPfUpdates.begin(), vPfUpdates.end(), false);
 }
@@ -285,6 +290,7 @@ void Transduction::ClearSave() {
   vFsOld.clear();
   vGsOld.clear();
   vvCsOld.clear();
+  vFoConeSharedOld.clear();
 }
 
 #endif

@@ -105,6 +105,7 @@ int Transduction::Mspf(int block_i, int block_i0) {
     cout << "\t\tMspf" << endl;
   }
   assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
+  vFoConeShared.resize(nObjsAlloc);
   if(state != PfState::mspf) {
     for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
       vPfUpdates[*it] = true;
@@ -122,14 +123,26 @@ int Transduction::Mspf(int block_i, int block_i0) {
       continue;
     }
     if(vvFos[*it].size() == 1 || !IsFoConeShared(*it)) {
-      if(!vPfUpdates[*it]) {
+      if(vFoConeShared[*it]) {
+        vFoConeShared[*it] = false;
+        NewBdd::Node g = vGs[*it];
+        CalcG(*it);
+        if(g == vGs[*it] && !vPfUpdates[*it]) {
+          it++;
+          continue;
+        }
+      } else if(!vPfUpdates[*it]) {
+        it++;
+        continue;
+      } else {
+        CalcG(*it);
+      }
+    } else {
+      vFoConeShared[*it] = true;
+      if(!MspfCalcG(*it) && !vPfUpdates[*it]) {
         it++;
         continue;
       }
-      CalcG(*it);
-    } else if(!MspfCalcG(*it) && !vPfUpdates[*it]) {
-      it++;
-      continue;
     }
     if(MspfCalcC(*it, block_i, block_i0)) {
       count++;
