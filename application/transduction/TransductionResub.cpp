@@ -114,7 +114,7 @@ int Transduction::ResubMono(bool fMspf) {
           diff = Mspf(true, *it, f >> 1);
         } else {
           vPfUpdates[*it] = true;
-          diff = Cspf(true, *it);
+          diff = Cspf(true, *it, f >> 1);
         }
         if(diff) {
           count += diff;
@@ -149,7 +149,7 @@ int Transduction::ResubMono(bool fMspf) {
             diff = Mspf(true, *it, f >> 1);
           } else {
             vPfUpdates[*it] = true;
-            diff = Cspf(true, *it);
+            diff = Cspf(true, *it, f >> 1);
           }
           if(diff) {
             count += diff;

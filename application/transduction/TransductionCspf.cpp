@@ -4,7 +4,7 @@
 
 using namespace std;
 
-int Transduction::RemoveRedundantFis(int i, unsigned j, int block_i0) {
+int Transduction::RemoveRedundantFis(int i, int block_i0, unsigned j) {
   int count = 0;
   for(; j < vvFis[i].size(); j++) {
     if(block_i0 == (vvFis[i][j] >> 1)) {
@@ -73,7 +73,7 @@ int Transduction::CalcC(int i) {
   return count;
 }
 
-int Transduction::Cspf(bool fRRF, int block) {
+int Transduction::Cspf(bool fRRF, int block, int block_i0) {
   if(nVerbose > 2) {
     cout << "\t\tCspf" << endl;
   }
@@ -98,9 +98,13 @@ int Transduction::Cspf(bool fRRF, int block) {
       continue;
     }
     CalcG(*it);
-    if(fRRF && *it != block) {
-      SortFis(*it);
-      count += RemoveRedundantFis(*it);
+    if(fRRF) {
+      if(*it != block) {
+        SortFis(*it);
+        count += RemoveRedundantFis(*it);
+      } else if(block_i0 != -1) {
+        count += RemoveRedundantFis(*it, block_i0);
+      }
     }
     count += CalcC(*it);
     vPfUpdates[*it] = false;

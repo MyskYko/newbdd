@@ -91,7 +91,7 @@ int Transduction::MspfCalcC(int i, int block_i0) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j);
-      return RemoveRedundantFis(i, j, block_i0) + 1;
+      return RemoveRedundantFis(i, block_i0, j) + 1;
     } else if(vvCs[i][j] != c) {
       vvCs[i][j] = c;
       vPfUpdates[i0] = true;

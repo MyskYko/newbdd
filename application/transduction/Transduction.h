@@ -35,7 +35,7 @@ public:
   int Decompose();
   int MergeDecomposeEager(bool fMspf = false);
 
-  int Cspf(bool fRRF = false, int block = -1);
+  int Cspf(bool fRRF = false, int block = -1, int block_i0 = -1);
   bool CspfDebug();
 
   int Mspf(bool fSort = false, int block_i = -1, int block_i0 = -1);
@@ -89,7 +89,7 @@ private:
   int TrivialMergeOne(int i);
   int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
 
-  int RemoveRedundantFis(int i, unsigned j = 0, int block_i0 = -1);
+  int RemoveRedundantFis(int i, int block_i0 = -1, unsigned j = 0);
   void CalcG(int i);
   int CalcC(int i);
 
