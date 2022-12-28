@@ -38,7 +38,7 @@ public:
   int Cspf(bool fRRF = false, int block = -1);
   bool CspfDebug();
 
-  int Mspf(int block_i = -1, int block_i0 = -1);
+  int Mspf(bool fSort = false, int block_i = -1, int block_i0 = -1);
   bool MspfDebug();
 
   int Resub(bool fMspf = false);

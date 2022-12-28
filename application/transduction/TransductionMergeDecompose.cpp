@@ -121,7 +121,7 @@ int Transduction::Merge(bool fMspf) {
   if(nVerbose) {
     cout << "Merge" << endl;
   }
-  int count = fMspf? Mspf(): Cspf(true);
+  int count = fMspf? Mspf(true): Cspf(true);
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -153,14 +153,14 @@ int Transduction::Merge(bool fMspf) {
     if(fConnect) {
       if(fMspf) {
         Build();
-        count += Mspf();
+        count += Mspf(true, *it);
       } else {
         vPfUpdates[*it] = true;
         count += Cspf(true, *it);
-        if(!vvFos[*it].empty()) {
-          vPfUpdates[*it] = true;
-          count += Cspf(true);
-        }
+      }
+      if(!vvFos[*it].empty()) {
+        vPfUpdates[*it] = true;
+        count += fMspf? Mspf(true): Cspf(true);
       }
     }
   }
@@ -242,10 +242,10 @@ int Transduction::Decompose() {
 }
 
 int Transduction::MergeDecomposeEager(bool fMspf) {
-  int count = Merge(fMspf) + Decompose() + (fMspf? Mspf(): Cspf(true));
+  int count = Merge(fMspf) + Decompose() + (fMspf? Mspf(true): Cspf(true));
   Save();
   while(true) {
-    int diff = Merge(fMspf) + Decompose() + (fMspf? Mspf(): Cspf(true));
+    int diff = Merge(fMspf) + Decompose() + (fMspf? Mspf(true): Cspf(true));
     if(diff <= 0) {
       Load();
       break;

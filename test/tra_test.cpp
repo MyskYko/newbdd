@@ -97,7 +97,7 @@ int main(int argc, char ** argv) {
       assert(!t.CspfDebug());
       break;
     case 8:
-      count -= t.Mspf();
+      count -= t.Mspf(true);
       assert(!t.MspfDebug());
       break;
     case 9:

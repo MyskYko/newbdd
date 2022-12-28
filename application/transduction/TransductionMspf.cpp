@@ -100,7 +100,7 @@ int Transduction::MspfCalcC(int i, int block_i0) {
   return 0;
 }
 
-int Transduction::Mspf(int block_i, int block_i0) {
+int Transduction::Mspf(bool fSort, int block_i, int block_i0) {
   if(nVerbose > 2) {
     cout << "\t\tMspf" << endl;
   }
@@ -143,6 +143,9 @@ int Transduction::Mspf(int block_i, int block_i0) {
         it++;
         continue;
       }
+    }
+    if(fSort && block_i != *it) {
+      SortFis(*it);
     }
     if(int diff = (block_i == *it)? MspfCalcC(*it, block_i0): MspfCalcC(*it)) {
       count += diff;

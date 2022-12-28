@@ -23,7 +23,7 @@ int Transduction::Resub(bool fMspf) {
   if(nVerbose) {
     cout << "Resubstitution" << endl;
   }
-  int count = fMspf? Mspf(): Cspf(true);
+  int count = fMspf? Mspf(true): Cspf(true);
   int nodes = CountNodes();
   Save();
   list<int> targets = vObjs;
@@ -55,14 +55,14 @@ int Transduction::Resub(bool fMspf) {
     if(fConnect) {
       if(fMspf) {
         Build();
-        count += Mspf(); // TODO: what if we keep fis
+        count += Mspf(true, *it);
       } else {
         vPfUpdates[*it] = true;
         count += Cspf(true, *it);
-        if(!vvFos[*it].empty()) {
-          vPfUpdates[*it] = true;
-          count += Cspf(true);
-        }
+      }
+      if(!vvFos[*it].empty()) {
+        vPfUpdates[*it] = true;
+        count += fMspf? Mspf(true): Cspf(true);
       }
     }
     if(nodes < CountNodes()) {
@@ -87,7 +87,7 @@ int Transduction::ResubMono(bool fMspf) {
   if(nVerbose) {
     cout << "Resubstitution monotonic" << endl;
   }
-  int count = fMspf? Mspf(): Cspf(true);
+  int count = fMspf? Mspf(true): Cspf(true);
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -111,7 +111,7 @@ int Transduction::ResubMono(bool fMspf) {
         int diff;
         if(fMspf) {
           Build();
-          diff = Mspf(*it, f >> 1);
+          diff = Mspf(true, *it, f >> 1);
         } else {
           vPfUpdates[*it] = true;
           diff = Cspf(true, *it);
@@ -120,7 +120,7 @@ int Transduction::ResubMono(bool fMspf) {
           count += diff;
           if(!vvFos[*it].empty()) {
             vPfUpdates[*it] = true;
-            count += fMspf? Mspf(): Cspf(true);
+            count += fMspf? Mspf(true): Cspf(true);
           }
           Save();
         } else {
@@ -146,7 +146,7 @@ int Transduction::ResubMono(bool fMspf) {
           int diff;
           if(fMspf) {
             Build();
-            diff = Mspf(*it, f >> 1);
+            diff = Mspf(true, *it, f >> 1);
           } else {
             vPfUpdates[*it] = true;
             diff = Cspf(true, *it);
@@ -155,7 +155,7 @@ int Transduction::ResubMono(bool fMspf) {
             count += diff;
             if(!vvFos[*it].empty()) {
               vPfUpdates[*it] = true;
-              count += fMspf? Mspf(): Cspf(true);
+              count += fMspf? Mspf(true): Cspf(true);
             }
             Save();
           } else {
