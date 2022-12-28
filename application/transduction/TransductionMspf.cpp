@@ -68,7 +68,7 @@ bool Transduction::MspfCalcG(int i) {
   return vGs[i] != g;
 }
 
-int Transduction::MspfCalcC(int i, int block_i, int block_i0) {
+int Transduction::MspfCalcC(int i, int block_i0) {
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     // x = Not(And(other FIs))
     NewBdd::Node x = NewBdd::Const1(bdd);
@@ -86,12 +86,12 @@ int Transduction::MspfCalcC(int i, int block_i, int block_i0) {
     // Or(c, f[i_j]) == const1 -> redundant
     int i0 = vvFis[i][j] >> 1;
     bool c0 = vvFis[i][j] & 1;
-    if((i != block_i || i0 != block_i0) && (c | (vFs[i0] ^ c0)).IsConst1()) {
+    if(i0 != block_i0 && (c | (vFs[i0] ^ c0)).IsConst1()) {
       if(nVerbose > 4) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j);
-      return RemoveRedundantFis(i, j) + 1;
+      return RemoveRedundantFis(i, j, block_i0) + 1;
     } else if(vvCs[i][j] != c) {
       vvCs[i][j] = c;
       vPfUpdates[i0] = true;
@@ -144,7 +144,7 @@ int Transduction::Mspf(int block_i, int block_i0) {
         continue;
       }
     }
-    if(int diff = MspfCalcC(*it, block_i, block_i0)) {
+    if(int diff = (block_i == *it)? MspfCalcC(*it, block_i0): MspfCalcC(*it)) {
       count += diff;
       assert(!vvFis[*it].empty());
       if(vvFis[*it].size() == 1) {

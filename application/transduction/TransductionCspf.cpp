@@ -4,9 +4,12 @@
 
 using namespace std;
 
-int Transduction::RemoveRedundantFis(int i, unsigned j) {
+int Transduction::RemoveRedundantFis(int i, unsigned j, int block_i0) {
   int count = 0;
   for(; j < vvFis[i].size(); j++) {
+    if(block_i0 == (vvFis[i][j] >> 1)) {
+      continue;
+    }
     NewBdd::Node x = NewBdd::Const1(bdd);
     for(unsigned jj = 0; jj < vvFis[i].size(); jj++) {
       if(j != jj) {
