@@ -89,7 +89,7 @@ private:
   int TrivialMergeOne(int i);
   int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
 
-  int RemoveRedundantFis(int i);
+  int RemoveRedundantFis(int i, unsigned j = 0);
   void CalcG(int i);
   int CalcC(int i);
 
@@ -97,7 +97,7 @@ private:
   bool IsFoConeShared(int i) const;
   void BuildFoConeCompl(int i, std::vector<NewBdd::Node> & vPoFsCompl) const;
   bool MspfCalcG(int i);
-  bool MspfCalcC(int i, int block_i, int block_i0);
+  int MspfCalcC(int i, int block_i, int block_i0);
 
   bool TryConnect(int i, int f);
 
