@@ -125,11 +125,8 @@ int Transduction::Cspf(bool fSortRemove, int block, int block_i0) {
     }
     it++;
   }
-  for(unsigned j = 0; j < vPis.size(); j++) {
-    vPfUpdates[vPis[j]] = false;
-  }
   Build(false);
-  assert(all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
+  assert(AllFalse(vPfUpdates));
   return count;
 }
 

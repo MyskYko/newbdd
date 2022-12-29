@@ -221,10 +221,7 @@ void Transduction::Build(bool fPfUpdate) {
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     vUpdates[*it] = false;
   }
-  for(unsigned j = 0; j < vPos.size(); j++) {
-    vUpdates[vPos[j]] = false;
-  }
-  assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
+  assert(AllFalse(vUpdates));
 }
 
 bool Transduction::RankCompare(int a, int b) const {

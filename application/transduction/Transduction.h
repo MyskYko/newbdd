@@ -66,6 +66,8 @@ private:
   std::vector<bool> vPfUpdates;
   std::vector<bool> vFoConeShared;
 
+  inline bool AllFalse(std::vector<bool> const & v) const;
+
   inline void Connect(int i, int f, bool fSort = false, bool fUpdate = true, NewBdd::Node c = NewBdd::Node());
   inline unsigned FindFi(int i, int i0) const;
   inline void Disconnect(int i, int i0, unsigned j, bool fUpdate = true, bool fPfUpdate = true);
@@ -146,6 +148,14 @@ bool Transduction::Verify() const {
     }
   }
   return true;
+}
+
+bool Transduction::AllFalse(std::vector<bool> const & v) const {
+  bool f = false;
+  for(std::list<int>::const_iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+    f |= v[*it];
+  }
+  return !f;
 }
 
 void Transduction::Connect(int i, int f, bool fSort, bool fUpdate, NewBdd::Node c) {
@@ -271,8 +281,8 @@ void Transduction::Save() {
   vGsOld = vGs;
   vvCsOld = vvCs;
   vFoConeSharedOld = vFoConeShared;
-  assert(std::all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
-  assert(std::all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
+  assert(AllFalse(vUpdates));
+  assert(AllFalse(vPfUpdates));
 }
 void Transduction::Load() {
   nObjsAlloc = nObjsAllocOld;

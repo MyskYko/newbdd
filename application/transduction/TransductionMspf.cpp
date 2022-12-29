@@ -110,7 +110,7 @@ int Transduction::Mspf(bool fSort, int block, int block_i0) {
     }
     cout << endl;
   }
-  assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
+  assert(AllFalse(vUpdates));
   vFoConeShared.resize(nObjsAlloc);
   if(state != PfState::mspf) {
     for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
@@ -171,11 +171,8 @@ int Transduction::Mspf(bool fSort, int block, int block_i0) {
     vPfUpdates[*it] = false;
     it++;
   }
-  for(unsigned j = 0; j < vPis.size(); j++) {
-    vPfUpdates[vPis[j]] = false;
-  }
-  assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
-  assert(all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
+  assert(AllFalse(vUpdates));
+  assert(AllFalse(vPfUpdates));
   return count;
 }
 
