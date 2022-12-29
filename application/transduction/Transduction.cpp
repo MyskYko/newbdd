@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : SortType(SortType), state(PfState::none), nVerbose(nVerbose) {
+Transduction::Transduction(aigman const & aig, int nVerbose, int SortType) : nVerbose(nVerbose), SortType(SortType), state(PfState::none) {
   if(nVerbose > 2) {
     cout << "\t\tImport aig" << endl;
   }
@@ -64,11 +64,17 @@ Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : Sor
     NewBdd::Node x = vFs[i0] ^ c0;
     if(i0) {
       if((x | vvCs[vPos[i]][0]).IsConst1()) {
+        if(nVerbose > 3) {
+          cout << "\t\t\tConst 1 output po " << i << endl;
+        }
         Disconnect(vPos[i], i0, 0, false, false);
         Connect(vPos[i], 1, false, false);
         x = NewBdd::Const1(bdd);
         fRemoved |= vvFos[i0].empty();
       } else if((~x | vvCs[vPos[i]][0]).IsConst1()) {
+        if(nVerbose > 3) {
+          cout << "\t\t\tConst 0 output po " << i << endl;
+        }
         Disconnect(vPos[i], i0, 0, false, false);
         Connect(vPos[i], 0, false, false);
         x = NewBdd::Const0(bdd);
@@ -79,6 +85,9 @@ Transduction::Transduction(aigman const & aig, int SortType, int nVerbose) : Sor
   }
   // remove unused nodes
   if(fRemoved) {
+    if(nVerbose > 3) {
+      cout << "\t\t\tRemove unused nodes" << endl;
+    }
     for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
       if(vvFos[*it].empty()) {
         RemoveFis(*it, false);
@@ -179,8 +188,8 @@ void Transduction::MarkFoCone_rec(vector<bool> & vMarks, int i) const {
 }
 
 void Transduction::Build(int i, vector<NewBdd::Node> & vFs_) const {
-  if(nVerbose > 3) {
-    cout << "\t\t\tBuild " << i << endl;
+  if(nVerbose > 4) {
+    cout << "\t\t\t\tBuild " << i << endl;
   }
   vFs_[i] = NewBdd::Const1(bdd);
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
@@ -190,8 +199,8 @@ void Transduction::Build(int i, vector<NewBdd::Node> & vFs_) const {
   }
 }
 void Transduction::Build(bool fPfUpdate) {
-  if(nVerbose > 2) {
-    cout << "\t\tBuild" << endl;
+  if(nVerbose > 3) {
+    cout << "\t\t\tBuild" << endl;
   }
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(vUpdates[*it]) {
@@ -218,27 +227,11 @@ void Transduction::Build(bool fPfUpdate) {
   assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
 }
 
-double Transduction::Rank(int f) const {
-  int i = f >> 1;
-  bool c = f & 1;
-  switch(SortType) {
-#ifdef COUNT_ONES
-  case 1:
-    return (vFs[i] ^ c).OneCount();
-  case 2:
-    return vFs[i].OneCount();
-  case 3:
-    return vFs[i].ZeroCount();
-#endif
-  default:
-    return -distance(vObjs.begin(), find(vObjs.begin(), vObjs.end(), i));
-  }
-}
 bool Transduction::RankCompare(int a, int b) const {
   int a0 = a >> 1;
   int b0 = b >> 1;
   if(vvFis[a0].empty() && vvFis[b0].empty()) {
-    return find(vPis.begin(), vPis.end(), a0) < find(vPis.begin(), vPis.end(), b0);
+    return find(find(vPis.begin(), vPis.end(), a0), vPis.end(), b0) != vPis.end();
   }
   if(vvFis[a0].empty() && !vvFis[b0].empty()) {
     return false;
@@ -252,7 +245,20 @@ bool Transduction::RankCompare(int a, int b) const {
   if(vvFos[a0].size() < vvFos[b0].size()) {
     return true;
   }
-  return Rank(a) < Rank(b);
+  bool ac = a & 1;
+  bool bc = b & 1;
+  switch(SortType) {
+#ifdef COUNT_ONES
+  case 1:
+    return (vFs[a0] ^ ac).OneCount() < (vFs[b0] ^ bc).OneCount();
+  case 2:
+    return vFs[a0].OneCount() < vFs[b0].OneCount();
+  case 3:
+    return vFs[a0].ZeroCount() < vFs[b0].OneCount();
+#endif
+  default:
+    return find(find(vObjs.begin(), vObjs.end(), a0), vObjs.end(), b0) == vObjs.end();
+  }
 }
 bool Transduction::SortFis(int i) {
   if(nVerbose > 4) {

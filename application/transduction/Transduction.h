@@ -14,8 +14,8 @@
 class Transduction {
 public:
   enum class PfState {none, cspf, mspf};
-  int SortType;
-  Transduction(aigman const & aig, int SortType = 0, int nVerbose = 0);
+
+  Transduction(aigman const & aig, int nVerbose = 0, int SortType = 0);
   ~Transduction();
 
   void ShufflePis(int seed);
@@ -35,7 +35,7 @@ public:
   int Decompose();
   int MergeDecomposeEager(bool fMspf = false);
 
-  int Cspf(bool fRRF = false, int block = -1, int block_i0 = -1);
+  int Cspf(bool fSortRemove = false, int block = -1, int block_i0 = -1);
   bool CspfDebug();
 
   int Mspf(bool fSort = false, int block_i = -1, int block_i0 = -1);
@@ -45,6 +45,11 @@ public:
   int ResubMono(bool fMspf = false);
 
 private:
+  int nVerbose;
+  int SortType;
+
+  PfState state;
+
   int nObjsAlloc;
   std::vector<int> vPis;
   std::vector<int> vPos;
@@ -60,11 +65,7 @@ private:
 
   std::vector<bool> vUpdates;
   std::vector<bool> vPfUpdates;
-  PfState state;
-
   std::vector<bool> vFoConeShared;
-
-  int nVerbose;
 
   inline void Connect(int i, int f, bool fSort = false, bool fUpdate = true, NewBdd::Node c = NewBdd::Node());
   inline unsigned FindFi(int i, int i0) const;
@@ -82,7 +83,6 @@ private:
   void Build(int i, std::vector<NewBdd::Node> & vFs_) const;
   void Build(bool fPfUpdate = true);
 
-  double Rank(int f) const;
   bool RankCompare(int a, int b) const;
   bool SortFis(int i);
 
@@ -201,6 +201,7 @@ int Transduction::RemoveFis(int i, bool fPfUpdate) {
   if(nVerbose > 4) {
     std::cout << "\t\t\t\tRemove " << i << std::endl;
   }
+  assert(vvFos[i].empty());
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     int i0 = vvFis[i][j] >> 1;
     vvFos[i0].erase(std::find(vvFos[i0].begin(), vvFos[i0].end(), i));

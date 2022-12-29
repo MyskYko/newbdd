@@ -28,8 +28,8 @@ bool Transduction::IsFoConeShared(int i) const {
 }
 
 void Transduction::BuildFoConeCompl(int i, vector<NewBdd::Node> & vPoFsCompl) const {
-  if(nVerbose > 2) {
-    cout << "\t\tBuild with complemented " << i << endl;
+  if(nVerbose > 3) {
+    cout << "\t\t\tBuild with complemented " << i << endl;
   }
   vector<NewBdd::Node> vFsCompl = vFs;
   vFsCompl[i] = ~vFs[i];
@@ -114,13 +114,20 @@ int Transduction::Mspf(bool fSort, int block_i, int block_i0) {
   }
   int count = 0;
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
-    if(nVerbose > 3) {
-      cout << "\t\t\tMspf " << *it << endl;
-    }
     if(vvFos[*it].empty()) {
+      if(nVerbose > 3) {
+        cout << "\t\t\tRemove unused " << *it << endl;
+      }
       count += RemoveFis(*it);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
+    }
+    if(!vFoConeShared[*it] && !vPfUpdates[*it] && (vvFos[*it].size() == 1 || !IsFoConeShared(*it))) {
+      it++;
+      continue;
+    }
+    if(nVerbose > 3) {
+      cout << "\t\t\tMspf " << *it << endl;
     }
     if(vvFos[*it].size() == 1 || !IsFoConeShared(*it)) {
       if(vFoConeShared[*it]) {
@@ -131,9 +138,6 @@ int Transduction::Mspf(bool fSort, int block_i, int block_i0) {
           it++;
           continue;
         }
-      } else if(!vPfUpdates[*it]) {
-        it++;
-        continue;
       } else {
         CalcG(*it);
       }

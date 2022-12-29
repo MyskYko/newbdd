@@ -53,12 +53,12 @@ int Transduction::CalcC(int i) {
       x = x & (vFs[i0] ^ c0);
     }
     x = ~x;
-    // x = Or(x, g[i])
+    // c = Or(x, g[i])
     NewBdd::Node c = x | vGs[i];
     x = NewBdd::Node();
     int i0 = vvFis[i][j] >> 1;
     bool c0 = vvFis[i][j] & 1;
-    // Or(x, f[i_j]) == const1 -> redundant
+    // Or(c, f[i_j]) == const1 -> redundant
     if((c | (vFs[i0] ^ c0)).IsConst1()) {
       if(nVerbose > 4) {
         cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
@@ -73,7 +73,7 @@ int Transduction::CalcC(int i) {
   return count;
 }
 
-int Transduction::Cspf(bool fRRF, int block, int block_i0) {
+int Transduction::Cspf(bool fSortRemove, int block, int block_i0) {
   if(nVerbose > 2) {
     cout << "\t\tCspf" << endl;
   }
@@ -85,10 +85,10 @@ int Transduction::Cspf(bool fRRF, int block, int block_i0) {
   }
   int count = 0;
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
-    if(nVerbose > 3) {
-      cout << "\t\t\tCspf " << *it << endl;
-    }
     if(vvFos[*it].empty()) {
+      if(nVerbose > 3) {
+        cout << "\t\t\tRemove unused " << *it << endl;
+      }
       count += RemoveFis(*it);
       it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
       continue;
@@ -97,8 +97,11 @@ int Transduction::Cspf(bool fRRF, int block, int block_i0) {
       it++;
       continue;
     }
+    if(nVerbose > 3) {
+      cout << "\t\t\tCspf " << *it << endl;
+    }
     CalcG(*it);
-    if(fRRF) {
+    if(fSortRemove) {
       if(*it != block) {
         SortFis(*it);
         count += RemoveRedundantFis(*it);
