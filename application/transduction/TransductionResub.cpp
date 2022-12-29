@@ -12,6 +12,9 @@ bool Transduction::TryConnect(int i, int f) {
     bool c0 = f & 1;
     NewBdd::Node x = ~vFs[i] | vGs[i] | (vFs[i0] ^ c0);
     if(x.IsConst1()) {
+      if(nVerbose > 3) {
+        cout << "\t\t\tConnect " << (f >> 1) << "(" << (f & 1) << ")" << std::endl;
+      }
       Connect(i, f, true);
       return true;
     }

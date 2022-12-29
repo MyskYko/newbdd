@@ -38,7 +38,7 @@ public:
   int Cspf(bool fSortRemove = false, int block = -1, int block_i0 = -1);
   bool CspfDebug();
 
-  int Mspf(bool fSort = false, int block_i = -1, int block_i0 = -1);
+  int Mspf(bool fSort = false, int block = -1, int block_i0 = -1);
   bool MspfDebug();
 
   int Resub(bool fMspf = false);
@@ -247,6 +247,9 @@ int Transduction::Replace(int i, int f, bool fUpdate) {
 void Transduction::CreateNewGate(int & pos) {
   while(pos != nObjsAlloc && (!vvFis[pos].empty() || !vvFos[pos].empty())) {
     pos++;
+  }
+  if(nVerbose > 4) {
+    std::cout << "\t\t\t\tCreate " << pos << std::endl;
   }
   if(pos == nObjsAlloc) {
     nObjsAlloc++;

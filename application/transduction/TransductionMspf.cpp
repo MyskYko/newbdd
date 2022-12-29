@@ -88,7 +88,7 @@ int Transduction::MspfCalcC(int i, int block_i0) {
     bool c0 = vvFis[i][j] & 1;
     if(i0 != block_i0 && (c | (vFs[i0] ^ c0)).IsConst1()) {
       if(nVerbose > 4) {
-        cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
+        cout << "\t\t\t\tMspf remove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j);
       return RemoveRedundantFis(i, block_i0, j) + 1;
@@ -100,9 +100,15 @@ int Transduction::MspfCalcC(int i, int block_i0) {
   return 0;
 }
 
-int Transduction::Mspf(bool fSort, int block_i, int block_i0) {
+int Transduction::Mspf(bool fSort, int block, int block_i0) {
   if(nVerbose > 2) {
-    cout << "\t\tMspf" << endl;
+    cout << "\t\tMspf";
+    if(block_i0 != -1) {
+      cout << " (block " << block_i0 << " -> " << block << ")";
+    } else if(block != -1) {
+      cout << " (block " << block << ")";
+    }
+    cout << endl;
   }
   assert(all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
   vFoConeShared.resize(nObjsAlloc);
@@ -148,10 +154,10 @@ int Transduction::Mspf(bool fSort, int block_i, int block_i0) {
         continue;
       }
     }
-    if(fSort && (block_i != *it || block_i0 != -1)) {
+    if(fSort && (block != *it || block_i0 != -1)) {
       SortFis(*it);
     }
-    if(int diff = (block_i == *it)? MspfCalcC(*it, block_i0): MspfCalcC(*it)) {
+    if(int diff = (block == *it)? MspfCalcC(*it, block_i0): MspfCalcC(*it)) {
       count += diff;
       assert(!vvFis[*it].empty());
       if(vvFis[*it].size() == 1) {

@@ -24,7 +24,7 @@ int Transduction::RemoveRedundantFis(int i, int block_i0, unsigned j) {
     x = x | (vFs[i0] ^ c0);
     if(x.IsConst1()) {
       if(nVerbose > 4) {
-        cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
+        cout << "\t\t\t\tRRF remove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j--);
       count++;
@@ -61,7 +61,7 @@ int Transduction::CalcC(int i) {
     // Or(c, f[i_j]) == const1 -> redundant
     if((c | (vFs[i0] ^ c0)).IsConst1()) {
       if(nVerbose > 4) {
-        cout << "\t\t\t\tRemove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
+        cout << "\t\t\t\tCspf remove wire " << i0 << "(" << c0 << ")" << " -> " << i << endl;
       }
       Disconnect(i, i0, j--);
       count++;
@@ -75,7 +75,13 @@ int Transduction::CalcC(int i) {
 
 int Transduction::Cspf(bool fSortRemove, int block, int block_i0) {
   if(nVerbose > 2) {
-    cout << "\t\tCspf" << endl;
+    cout << "\t\tCspf";
+    if(block_i0 != -1) {
+      cout << " (block " << block_i0 << " -> " << block << ")";
+    } else if(block != -1) {
+      cout << " (block " << block << ")";
+    }
+    cout << endl;
   }
   if(state != PfState::cspf) {
     for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {

@@ -65,7 +65,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose, int SortType) : nVe
     if(i0) {
       if((x | vvCs[vPos[i]][0]).IsConst1()) {
         if(nVerbose > 3) {
-          cout << "\t\t\tConst 1 output po " << i << endl;
+          cout << "\t\t\tConst 1 output : po " << i << endl;
         }
         Disconnect(vPos[i], i0, 0, false, false);
         Connect(vPos[i], 1, false, false);
@@ -73,7 +73,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose, int SortType) : nVe
         fRemoved |= vvFos[i0].empty();
       } else if((~x | vvCs[vPos[i]][0]).IsConst1()) {
         if(nVerbose > 3) {
-          cout << "\t\t\tConst 0 output po " << i << endl;
+          cout << "\t\t\tConst 0 output : po " << i << endl;
         }
         Disconnect(vPos[i], i0, 0, false, false);
         Connect(vPos[i], 0, false, false);
@@ -86,7 +86,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose, int SortType) : nVe
   // remove unused nodes
   if(fRemoved) {
     if(nVerbose > 3) {
-      cout << "\t\t\tRemove unused nodes" << endl;
+      cout << "\t\t\tRemove unused" << endl;
     }
     for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
       if(vvFos[*it].empty()) {
