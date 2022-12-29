@@ -154,7 +154,7 @@ int Transduction::Mspf(bool fSort, int block, int block_i0) {
         continue;
       }
     }
-    if(fSort && (block != *it || block_i0 != -1)) {
+    if(fSort && block != *it) {
       SortFis(*it);
     }
     if(int diff = (block == *it)? MspfCalcC(*it, block_i0): MspfCalcC(*it)) {
