@@ -33,7 +33,6 @@ public:
   int TrivialDecompose();
   int Merge(bool fMspf = false);
   int Decompose();
-  int MergeDecomposeEager(bool fMspf = false);
 
   int Cspf(bool fSortRemove = false, int block = -1, int block_i0 = -1);
   bool CspfDebug();

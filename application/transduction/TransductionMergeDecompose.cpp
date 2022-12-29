@@ -240,19 +240,3 @@ int Transduction::Decompose() {
   }
   return count;
 }
-
-int Transduction::MergeDecomposeEager(bool fMspf) {
-  int count = Merge(fMspf) + Decompose() + (fMspf? Mspf(true): Cspf(true));
-  Save();
-  while(true) {
-    int diff = Merge(fMspf) + Decompose() + (fMspf? Mspf(true): Cspf(true));
-    if(diff <= 0) {
-      Load();
-      break;
-    }
-    count += diff;
-    Save();
-  }
-  ClearSave();
-  return count;
-}
