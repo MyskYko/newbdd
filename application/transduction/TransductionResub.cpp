@@ -32,8 +32,7 @@ int Transduction::Resub(bool fMspf) {
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
-      cout << "\tResubstitute " << *it << " : ";
-      PrintStats();
+      cout << "\tResubstitute " << *it << endl;
     }
     if(vvFos[*it].empty()) {
       continue;
@@ -88,14 +87,13 @@ int Transduction::Resub(bool fMspf) {
 
 int Transduction::ResubMono(bool fMspf) {
   if(nVerbose) {
-    cout << "Resubstitution monotonic" << endl;
+    cout << "Resubstitution mono" << endl;
   }
   int count = fMspf? Mspf(true): Cspf(true);
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
-      cout << "\tResubstitute monotonic " << *it << " : ";
-      PrintStats();
+      cout << "\tResubstitute mono " << *it << endl;
     }
     if(vvFos[*it].empty()) {
       continue;
