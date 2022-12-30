@@ -19,12 +19,12 @@ Transduction::Transduction(aigman const & aig, int nVerbose, int SortType) : nVe
   // import
   vector<int> v(aig.nObjs, -1);
   // constant
-  vFs[0] = NewBdd::Const0(bdd);
+  vFs[0] = NewBdd::Node::Const0(bdd);
   v[0] = 0;
   // inputs
   for(int i = 0; i < aig.nPis; i++) {
     vPis.push_back(i + 1);
-    vFs[i + 1] = NewBdd::IthVar(bdd, i);
+    vFs[i + 1] = NewBdd::Node::IthVar(bdd, i);
     v[i + 1] = (i + 1) << 1;
   }
   // nodes
@@ -49,7 +49,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose, int SortType) : nVe
     }
     vPos.push_back(i + aig.nObjs);
     Connect(vPos[i], v[aig.vPos[i] >> 1] ^ (aig.vPos[i] & 1));
-    vvCs[vPos[i]][0] = NewBdd::Const0(bdd);
+    vvCs[vPos[i]][0] = NewBdd::Node::Const0(bdd);
   }
   // build bdd
   bdd->SetParameters(1, 12);
@@ -69,7 +69,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose, int SortType) : nVe
         }
         Disconnect(vPos[i], i0, 0, false, false);
         Connect(vPos[i], 1, false, false);
-        x = NewBdd::Const1(bdd);
+        x = NewBdd::Node::Const1(bdd);
         fRemoved |= vvFos[i0].empty();
       } else if((~x | vvCs[vPos[i]][0]).IsConst1()) {
         if(nVerbose > 3) {
@@ -77,7 +77,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose, int SortType) : nVe
         }
         Disconnect(vPos[i], i0, 0, false, false);
         Connect(vPos[i], 0, false, false);
-        x = NewBdd::Const0(bdd);
+        x = NewBdd::Node::Const0(bdd);
         fRemoved |= vvFos[i0].empty();
       }
     }
@@ -191,7 +191,7 @@ void Transduction::Build(int i, vector<NewBdd::Node> & vFs_) const {
   if(nVerbose > 4) {
     cout << "\t\t\t\tBuild " << i << endl;
   }
-  vFs_[i] = NewBdd::Const1(bdd);
+  vFs_[i] = NewBdd::Node::Const1(bdd);
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     int i0 = vvFis[i][j] >> 1;
     bool c0 = vvFis[i][j] & 1;

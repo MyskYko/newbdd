@@ -13,9 +13,9 @@ void Aig2Bdd(aigman const & aig, NewBdd::Man & bdd, vector<NewBdd::Node> & vNode
     vCounts[i] = aig.vvFanouts[i].size();
   }
   vector<NewBdd::Node> nodes(aig.nObjs);
-  nodes[0] = NewBdd::Const0(&bdd);
+  nodes[0] = NewBdd::Node::Const0(&bdd);
   for(int i = 0; i < aig.nPis; i++) {
-    nodes[i + 1] = NewBdd::IthVar(&bdd, i);
+    nodes[i + 1] = NewBdd::Node::IthVar(&bdd, i);
   }
   for(int i = aig.nPis + 1; i < aig.nObjs; i++) {
     if(fVerbose) {

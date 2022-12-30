@@ -14,6 +14,6 @@ int main(int argc, char ** argv) {
   bdd.SetParameters(1);
   std::vector<NewBdd::Node> vNodes;
   Aig2Bdd(aig, bdd, vNodes);
-  std::cout << CountNodes(vNodes) << std::endl;
+  std::cout << NewBdd::Node::CountNodes(vNodes) << std::endl;
   return 0;
 }

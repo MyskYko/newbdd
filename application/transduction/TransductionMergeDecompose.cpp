@@ -84,7 +84,7 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
       if(state == PfState::cspf) {
         vGs[pos] = vGs[*it];
       } else if(state == PfState::mspf) {
-        NewBdd::Node x = NewBdd::Const1(bdd);
+        NewBdd::Node x = NewBdd::Node::Const1(bdd);
         for(unsigned j = 0; j < vvFis[*it].size(); j++) {
           int i0 = vvFis[*it][j] >> 1;
           bool c0 = vvFis[*it][j] & 1;

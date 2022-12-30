@@ -93,17 +93,17 @@ namespace NewBdd {
     return man;
   }
 
-  Node Const0(Man * man) {
+  Node Node::Const0(Man * man) {
     return Node(man, man->Const0());
   }
-  Node Const1(Man * man) {
+  Node Node::Const1(Man * man) {
     return Node(man, man->Const1());
   }
-  Node IthVar(Man * man, var v) {
+  Node Node::IthVar(Man * man, var v) {
     return Node(man, man->IthVar(v));
   }
 
-  void SetRef(vector<Node> const & vNodes) {
+  void Node::SetRef(vector<Node> const & vNodes) {
     if(vNodes.empty()) {
       return;
     }
@@ -118,7 +118,7 @@ namespace NewBdd {
     man->SetRef(vLits);
   }
 
-  bvar CountNodes(vector<Node> const & vNodes) {
+  bvar Node::CountNodes(vector<Node> const & vNodes) {
     if(vNodes.empty()) {
       return 0;
     }

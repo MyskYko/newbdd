@@ -10,7 +10,7 @@ int Transduction::RemoveRedundantFis(int i, int block_i0, unsigned j) {
     if(block_i0 == (vvFis[i][j] >> 1)) {
       continue;
     }
-    NewBdd::Node x = NewBdd::Const1(bdd);
+    NewBdd::Node x = NewBdd::Node::Const1(bdd);
     for(unsigned jj = 0; jj < vvFis[i].size(); jj++) {
       if(j != jj) {
         int i0 = vvFis[i][jj] >> 1;
@@ -34,7 +34,7 @@ int Transduction::RemoveRedundantFis(int i, int block_i0, unsigned j) {
 }
 
 void Transduction::CalcG(int i) {
-  vGs[i] = NewBdd::Const1(bdd);
+  vGs[i] = NewBdd::Node::Const1(bdd);
   for(unsigned j = 0; j < vvFos[i].size(); j++) {
     int k = vvFos[i][j];
     unsigned l = FindFi(k, i);
@@ -46,7 +46,7 @@ int Transduction::CalcC(int i) {
   int count = 0;
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     // x = Not(And(FIs with larger rank))
-    NewBdd::Node x = NewBdd::Const1(bdd);
+    NewBdd::Node x = NewBdd::Node::Const1(bdd);
     for(unsigned jj = j + 1; jj < vvFis[i].size(); jj++) {
       int i0 = vvFis[i][jj] >> 1;
       bool c0 = vvFis[i][jj] & 1;

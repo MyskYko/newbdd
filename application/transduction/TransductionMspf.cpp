@@ -59,7 +59,7 @@ bool Transduction::MspfCalcG(int i) {
   NewBdd::Node g = vGs[i];
   vector<NewBdd::Node> vPoFsCompl;
   BuildFoConeCompl(i, vPoFsCompl);
-  vGs[i] = NewBdd::Const1(bdd);
+  vGs[i] = NewBdd::Node::Const1(bdd);
   for(unsigned j = 0; j < vPos.size(); j++) {
     NewBdd::Node x = ~(vPoFs[j] ^ vPoFsCompl[j]);
     x = x | vvCs[vPos[j]][0];
@@ -71,7 +71,7 @@ bool Transduction::MspfCalcG(int i) {
 int Transduction::MspfCalcC(int i, int block_i0) {
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     // x = Not(And(other FIs))
-    NewBdd::Node x = NewBdd::Const1(bdd);
+    NewBdd::Node x = NewBdd::Node::Const1(bdd);
     for(unsigned jj = 0; jj < vvFis[i].size(); jj++) {
       if(j != jj) {
         int i0 = vvFis[i][jj] >> 1;

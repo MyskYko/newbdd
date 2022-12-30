@@ -7,11 +7,11 @@ namespace NewBdd {
 
   class Node {
   public:
-    friend Node Const0(Man * man);
-    friend Node Const1(Man * man);
-    friend Node IthVar(Man * man, var v);
-    friend void SetRef(std::vector<Node> const & vNodes);
-    friend bvar CountNodes(std::vector<Node> const & vNodes);
+    static Node Const0(Man * man);
+    static Node Const1(Man * man);
+    static Node IthVar(Man * man, var v);
+    static void SetRef(std::vector<Node> const & vNodes);
+    static bvar CountNodes(std::vector<Node> const & vNodes);
 
     Node(Man * man, lit val);
     Node();
@@ -47,12 +47,6 @@ namespace NewBdd {
     Man * man;
     lit val;
   };
-
-  Node Const0(Man * man);
-  Node Const1(Man * man);
-  Node IthVar(Man * man, var v);
-  void SetRef(std::vector<Node> const & vNodes);
-  bvar CountNodes(std::vector<Node> const & vNodes);
 
 }
 
