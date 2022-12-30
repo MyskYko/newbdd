@@ -52,103 +52,40 @@ namespace NewBdd {
     }
   }
 
-  lit Man::UniqueCreateInt(var v, lit x1, lit x0) {
-    vector<bvar>::iterator p, q;
-    p = q = vvUnique[v].begin() + (Hash(x1, x0) & vUniqueMasks[v]);
-    for(; *q; q = vNexts.begin() + *q) {
-      if(VarOfBvar(*q) == v && ThenOfBvar(*q) == x1 && ElseOfBvar(*q) == x0) {
-        return Bvar2Lit(*q);
+#ifdef REO_DEBUG
+  void Man::UncountEdges_rec(lit x) {
+    if(x < 2) {
+      return;
+    }
+    DecEdge(x);
+    if(Mark(x)) {
+      return;
+    }
+    SetMark(x);
+    UncountEdges_rec(Then(x));
+    UncountEdges_rec(Else(x));
+  }
+  void Man::UncountEdges() {
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        UncountEdges_rec(Bvar2Lit(a));
       }
     }
-    bvar next = *p;
-    if(nObjs < nObjsAlloc) {
-      *p = nObjs++;
-    } else {
-      for(; MinBvarRemoved < nObjs; MinBvarRemoved++) {
-        if(VarOfBvar(MinBvarRemoved) == VarMax()) {
-          break;
-        }
-      }
-      if(MinBvarRemoved >= nObjs) {
-        return LitMax();
-      }
-      *p = MinBvarRemoved++;
+    for(bvar a = 1; a <= (bvar)nVars; a++) {
+      vEdges[a]--;
     }
-    SetVarOfBvar(*p, v);
-    SetThenOfBvar(*p, x1);
-    SetElseOfBvar(*p, x0);
-    vNexts[*p] = next;
-#ifdef COUNT_ONES
-    vOneCounts[*p] = OneCount(x1) / 2 + OneCount(x0) / 2;
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+    for(bvar a = 1; a < nObjs; a++) {
+      if(EdgeOfBvar(a)) {
+        cout << "Strange edge " << a << " : Edge = " << EdgeOfBvar(a) << endl;
+      }
+    }
+  }
 #endif
-    if(nVerbose >= 3) {
-      cout << "Create node " << *p << " : Var = " << v << " Then = " << x1 << " Else = " << x0;
-#ifdef COUNT_ONES
-      cout << " Ones = " << vOneCounts[*q];
-#endif
-      cout << endl;
-    }
-    vUniqueCounts[v]++;
-    if(vUniqueCounts[v] > vUniqueTholds[v]) {
-      bvar a = *p;
-      ResizeUnique(v);
-      return Bvar2Lit(a);
-    }
-    return Bvar2Lit(*p);
-  }
-  lit Man::UniqueCreate(var v, lit x1, lit x0) {
-    if(x1 == x0) {
-      return x1;
-    }
-    lit x;
-    while(true) {
-      if(!LitIsCompl(x0)) {
-        x = UniqueCreateInt(v, x1, x0);
-      } else {
-        x = LitNot(UniqueCreateInt(v, LitNot(x1), LitNot(x0)));
-      }
-      if((x | 1) == LitMax()) {
-        bool fRemoved = false;
-        if(nGbc > 1) {
-          fRemoved = Gbc();
-        }
-        if(!Resize() && !fRemoved && (nGbc != 1 || !Gbc())) {
-          throw length_error("Memout (node)");
-        }
-      } else {
-        break;
-      }
-    }
-    return x;
-  }
-
-  lit Man::CacheLookup(lit x, lit y) {
-    nCacheLookups++;
-    if(nCacheLookups > CacheThold) {
-      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
-      if(NewCacheHitRate > CacheHitRate) {
-        ResizeCache();
-      } else {
-        CacheThold <<= 1;
-        if(!CacheThold) {
-          CacheThold = SizeMax();
-        }
-      }
-      CacheHitRate = NewCacheHitRate;
-    }
-    size i = (size)(Hash(x, y) & CacheMask) * 3;
-    if(vCache[i] == x && vCache[i + 1] == y) {
-      nCacheHits++;
-      return vCache[i + 2];
-    }
-    return LitMax();
-  }
-  void Man::CacheInsert(lit x, lit y, lit z) {
-    size i = (size)(Hash(x, y) & CacheMask) * 3;
-    vCache[i] = x;
-    vCache[i + 1] = y;
-    vCache[i + 2] = z;
-  }
 
   lit Man::And_rec(lit x, lit y) {
     if(x == 0 || y == 1) {
@@ -188,18 +125,6 @@ namespace NewBdd {
     DecRef(z0);
     CacheInsert(x, y, z);
     return z;
-  }
-  lit Man::And(lit x, lit y) {
-    if(nObjs > nReo) {
-      Reo();
-      while(nReo < nObjs) {
-        nReo <<= 1;
-        if((size)nReo > (size)BvarMax()) {
-          nReo = BvarMax();
-        }
-      }
-    }
-    return And_rec(x, y);
   }
 
   bool Man::Resize() {
@@ -302,60 +227,6 @@ namespace NewBdd {
     if(!CacheThold) {
       CacheThold = SizeMax();
     }
-  }
-
-  void Man::CacheClear() {
-    fill(vCache.begin(), vCache.end(), 0);
-  }
-
-  void Man::RemoveBvar(bvar a) {
-    var v = VarOfBvar(a);
-    SetVarOfBvar(a, VarMax());
-    if(MinBvarRemoved > a) {
-      MinBvarRemoved = a;
-    }
-    vector<bvar>::iterator q = vvUnique[v].begin() + (Hash(ThenOfBvar(a), ElseOfBvar(a)) & vUniqueMasks[v]);
-    for(; *q; q = vNexts.begin() + *q) {
-      if(*q == a) {
-        break;
-      }
-    }
-    bvar next = vNexts[*q];
-    vNexts[*q] = 0;
-    *q = next;
-    vUniqueCounts[v]--;
-  }
-
-  bool Man::Gbc() {
-    if(nVerbose >= 2) {
-      cout << "Garbage collect" << endl;
-    }
-    bvar MinBvarRemovedOld = MinBvarRemoved;
-    if(!vEdges.empty()) {
-      for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
-        if(!EdgeOfBvar(a) && VarOfBvar(a) != VarMax()) {
-          RemoveBvar(a);
-        }
-      }
-      return MinBvarRemoved != MinBvarRemovedOld;
-    }
-    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
-      if(RefOfBvar(a)) {
-        SetMark_rec(Bvar2Lit(a));
-      }
-    }
-    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
-      if(!MarkOfBvar(a) && VarOfBvar(a) != VarMax()) {
-        RemoveBvar(a);
-      }
-    }
-    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
-      if(RefOfBvar(a)) {
-        ResetMark_rec(Bvar2Lit(a));
-      }
-    }
-    CacheClear();
-    return MinBvarRemoved != MinBvarRemovedOld;
   }
 
   bvar Man::Swap(var i) {
@@ -582,19 +453,6 @@ namespace NewBdd {
     }
   }
 
-  void Man::Reo() {
-    if(nVerbose >= 2) {
-      cout << "Reorder" << endl;
-    }
-    CountEdges();
-    Sift();
-#ifdef REO_DEBUG
-    UncountEdges();
-#endif
-    vEdges.clear();
-    CacheClear();
-  }
-
   bvar Man::CountNodes_rec(lit x) {
     if(x < 2 || Mark(x)) {
       return 0;
@@ -602,70 +460,5 @@ namespace NewBdd {
     SetMark(x);
     return 1 + CountNodes_rec(Then(x)) + CountNodes_rec(Else(x));
   }
-
-  bvar Man::CountNodes() {
-    bvar count = 0;
-    if(!vEdges.empty()) {
-      for(bvar a = 1; a < nObjs; a++) {
-        if(EdgeOfBvar(a)) {
-          count++;
-        }
-      }
-      return count;
-    }
-    for(bvar a = 1; a <= (bvar)nVars; a++) {
-      count++;
-      SetMarkOfBvar(a);
-    }
-    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
-      if(RefOfBvar(a)) {
-        count += CountNodes_rec(Bvar2Lit(a));
-      }
-    }
-    for(bvar a = 1; a <= (bvar)nVars; a++) {
-      ResetMarkOfBvar(a);
-    }
-    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
-      if(RefOfBvar(a)) {
-        ResetMark_rec(Bvar2Lit(a));
-      }
-    }
-    return count;
-  }
-
-#ifdef REO_DEBUG
-  void Man::UncountEdges_rec(lit x) {
-    if(x < 2) {
-      return;
-    }
-    DecEdge(x);
-    if(Mark(x)) {
-      return;
-    }
-    SetMark(x);
-    UncountEdges_rec(Then(x));
-    UncountEdges_rec(Else(x));
-  }
-  void Man::UncountEdges() {
-    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
-      if(RefOfBvar(a)) {
-        UncountEdges_rec(Bvar2Lit(a));
-      }
-    }
-    for(bvar a = 1; a <= (bvar)nVars; a++) {
-      vEdges[a]--;
-    }
-    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
-      if(RefOfBvar(a)) {
-        ResetMark_rec(Bvar2Lit(a));
-      }
-    }
-    for(bvar a = 1; a < nObjs; a++) {
-      if(EdgeOfBvar(a)) {
-        cout << "Strange edge " << a << " : Edge = " << EdgeOfBvar(a) << endl;
-      }
-    }
-  }
-#endif
 
 }

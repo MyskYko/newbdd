@@ -139,6 +139,19 @@ namespace NewBdd {
     return nObjs;
   }
 
+  lit Man::And(lit x, lit y) {
+    if(nObjs > nReo) {
+      Reorder(fReoVerbose);
+      while(nReo < nObjs) {
+        nReo <<= 1;
+        if((size)nReo > (size)BvarMax()) {
+          nReo = BvarMax();
+        }
+      }
+    }
+    return And_rec(x, y);
+  }
+
   void Man::SetRef(vector<lit> const & vLits) {
     vRefs.clear();
     vRefs.resize(nObjsAlloc);
@@ -147,16 +160,86 @@ namespace NewBdd {
     }
   }
 
+  bool Man::Gbc() {
+    if(nVerbose >= 2) {
+      cout << "Garbage collect" << endl;
+    }
+    bvar MinBvarRemovedOld = MinBvarRemoved;
+    if(!vEdges.empty()) {
+      for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+        if(!EdgeOfBvar(a) && VarOfBvar(a) != VarMax()) {
+          RemoveBvar(a);
+        }
+      }
+      return MinBvarRemoved != MinBvarRemovedOld;
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        SetMark_rec(Bvar2Lit(a));
+      }
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(!MarkOfBvar(a) && VarOfBvar(a) != VarMax()) {
+        RemoveBvar(a);
+      }
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+    CacheClear();
+    return MinBvarRemoved != MinBvarRemovedOld;
+  }
+
   void Man::Reorder(bool fVerbose) {
     bool fReoVerbose_ = fReoVerbose;
-    fReoVerbose |= fVerbose;
-    Reo();
+    fReoVerbose = fVerbose;
+    if(nVerbose >= 2) {
+      cout << "Reorder" << endl;
+    }
+    CountEdges();
+    Sift();
+#ifdef REO_DEBUG
+    UncountEdges();
+#endif
+    vEdges.clear();
+    CacheClear();
     fReoVerbose = fReoVerbose_;
   }
   void Man::GetOrdering(vector<var> & Var2Level_) {
     Var2Level_ = Var2Level;
   }
 
+  bvar Man::CountNodes() {
+    bvar count = 0;
+    if(!vEdges.empty()) {
+      for(bvar a = 1; a < nObjs; a++) {
+        if(EdgeOfBvar(a)) {
+          count++;
+        }
+      }
+      return count;
+    }
+    for(bvar a = 1; a <= (bvar)nVars; a++) {
+      count++;
+      SetMarkOfBvar(a);
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        count += CountNodes_rec(Bvar2Lit(a));
+      }
+    }
+    for(bvar a = 1; a <= (bvar)nVars; a++) {
+      ResetMarkOfBvar(a);
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+    return count;
+  }
   bvar Man::CountNodes(vector<lit> const & vLits) {
     bvar count = 0;
     for(size i = 0; i < vLits.size(); i++) {

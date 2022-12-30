@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 #include "NewBddTypes.h"
 
@@ -18,6 +19,18 @@ namespace NewBdd {
 
     var GetNumVars() const;
     bvar GetNumObjs() const;
+
+    lit And(lit x, lit y);
+
+    void SetRef(std::vector<lit> const & vLits);
+
+    bool Gbc();
+
+    void Reorder(bool fVerbose = false);
+    void GetOrdering(std::vector<var> & Var2Level_);
+
+    bvar CountNodes();
+    bvar CountNodes(std::vector<lit> const & vLits);
 
     inline lit Const0() const;
     inline lit Const1() const;
@@ -37,15 +50,6 @@ namespace NewBdd {
 
     inline void IncRef(lit x);
     inline void DecRef(lit x);
-
-    lit And(lit x, lit y);
-
-    void SetRef(std::vector<lit> const & vLits);
-
-    void Reorder(bool fVerbose = false);
-    void GetOrdering(std::vector<var> & Var2Level_);
-
-    bvar CountNodes(std::vector<lit> const & vLits);
 
   private:
     var nVars;
@@ -128,11 +132,14 @@ namespace NewBdd {
     void UncountEdges();
 #endif
 
-    lit UniqueCreateInt(var v, lit x1, lit x0);
-    lit UniqueCreate(var v, lit x1, lit x0);
+    inline lit UniqueCreateInt(var v, lit x1, lit x0);
+    inline lit UniqueCreate(var v, lit x1, lit x0);
 
-    lit CacheLookup(lit x, lit y);
-    void CacheInsert(lit x, lit y, lit z);
+    inline lit CacheLookup(lit x, lit y);
+    inline void CacheInsert(lit x, lit y, lit z);
+    inline void CacheClear();
+
+    inline void RemoveBvar(bvar a);
 
     lit And_rec(lit x, lit y);
 
@@ -140,16 +147,10 @@ namespace NewBdd {
     void ResizeUnique(var v);
     void ResizeCache();
 
-    void CacheClear();
-    void RemoveBvar(bvar a);
-    bool Gbc();
-
     bvar Swap(var i);
     void Sift();
-    void Reo();
 
     bvar CountNodes_rec(lit x);
-    bvar CountNodes();
   };
 
   inline lit Man::Const0() const {
@@ -280,6 +281,125 @@ namespace NewBdd {
     return vOneCounts[Lit2Bvar(x)];
   }
 #endif
+
+  inline lit Man::UniqueCreateInt(var v, lit x1, lit x0) {
+    std::vector<bvar>::iterator p, q;
+    p = q = vvUnique[v].begin() + (Hash(x1, x0) & vUniqueMasks[v]);
+    for(; *q; q = vNexts.begin() + *q) {
+      if(VarOfBvar(*q) == v && ThenOfBvar(*q) == x1 && ElseOfBvar(*q) == x0) {
+        return Bvar2Lit(*q);
+      }
+    }
+    bvar next = *p;
+    if(nObjs < nObjsAlloc) {
+      *p = nObjs++;
+    } else {
+      for(; MinBvarRemoved < nObjs; MinBvarRemoved++) {
+        if(VarOfBvar(MinBvarRemoved) == VarMax()) {
+          break;
+        }
+      }
+      if(MinBvarRemoved >= nObjs) {
+        return LitMax();
+      }
+      *p = MinBvarRemoved++;
+    }
+    SetVarOfBvar(*p, v);
+    SetThenOfBvar(*p, x1);
+    SetElseOfBvar(*p, x0);
+    vNexts[*p] = next;
+#ifdef COUNT_ONES
+    vOneCounts[*p] = OneCount(x1) / 2 + OneCount(x0) / 2;
+#endif
+    if(nVerbose >= 3) {
+      std::cout << "Create node " << *p << " : Var = " << v << " Then = " << x1 << " Else = " << x0;
+#ifdef COUNT_ONES
+      std::cout << " Ones = " << vOneCounts[*q];
+#endif
+      std::cout << std::endl;
+    }
+    vUniqueCounts[v]++;
+    if(vUniqueCounts[v] > vUniqueTholds[v]) {
+      bvar a = *p;
+      ResizeUnique(v);
+      return Bvar2Lit(a);
+    }
+    return Bvar2Lit(*p);
+  }
+  inline lit Man::UniqueCreate(var v, lit x1, lit x0) {
+    if(x1 == x0) {
+      return x1;
+    }
+    lit x;
+    while(true) {
+      if(!LitIsCompl(x0)) {
+        x = UniqueCreateInt(v, x1, x0);
+      } else {
+        x = LitNot(UniqueCreateInt(v, LitNot(x1), LitNot(x0)));
+      }
+      if((x | 1) == LitMax()) {
+        bool fRemoved = false;
+        if(nGbc > 1) {
+          fRemoved = Gbc();
+        }
+        if(!Resize() && !fRemoved && (nGbc != 1 || !Gbc())) {
+          throw std::length_error("Memout (node)");
+        }
+      } else {
+        break;
+      }
+    }
+    return x;
+  }
+
+  inline lit Man::CacheLookup(lit x, lit y) {
+    nCacheLookups++;
+    if(nCacheLookups > CacheThold) {
+      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
+      if(NewCacheHitRate > CacheHitRate) {
+        ResizeCache();
+      } else {
+        CacheThold <<= 1;
+        if(!CacheThold) {
+          CacheThold = SizeMax();
+        }
+      }
+      CacheHitRate = NewCacheHitRate;
+    }
+    size i = (size)(Hash(x, y) & CacheMask) * 3;
+    if(vCache[i] == x && vCache[i + 1] == y) {
+      nCacheHits++;
+      return vCache[i + 2];
+    }
+    return LitMax();
+  }
+  inline void Man::CacheInsert(lit x, lit y, lit z) {
+    size i = (size)(Hash(x, y) & CacheMask) * 3;
+    vCache[i] = x;
+    vCache[i + 1] = y;
+    vCache[i + 2] = z;
+  }
+  inline void Man::CacheClear() {
+    fill(vCache.begin(), vCache.end(), 0);
+  }
+
+  inline void Man::RemoveBvar(bvar a) {
+    var v = VarOfBvar(a);
+    SetVarOfBvar(a, VarMax());
+    if(MinBvarRemoved > a) {
+      MinBvarRemoved = a;
+    }
+    std::vector<bvar>::iterator q = vvUnique[v].begin() + (Hash(ThenOfBvar(a), ElseOfBvar(a)) & vUniqueMasks[v]);
+    for(; *q; q = vNexts.begin() + *q) {
+      if(*q == a) {
+        break;
+      }
+    }
+    bvar next = vNexts[*q];
+    vNexts[*q] = 0;
+    *q = next;
+    vUniqueCounts[v]--;
+  }
 
 }
 
