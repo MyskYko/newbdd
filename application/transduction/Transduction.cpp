@@ -245,6 +245,8 @@ bool Transduction::RankCompare(int a, int b) const {
   bool ac = a & 1;
   bool bc = b & 1;
   switch(SortType) {
+  case 0:
+    return find(find(vObjs.begin(), vObjs.end(), a0), vObjs.end(), b0) == vObjs.end();
   case 1:
     return (vFs[a0] ^ ac).OneCount() < (vFs[b0] ^ bc).OneCount();
   case 2:
@@ -252,7 +254,7 @@ bool Transduction::RankCompare(int a, int b) const {
   case 3:
     return vFs[a0].ZeroCount() < vFs[b0].OneCount();
   default:
-    return find(find(vObjs.begin(), vObjs.end(), a0), vObjs.end(), b0) == vObjs.end();
+    throw logic_error("Invalid sort type");
   }
 }
 bool Transduction::SortFis(int i) {

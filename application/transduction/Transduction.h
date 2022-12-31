@@ -11,10 +11,10 @@
 
 #include "NewBddNode.h"
 
+enum class PfState {none, cspf, mspf};
+
 class Transduction {
 public:
-  enum class PfState {none, cspf, mspf};
-
   Transduction(aigman const & aig, int nVerbose = 0, int SortType = 0);
   ~Transduction();
 
@@ -117,7 +117,7 @@ private:
   inline void ClearSave();
 };
 
-Transduction::PfState Transduction::State() const {
+PfState Transduction::State() const {
   return state;
 }
 int Transduction::CountGates() const {
@@ -151,11 +151,12 @@ bool Transduction::Verify() const {
 }
 
 bool Transduction::AllFalse(std::vector<bool> const & v) const {
-  bool f = false;
   for(std::list<int>::const_iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    f |= v[*it];
+    if(v[*it]) {
+      return false;
+    }
   }
-  return !f;
+  return true;
 }
 
 void Transduction::Connect(int i, int f, bool fSort, bool fUpdate, NewBdd::Node c) {

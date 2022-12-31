@@ -52,26 +52,26 @@ int main(int argc, char ** argv) {
     switch(tests[i]) {
     case 0:
       count -= t.TrivialMerge();
-      if(t.State() == Transduction::PfState::cspf) {
+      if(t.State() == PfState::cspf) {
         assert(!t.CspfDebug());
-      } else if(t.State() == Transduction::PfState::mspf) {
+      } else if(t.State() == PfState::mspf) {
         assert(!t.MspfDebug());
       }
       break;
     case 1:
       count -= t.TrivialDecompose();
-      if(t.State() == Transduction::PfState::cspf) {
+      if(t.State() == PfState::cspf) {
         assert(!t.CspfDebug());
-      } else if(t.State() == Transduction::PfState::mspf) {
+      } else if(t.State() == PfState::mspf) {
         assert(!t.MspfDebug());
       }
       break;
     case 2:
       count -= t.Decompose();
-      if(t.State() == Transduction::PfState::cspf) {
+      if(t.State() == PfState::cspf) {
         count -= t.Cspf(true);
         assert(!t.CspfDebug());
-      } else if(t.State() == Transduction::PfState::mspf) {
+      } else if(t.State() == PfState::mspf) {
         count -= t.Mspf();
         assert(!t.MspfDebug());
       }
