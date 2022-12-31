@@ -61,6 +61,13 @@ namespace NewBdd {
     return val == 1;
   }
 
+  double Node::OneCount() const {
+    return man->OneCount(val);
+  }
+  double Node::ZeroCount() const {
+    return man->OneCount(man->LitNot(val));
+  }
+
   Node Node::operator~() const {
     return Node(man, man->LitNot(val));
   }
@@ -87,10 +94,6 @@ namespace NewBdd {
   }
   bool Node::operator!=(Node const & other) const {
     return !(*this == other);
-  }
-
-  bool Node::Valid() const {
-    return man;
   }
 
   Node Node::Const0(Man * man) {
@@ -132,14 +135,5 @@ namespace NewBdd {
     }
     return man->CountNodes(vLits);
   }
-
-#ifdef COUNT_ONES
-  double Node::OneCount() const {
-    return man->OneCount(val);
-  }
-  double Node::ZeroCount() const {
-    return man->OneCount(man->LitNot(val));
-  }
-#endif
 
 }

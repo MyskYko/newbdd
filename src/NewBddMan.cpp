@@ -153,9 +153,9 @@ namespace NewBdd {
     if(!vEdges.empty()) {
       vEdges.resize(nObjsAlloc);
     }
-#ifdef COUNT_ONES
-    vOneCounts.resize(nObjsAlloc);
-#endif
+    if(!vOneCounts.empty()) {
+      vOneCounts.resize(nObjsAlloc);
+    }
     return true;
   }
 

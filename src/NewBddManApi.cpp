@@ -6,7 +6,7 @@ using namespace std;
 
 namespace NewBdd {
 
-  Man::Man(int nVars, int nVerbose, int nMaxMemLog, int nObjsAllocLog, int nUniqueLog,int nCacheLog, double UniqueDensity) : nVars(nVars), nVerbose(nVerbose) {
+  Man::Man(int nVars, bool fCountOnes, int nVerbose, int nMaxMemLog, int nObjsAllocLog, int nUniqueLog,int nCacheLog, double UniqueDensity) : nVars(nVars), nVerbose(nVerbose) {
     if(nVars >= (int)VarMax()) {
       throw length_error("Memout (var) in init");
     }
@@ -67,12 +67,12 @@ namespace NewBdd {
     }
     vCache.resize((size)nCache * 3);
     CacheMask = nCache - 1;
-#ifdef COUNT_ONES
-    if(nVars > 1023) {
-      throw length_error("Cannot count ones for more than 1023 variables");
+    if(fCountOnes) {
+      if(nVars > 1023) {
+        throw length_error("Cannot count ones for more than 1023 variables");
+      }
+      vOneCounts.resize(nObjsAlloc);
     }
-    vOneCounts.resize(nObjsAlloc);
-#endif
     nObjs = 1;
     vVars[0] = VarMax();
     for(var v = 0; v < nVars; v++) {

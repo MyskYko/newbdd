@@ -13,4 +13,4 @@ file(GLOB FILENAMES ${CMAKE_CURRENT_SOURCE_DIR}/transduction/*.cpp)
 
 add_library(transduction ${FILENAMES})
 target_include_directories(transduction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/transduction)
-target_link_libraries(transduction PUBLIC newbdd_countones aig)
+target_link_libraries(transduction PUBLIC newbdd aig)

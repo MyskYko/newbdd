@@ -7,7 +7,7 @@ Transduction::Transduction(aigman const & aig, int nVerbose, int SortType) : nVe
     cout << "\t\tImport aig" << endl;
   }
   // allocation
-  bdd = new NewBdd::Man(aig.nPis);
+  bdd = new NewBdd::Man(aig.nPis, true);
   nObjsAlloc = aig.nObjs + aig.nPos;
   vvFis.resize(nObjsAlloc);
   vvFos.resize(nObjsAlloc);
@@ -245,14 +245,12 @@ bool Transduction::RankCompare(int a, int b) const {
   bool ac = a & 1;
   bool bc = b & 1;
   switch(SortType) {
-#ifdef COUNT_ONES
   case 1:
     return (vFs[a0] ^ ac).OneCount() < (vFs[b0] ^ bc).OneCount();
   case 2:
     return vFs[a0].OneCount() < vFs[b0].OneCount();
   case 3:
     return vFs[a0].ZeroCount() < vFs[b0].OneCount();
-#endif
   default:
     return find(find(vObjs.begin(), vObjs.end(), a0), vObjs.end(), b0) == vObjs.end();
   }

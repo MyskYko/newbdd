@@ -27,10 +27,8 @@ namespace NewBdd {
     bool IsConst0() const;
     bool IsConst1() const;
 
-#ifdef COUNT_ONES
     double OneCount() const;
     double ZeroCount() const;
-#endif
 
     Node operator~() const;
     Node operator^(bool c) const;
@@ -40,8 +38,6 @@ namespace NewBdd {
 
     bool operator==(Node const & other) const;
     bool operator!=(Node const & other) const;
-
-    bool Valid() const;
 
   private:
     Man * man;

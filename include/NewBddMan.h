@@ -11,7 +11,7 @@ namespace NewBdd {
 
   class Man {
   public:
-    Man(int nVars, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4);
+    Man(int nVars, bool fCountOnes = false, int nVerbose = 0, int nMaxMemLog = 25, int nObjsAllocLog = 20, int nUniqueLog = 10,int nCacheLog = 15, double UniqueDensity = 4);
     ~Man();
 
     void SetParameters(int nGbc_ = 0, int nReoLog = -1, double MaxGrowth_ = 1.2, bool fReoVerbose_ = false);
@@ -44,9 +44,7 @@ namespace NewBdd {
     inline lit Then(lit x) const;
     inline lit Else(lit x) const;
 
-#ifdef COUNT_ONES
     inline double OneCount(lit x) const;
-#endif
 
     inline void IncRef(lit x);
     inline void DecRef(lit x);
@@ -63,9 +61,7 @@ namespace NewBdd {
     std::vector<ref> vRefs;
     std::vector<edge> vEdges;
 
-#ifdef COUNT_ONES
     std::vector<double> vOneCounts;
-#endif
 
     std::vector<std::vector<bvar> > vvUnique;
     std::vector<lit> vUniqueMasks;
@@ -273,14 +269,15 @@ namespace NewBdd {
     vMarks[a] = false;
   }
 
-#ifdef COUNT_ONES
   inline double Man::OneCount(lit x) const {
+    if(vOneCounts.empty()) {
+      throw std::logic_error("Counting ones is not turned on");
+    }
     if(LitIsCompl(x)) {
       return std::pow(2.0, nVars) - vOneCounts[Lit2Bvar(x)];
     }
     return vOneCounts[Lit2Bvar(x)];
   }
-#endif
 
   inline lit Man::UniqueCreateInt(var v, lit x1, lit x0) {
     std::vector<bvar>::iterator p, q;
@@ -308,14 +305,14 @@ namespace NewBdd {
     SetThenOfBvar(*p, x1);
     SetElseOfBvar(*p, x0);
     vNexts[*p] = next;
-#ifdef COUNT_ONES
-    vOneCounts[*p] = OneCount(x1) / 2 + OneCount(x0) / 2;
-#endif
+    if(!vOneCounts.empty()) {
+      vOneCounts[*p] = OneCount(x1) / 2 + OneCount(x0) / 2;
+    }
     if(nVerbose >= 3) {
       std::cout << "Create node " << *p << " : Var = " << v << " Then = " << x1 << " Else = " << x0;
-#ifdef COUNT_ONES
-      std::cout << " Ones = " << vOneCounts[*q];
-#endif
+      if(!vOneCounts.empty()) {
+        std::cout << " Ones = " << vOneCounts[*q];
+      }
       std::cout << std::endl;
     }
     vUniqueCounts[v]++;

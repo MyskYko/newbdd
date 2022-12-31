@@ -15,11 +15,6 @@ add_library(newbdd_reodebug ${FILENAMES})
 target_include_directories(newbdd_reodebug PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_options(newbdd_reodebug PRIVATE -DREO_DEBUG)
 
-add_library(newbdd_countones ${FILENAMES})
-target_include_directories(newbdd_countones PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_compile_options(newbdd_countones PUBLIC -DCOUNT_ONES)
-
-
 add_subdirectory(application)
 
 file(GLOB TESTFILENAMES ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
