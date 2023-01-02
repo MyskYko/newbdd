@@ -13,6 +13,20 @@
 
 enum class PfState {none, cspf, mspf};
 
+struct TransductionBackup {
+  PfState state;
+  int nObjsAlloc;
+  std::list<int> vObjs;
+  std::vector<std::vector<int> > vvFis;
+  std::vector<std::vector<int> > vvFos;
+  std::vector<NewBdd::Node> vFs;
+  std::vector<NewBdd::Node> vGs;
+  std::vector<std::vector<NewBdd::Node> > vvCs;
+  std::vector<bool> vUpdates;
+  std::vector<bool> vPfUpdates;
+  std::vector<bool> vFoConeShared;
+};
+
 class Transduction {
 public:
   Transduction(aigman const & aig, int nVerbose = 0, int SortType = 0);
@@ -28,6 +42,9 @@ public:
   inline int CountNodes() const;
   inline void PrintStats() const;
   inline bool Verify() const;
+
+  inline void Save(TransductionBackup & b) const;
+  inline void Load(TransductionBackup const & b);
 
   int TrivialMerge();
   int TrivialDecompose();
@@ -101,20 +118,6 @@ private:
   int MspfCalcC(int i, int block_i0 = -1);
 
   bool TryConnect(int i, int f);
-
-private:
-  int nObjsAllocOld;
-  std::list<int> vObjsOld;
-  std::vector<std::vector<int> > vvFisOld;
-  std::vector<std::vector<int> > vvFosOld;
-  std::vector<NewBdd::Node> vFsOld;
-  std::vector<NewBdd::Node> vGsOld;
-  std::vector<std::vector<NewBdd::Node> > vvCsOld;
-  std::vector<bool> vFoConeSharedOld;
-
-  inline void Save();
-  inline void Load();
-  inline void ClearSave();
 };
 
 PfState Transduction::State() const {
@@ -148,6 +151,33 @@ bool Transduction::Verify() const {
     }
   }
   return true;
+}
+
+void Transduction::Save(TransductionBackup & b) const {
+  b.state = state;
+  b.nObjsAlloc = nObjsAlloc;
+  b.vObjs = vObjs;
+  b.vvFis = vvFis;
+  b.vvFos = vvFos;
+  b.vFs = vFs;
+  b.vGs = vGs;
+  b.vvCs = vvCs;
+  b.vUpdates = vUpdates;
+  b.vPfUpdates = vPfUpdates;
+  b.vFoConeShared = vFoConeShared;
+}
+void Transduction::Load(TransductionBackup const & b) {
+  state = b.state;
+  nObjsAlloc = b.nObjsAlloc;
+  vObjs = b.vObjs;
+  vvFis = b.vvFis;
+  vvFos = b.vvFos;
+  vFs = b.vFs;
+  vGs = b.vGs;
+  vvCs = b.vvCs;
+  vUpdates = b.vUpdates;
+  vPfUpdates = b.vPfUpdates;
+  vFoConeShared = b.vFoConeShared;
 }
 
 bool Transduction::AllFalse(std::vector<bool> const & v) const {
@@ -271,40 +301,6 @@ void Transduction::CreateNewGate(int & pos) {
     vUpdates.resize(nObjsAlloc);
     vPfUpdates.resize(nObjsAlloc);
   }
-}
-
-void Transduction::Save() {
-  nObjsAllocOld = nObjsAlloc;
-  vObjsOld = vObjs;
-  vvFisOld = vvFis;
-  vvFosOld = vvFos;
-  vFsOld = vFs;
-  vGsOld = vGs;
-  vvCsOld = vvCs;
-  vFoConeSharedOld = vFoConeShared;
-  assert(AllFalse(vUpdates));
-  assert(AllFalse(vPfUpdates));
-}
-void Transduction::Load() {
-  nObjsAlloc = nObjsAllocOld;
-  vObjs = vObjsOld;
-  vvFis = vvFisOld;
-  vvFos = vvFosOld;
-  vFs = vFsOld;
-  vGs = vGsOld;
-  vvCs = vvCsOld;
-  vFoConeShared = vFoConeSharedOld;
-  std::fill(vUpdates.begin(), vUpdates.end(), false);
-  std::fill(vPfUpdates.begin(), vPfUpdates.end(), false);
-}
-void Transduction::ClearSave() {
-  vObjsOld.clear();
-  vvFisOld.clear();
-  vvFosOld.clear();
-  vFsOld.clear();
-  vGsOld.clear();
-  vvCsOld.clear();
-  vFoConeSharedOld.clear();
 }
 
 #endif

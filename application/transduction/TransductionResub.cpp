@@ -28,7 +28,8 @@ int Transduction::Resub(bool fMspf) {
   }
   int count = fMspf? Mspf(true): Cspf(true);
   int nodes = CountNodes();
-  Save();
+  TransductionBackup b;
+  Save(b);
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -68,7 +69,7 @@ int Transduction::Resub(bool fMspf) {
       }
     }
     if(nodes < CountNodes()) {
-      Load();
+      Load(b);
       count = count_;
       continue;
     }
@@ -79,9 +80,8 @@ int Transduction::Resub(bool fMspf) {
       count += TrivialDecomposeOne(it2, pos);
     }
     nodes = CountNodes();
-    Save();
+    Save(b);
   }
-  ClearSave();
   return count;
 }
 
@@ -101,7 +101,8 @@ int Transduction::ResubMono(bool fMspf) {
     // merge
     count += TrivialMergeOne(*it);
     // resub
-    Save();
+    TransductionBackup b;
+    Save(b);
     for(unsigned i = 0; i < vPis.size(); i++) {
       if(vvFos[*it].empty()) {
         break;
@@ -123,9 +124,9 @@ int Transduction::ResubMono(bool fMspf) {
             vPfUpdates[*it] = true;
             count += fMspf? Mspf(true): Cspf(true);
           }
-          Save();
+          Save(b);
         } else {
-          Load();
+          Load(b);
           count++;
         }
       }
@@ -158,9 +159,9 @@ int Transduction::ResubMono(bool fMspf) {
               vPfUpdates[*it] = true;
               count += fMspf? Mspf(true): Cspf(true);
             }
-            Save();
+            Save(b);
           } else {
-            Load();
+            Load(b);
             count++;
           }
         }
@@ -176,6 +177,5 @@ int Transduction::ResubMono(bool fMspf) {
       count += TrivialDecomposeOne(it2, pos);
     }
   }
-  ClearSave();
   return count;
 }
