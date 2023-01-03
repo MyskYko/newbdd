@@ -60,6 +60,11 @@ public:
   int Resub(bool fMspf = false);
   int ResubMono(bool fMspf = false);
 
+  int RepeatResub(bool fMono, bool fMspf);
+  int RepeatResubInner(bool fMspf, bool fInner);
+  int RepeatResubOuter(bool fMspf, bool fInner, bool fOuter);
+  int Optimize(bool fFirstMerge, bool fMspfMerge, bool fMspfResub, bool fInner, bool fOuter);
+
 private:
   int nVerbose;
   int SortType;
