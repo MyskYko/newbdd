@@ -153,6 +153,20 @@ int Transduction::Mspf(bool fSort, int block, int block_i0) {
         it++;
         continue;
       }
+      if((vGs[*it] | vFs[*it]).IsConst1()) {
+        count += ReplaceByConst(*it, 1);
+        vObjs.erase(--(it.base()));
+        Build();
+        it = vObjs.rbegin();
+        continue;
+      }
+      if((vGs[*it] | ~vFs[*it]).IsConst1()) {
+        count += ReplaceByConst(*it, 0);
+        vObjs.erase(--(it.base()));
+        Build();
+        it = vObjs.rbegin();
+        continue;
+      }
     }
     if(fSort && block != *it) {
       SortFis(*it);

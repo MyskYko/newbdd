@@ -96,6 +96,7 @@ private:
 
   inline int RemoveFis(int i, bool fPfUpdate = true);
   inline int Replace(int i, int f, bool fUpdate = true);
+  inline int ReplaceByConst(int i, bool c);
   inline void CreateNewGate(int & pos);
 
   void SortObjs_rec(std::list<int>::iterator const & it);
@@ -287,6 +288,30 @@ int Transduction::Replace(int i, int f, bool fUpdate) {
   }
   vvFos[i].clear();
   vPfUpdates[f >> 1] = true;
+  return count + RemoveFis(i);
+}
+int Transduction::ReplaceByConst(int i, bool c) {
+  if(nVerbose > 4) {
+    std::cout << "\t\t\t\tReplace " << i << " by " << c << std::endl;
+  }
+  int count = 0;
+  for(unsigned j = 0; j < vvFos[i].size(); j++) {
+    int k = vvFos[i][j];
+    unsigned l = FindFi(k, i);
+    bool fc = c ^ (vvFis[k][l] & 1);
+    vvFis[k].erase(vvFis[k].begin() + l);
+    if(fc) {
+      if(vvFis[k].size() == 1) {
+        count += Replace(k, vvFis[k][0]);
+      } else {
+        vUpdates[k] = true;
+      }
+    } else {
+      count += ReplaceByConst(k, 0);
+    }
+  }
+  count += vvFos[i].size();
+  vvFos[i].clear();
   return count + RemoveFis(i);
 }
 void Transduction::CreateNewGate(int & pos) {
