@@ -106,6 +106,7 @@ private:
 
   void Build(int i, std::vector<NewBdd::Node> & vFs_) const;
   void Build(bool fPfUpdate = true);
+  bool BuildDebug();
 
   bool RankCompare(int a, int b) const;
   bool SortFis(int i);
@@ -300,6 +301,7 @@ int Transduction::ReplaceByConst(int i, bool c) {
     unsigned l = FindFi(k, i);
     bool fc = c ^ (vvFis[k][l] & 1);
     vvFis[k].erase(vvFis[k].begin() + l);
+    vvCs[k].erase(vvCs[k].begin() + l);
     if(fc) {
       if(vvFis[k].size() == 1) {
         count += Replace(k, vvFis[k][0]);

@@ -223,6 +223,14 @@ void Transduction::Build(bool fPfUpdate) {
   }
   assert(AllFalse(vUpdates));
 }
+bool Transduction::BuildDebug() {
+  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+    vUpdates[*it] = true;
+  }
+  vector<NewBdd::Node> vFsOld = vFs;
+  Build(false);
+  return vFsOld != vFs;
+}
 
 bool Transduction::RankCompare(int a, int b) const {
   int a0 = a >> 1;
