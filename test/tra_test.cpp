@@ -1,55 +1,80 @@
-#include <iostream>
 #include <chrono>
-#include <string>
 #include <random>
 #include <ctime>
 
+#include <argparse/argparse.hpp>
+
 #include "Transduction.h"
 
-void Print(Transduction const & t, std::chrono::steady_clock::time_point const & start, std::string name) {
-  auto end = std::chrono::steady_clock::now();
-  std::chrono::duration<double> elapsed_seconds = end - start;
-  std::cout << std::left << std::setw(20) << name << " : " << std::right << std::setw(10) << elapsed_seconds.count() << "s ";
+using namespace std;
+
+void Print(Transduction const & t, chrono::steady_clock::time_point const & start, string name) {
+  auto end = chrono::steady_clock::now();
+  chrono::duration<double> elapsed_seconds = end - start;
+  cout << left << setw(20) << name << " : " << right << setw(10) << elapsed_seconds.count() << "s ";
   t.PrintStats();
 }
 
 int main(int argc, char ** argv) {
-  if(argc <= 2) {
-    std::cout << "Specify input and output aig names" << std::endl;
+  argparse::ArgumentParser ap("tra_test");
+  ap.add_argument("input");
+  ap.add_argument("output");
+  ap.add_argument("-c", "--cspf").default_value(false).implicit_value(true);
+  ap.add_argument("-s", "--sorttype").default_value(0).scan<'i', int>();
+  ap.add_argument("-i", "--pishuffle").default_value(0).scan<'i', int>();
+  ap.add_argument("-r", "--random").default_value(true).implicit_value(false);
+  try {
+    ap.parse_args(argc, argv);
+  }
+  catch (const runtime_error& err) {
+    cerr << err.what() << endl;
+    cerr << ap;
     return 1;
   }
+  string aigname = ap.get<string>("input");
+  string outname = ap.get<string>("output");
+  bool fCspf = ap.get<bool>("--cspf");
+  int SortType = ap.get<int>("--sorttype");
+  int PiShuffle = ap.get<int>("--pishuffle");
+  bool fRandom = ap.get<bool>("--random");
+  srand(time(NULL));
+  if(fRandom) {
+    SortType = rand() % 4;
+    PiShuffle = rand();
+  }
+  cout << "SortType = " << SortType << "; PiShuffle = " << PiShuffle << ";" << endl;
   // read
-  std::string aigname = argv[1];
-  std::string outname = argv[2];
   aigman aig;
   aig.read(aigname);
   // prepare tests
   int N = 100;
   int M = 11;
-#ifdef CSPF_ONLY
-  N = 10;
-  M = 7;
-#endif
-  std::srand(time(NULL));
-  std::vector<int> tests;
-  for(int i = 0; i < N; i++) {
-    tests.push_back(std::rand() % M);
+  if(fCspf) {
+    N = 10;
+    M = 7;
   }
-  std::cout << "Tests = {";
-  std::string delim;
-  for(unsigned i = 0; i < tests.size(); i++) {
-    std::cout << delim << tests[i];
+  vector<int> Tests;
+  for(int i = 0; i < N; i++) {
+    Tests.push_back(rand() % M);
+  }
+  cout << "Tests = {";
+  string delim;
+  for(unsigned i = 0; i < Tests.size(); i++) {
+    cout << delim << Tests[i];
     delim = ", ";
   }
-  std::cout << "}" << std::endl;
+  cout << "};" << endl;
   // init
-  Transduction t(aig);
+  Transduction t(aig, 0, SortType);
+  if(PiShuffle) {
+    t.ShufflePis(PiShuffle);
+  }
   int nodes = aig.nGates;
   int count = t.CountWires();
   // transduction
-  auto start = std::chrono::steady_clock::now();
-  for(unsigned i = 0; i < tests.size(); i++) {
-    switch(tests[i]) {
+  auto start = chrono::steady_clock::now();
+  for(unsigned i = 0; i < Tests.size(); i++) {
+    switch(Tests[i]) {
     case 0:
       count -= t.TrivialMerge();
       if(t.State() == PfState::cspf) {
@@ -109,16 +134,16 @@ int main(int argc, char ** argv) {
       assert(!t.MspfDebug());
       break;
     default:
-      std::cout << "Wrong test pattern!" << std::endl;
+      cout << "Wrong test pattern!" << endl;
       return 1;
     }
-    Print(t, start, "Test " + std::to_string(tests[i]));
+    Print(t, start, "Test " + to_string(Tests[i]));
     if(!t.Verify()) {
-      std::cout << "Circuits are not equivalent!" << std::endl;
+      cout << "Circuits are not equivalent!" << endl;
       return 1;
     }
     if(count != t.CountWires()) {
-      std::cout << "Wrong wire count!" << std::endl;
+      cout << "Wrong wire count!" << endl;
       return 1;
     }
     if(t.CountNodes() < nodes) {
@@ -127,7 +152,7 @@ int main(int argc, char ** argv) {
     }
   }
   // write
-  std::cout << nodes << std::endl;
+  cout << nodes << endl;
   aig.write(outname);
   return 0;
 }
