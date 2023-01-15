@@ -1,10 +1,16 @@
+if [ -z $1 ]
+then
+    echo "Specify list"
+    exit 1
+fi
+
 i=0
 j=0
 
-for f in `cat mcnc-comb_small.txt`
+for f in `cat $1`
 do
     i=$((i+1))
-    b=`aig2bdd_reotest2 $f`
+    b=`../../build/aig2bdd_reotest2 $f`
     if [ $? -eq 0 ]
     then
         a=`abc -c "miter a.aig $f; collapse; sat"`

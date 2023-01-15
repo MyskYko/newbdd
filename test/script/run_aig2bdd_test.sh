@@ -1,12 +1,18 @@
+if [ -z $1 ]
+then
+    echo "Specify list"
+    exit 1
+fi
+
 i=0
 j=0
 
-for f in `cat mcnc-comb_small.txt`
+for f in `cat $1`
 do
     i=$((i+1))
     a=`../oldbdd/build/example/aig2bdd -s -v 1 -p 4 $f`
     a=`echo $a | sed -e 's/.*= \(.*\)Sum.*/\1/'`
-    b=`aig2bdd $f`
+    b=`../../build/aig2bdd $f`
     if [ $a == $b ]
     then
         #echo -n "[PASS] "

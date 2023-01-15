@@ -1,6 +1,6 @@
-if [ -z $1 ] || [ -z $2 ]
+if [ -z $1 ]
 then
-    echo "Specify list and directory"
+    echo "Specify list"
     exit 1    
 fi
 
@@ -10,21 +10,22 @@ j=0
 for f in `cat $1`
 do
     i=$((i+1))
-    g=`basename $f`
-    #echo $f
-    #transduction_test_cspf $f $2/$g | tee $2/$g.log
-    #if [ ${PIPESTATUS[1]} -eq 0 ]
-    transduction_test_cspf $f $2/$g > $2/$g.log
+    ../../build/tra_test $f a.aig >> tra_test.log
     if [ $? -eq 0 ]
     then
-        a=`abc -c "cec $f $2/$g"`
+        a=`abc -c "cec $f a.aig"`
         c=`echo $a | sed -e 's/.*Networks are \(.*\)\. Time.*/\1/'`
         if [ "$c" = "equivalent" ] || [ "$c" = "equivalent after structural hashing" ]
         then
-            j=$((j+1))            
+            j=$((j+1))
         fi
-        #echo $a
+        rm a.aig
     fi
 done
 
 echo "Summary : $j / $i passed"
+
+if (($i == $j))
+then
+    rm tra_test.log
+fi
