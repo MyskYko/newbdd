@@ -28,10 +28,6 @@ namespace NewBdd {
     return std::numeric_limits<size>::max();
   }
 
-  class Man;
-  class Node;
-  class NodeNoRef;
-
 }
 
 #endif

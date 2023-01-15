@@ -6,7 +6,7 @@ using namespace std;
 
 namespace NewBdd {
 
-  Man::Man(int nVars, int nVerbose, int nMaxMemLog, int nObjsAllocLog, int nUniqueLog,int nCacheLog, double UniqueDensity) : nVars(nVars), nVerbose(nVerbose) {
+  Man::Man(int nVars, bool fCountOnes, int nVerbose, int nMaxMemLog, int nObjsAllocLog, int nUniqueLog,int nCacheLog, double UniqueDensity) : nVars(nVars), nVerbose(nVerbose) {
     if(nVars >= (int)VarMax()) {
       throw length_error("Memout (var) in init");
     }
@@ -67,12 +67,12 @@ namespace NewBdd {
     }
     vCache.resize((size)nCache * 3);
     CacheMask = nCache - 1;
-#ifdef COUNT_ONES
-    if(nVars > 1023) {
-      throw length_error("Cannot count ones for more than 1023 variables");
+    if(fCountOnes) {
+      if(nVars > 1023) {
+        throw length_error("Cannot count ones for more than 1023 variables");
+      }
+      vOneCounts.resize(nObjsAlloc);
     }
-    vOneCounts.resize(nObjsAlloc);
-#endif
     nObjs = 1;
     vVars[0] = VarMax();
     for(var v = 0; v < nVars; v++) {
@@ -139,104 +139,114 @@ namespace NewBdd {
     return nObjs;
   }
 
-  var Man::Var(Node const & x) const {
-    return Var(x.val);
-  }
-  bvar Man::Id(Node const & x) const {
-    return Lit2Bvar(x.val);
-  }
-  bool Man::IsCompl(Node const & x) const {
-    return LitIsCompl(x.val);
-  }
-  Node Man::Then(Node const & x) {
-    return Node(this, Then(x.val));
-  }
-  Node Man::Else(Node const & x) {
-    return Node(this, Else(x.val));
-  }
-  bool Man::IsConst0(Node const & x) const {
-    return x.val == 0;
-  }
-  bool Man::IsConst1(Node const & x) const {
-    return x.val == 1;
-  }
-  Node Man::Const0() {
-    return Node(this, 0);
-  }
-  Node Man::Const1() {
-    return Node(this, 1);
-  }
-  Node Man::IthVar(var v) {
-    return Node(this, Bvar2Lit((bvar)v + 1));
-  }
-  Node Man::Not(Node const & x) {
-    return Node(this, LitNot(x.val));
-  }
-  Node Man::NotCond(Node const & x, bool c) {
-    return c? Not(x): x;
-  }
-  Node Man::And(Node const & x, Node const & y) {
-    return Node(this, And(x.val, y.val));
-  }
-  Node Man::Or(Node const & x, Node const & y) {
-    return Node(this, LitNot(And(LitNot(x.val), LitNot(y.val))));
-  }
-  Node Man::Xor(Node const & x, Node const & y) {
-    Node z0 = And(Not(x), y);
-    Node z1 = And(x, Not(y));
-    return Or(z0, z1);
+  lit Man::And(lit x, lit y) {
+    if(nObjs > nReo) {
+      Reorder(fReoVerbose);
+      while(nReo < nObjs) {
+        nReo <<= 1;
+        if((size)nReo > (size)BvarMax()) {
+          nReo = BvarMax();
+        }
+      }
+    }
+    return And_rec(x, y);
   }
 
-#ifdef COUNT_ONES
-  double Man::OneCount(Node const & x) const {
-    return OneCount(x.val);
-  }
-  double Man::ZeroCount(Node const & x) const {
-    return OneCount(LitNot(x.val));
-  }
-#endif
-
-  var Man::Var(NodeNoRef const & x) const {
-    return Var(x.val);
-  }
-  bvar Man::Id(NodeNoRef const & x) const {
-    return Lit2Bvar(x.val);
-  }
-  bool Man::IsCompl(NodeNoRef const & x) const {
-    return LitIsCompl(x.val);
-  }
-  NodeNoRef Man::Then(NodeNoRef const & x) const {
-    return NodeNoRef(Then(x.val));
-  }
-  NodeNoRef Man::Else(NodeNoRef const & x) const {
-    return NodeNoRef(Else(x.val));
-  }
-
-  void Man::SetRef(vector<Node> const & vNodes) {
+  void Man::SetRef(vector<lit> const & vLits) {
     vRefs.clear();
     vRefs.resize(nObjsAlloc);
-    for(size i = 0; i < vNodes.size(); i++) {
-      IncRef(vNodes[i].val);
+    for(size i = 0; i < vLits.size(); i++) {
+      IncRef(vLits[i]);
     }
+  }
+
+  bool Man::Gbc() {
+    if(nVerbose >= 2) {
+      cout << "Garbage collect" << endl;
+    }
+    bvar MinBvarRemovedOld = MinBvarRemoved;
+    if(!vEdges.empty()) {
+      for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+        if(!EdgeOfBvar(a) && VarOfBvar(a) != VarMax()) {
+          RemoveBvar(a);
+        }
+      }
+      return MinBvarRemoved != MinBvarRemovedOld;
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        SetMark_rec(Bvar2Lit(a));
+      }
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(!MarkOfBvar(a) && VarOfBvar(a) != VarMax()) {
+        RemoveBvar(a);
+      }
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+    CacheClear();
+    return MinBvarRemoved != MinBvarRemovedOld;
   }
 
   void Man::Reorder(bool fVerbose) {
     bool fReoVerbose_ = fReoVerbose;
-    fReoVerbose |= fVerbose;
-    Reo();
+    fReoVerbose = fVerbose;
+    if(nVerbose >= 2) {
+      cout << "Reorder" << endl;
+    }
+    CountEdges();
+    Sift();
+#ifdef REO_DEBUG
+    UncountEdges();
+#endif
+    vEdges.clear();
+    CacheClear();
     fReoVerbose = fReoVerbose_;
   }
   void Man::GetOrdering(vector<var> & Var2Level_) {
     Var2Level_ = Var2Level;
   }
 
-  bvar Man::CountNodes(vector<Node> const & vNodes) {
+  bvar Man::CountNodes() {
     bvar count = 0;
-    for(size i = 0; i < vNodes.size(); i++) {
-      count += CountNodes_rec(vNodes[i].val);
+    if(!vEdges.empty()) {
+      for(bvar a = 1; a < nObjs; a++) {
+        if(EdgeOfBvar(a)) {
+          count++;
+        }
+      }
+      return count;
     }
-    for(size i = 0; i < vNodes.size(); i++) {
-      ResetMark_rec(vNodes[i].val);
+    for(bvar a = 1; a <= (bvar)nVars; a++) {
+      count++;
+      SetMarkOfBvar(a);
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        count += CountNodes_rec(Bvar2Lit(a));
+      }
+    }
+    for(bvar a = 1; a <= (bvar)nVars; a++) {
+      ResetMarkOfBvar(a);
+    }
+    for(bvar a = (bvar)nVars + 1; a < nObjs; a++) {
+      if(RefOfBvar(a)) {
+        ResetMark_rec(Bvar2Lit(a));
+      }
+    }
+    return count;
+  }
+  bvar Man::CountNodes(vector<lit> const & vLits) {
+    bvar count = 0;
+    for(size i = 0; i < vLits.size(); i++) {
+      count += CountNodes_rec(vLits[i]);
+    }
+    for(size i = 0; i < vLits.size(); i++) {
+      ResetMark_rec(vLits[i]);
     }
     return count + 1;
   }

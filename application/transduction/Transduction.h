@@ -9,40 +9,69 @@
 
 #include <aig.hpp>
 
-#include "NewBdd.h"
+#include "NewBddNode.h"
+
+enum class PfState {none, cspf, mspf};
+
+struct TransductionBackup {
+  PfState state;
+  int nObjsAlloc;
+  std::list<int> vObjs;
+  std::vector<std::vector<int> > vvFis;
+  std::vector<std::vector<int> > vvFos;
+  std::vector<NewBdd::Node> vFs;
+  std::vector<NewBdd::Node> vGs;
+  std::vector<std::vector<NewBdd::Node> > vvCs;
+  std::vector<bool> vUpdates;
+  std::vector<bool> vPfUpdates;
+  std::vector<bool> vFoConeShared;
+};
 
 class Transduction {
 public:
-  int SortType;
-  Transduction(aigman const & aig, int SortType = 0, int nVerbose = 0);
+  Transduction(aigman const & aig, int nVerbose = 0, int SortType = 0);
   ~Transduction();
 
   void ShufflePis(int seed);
 
   void Aig(aigman & aig) const;
 
+  inline PfState State() const;
   inline int CountGates() const;
   inline int CountWires() const;
   inline int CountNodes() const;
   inline void PrintStats() const;
   inline bool Verify() const;
 
+  inline void Save(TransductionBackup & b) const;
+  inline void Load(TransductionBackup const & b);
+
   int TrivialMerge();
   int TrivialDecompose();
   int Merge(bool fMspf = false);
   int Decompose();
-  int MergeDecomposeEager(bool fMspf = false);
 
-  int Cspf(int block = -1);
-  int CspfEager(int block = -1);
+  int Cspf(bool fSortRemove = false, int block = -1, int block_i0 = -1);
+  bool CspfDebug();
 
-  int Mspf(int block_i = -1, int block_i0 = -1);
+  int Mspf(bool fSort = false, int block = -1, int block_i0 = -1);
+  bool MspfDebug();
 
   int Resub(bool fMspf = false);
   int ResubMono(bool fMspf = false);
 
+  int RepeatResub(bool fMono, bool fMspf);
+  int RepeatResubInner(bool fMspf, bool fInner);
+  int RepeatResubOuter(bool fMspf, bool fInner, bool fOuter);
+  int Optimize(bool fFirstMerge, bool fMspfMerge, bool fMspfResub, bool fInner, bool fOuter);
+
 private:
-  int nObjs;
+  int nVerbose;
+  int SortType;
+
+  PfState state;
+
+  int nObjsAlloc;
   std::vector<int> vPis;
   std::vector<int> vPos;
   std::list<int> vObjs;
@@ -57,10 +86,9 @@ private:
 
   std::vector<bool> vUpdates;
   std::vector<bool> vPfUpdates;
-  enum class PfState {none, cspf, mspf};
-  PfState state;
+  std::vector<bool> vFoConeShared;
 
-  int nVerbose;
+  inline bool AllFalse(std::vector<bool> const & v) const;
 
   inline void Connect(int i, int f, bool fSort = false, bool fUpdate = true, NewBdd::Node c = NewBdd::Node());
   inline unsigned FindFi(int i, int i0) const;
@@ -68,6 +96,7 @@ private:
 
   inline int RemoveFis(int i, bool fPfUpdate = true);
   inline int Replace(int i, int f, bool fUpdate = true);
+  inline int ReplaceByConst(int i, bool c);
   inline void CreateNewGate(int & pos);
 
   void SortObjs_rec(std::list<int>::iterator const & it);
@@ -76,17 +105,16 @@ private:
   void MarkFoCone_rec(std::vector<bool> & vMarks, int i) const;
 
   void Build(int i, std::vector<NewBdd::Node> & vFs_) const;
-  void Build(int i);
-  void Build();
+  void Build(bool fPfUpdate = true);
+  bool BuildDebug();
 
-  double Rank(int f) const;
   bool RankCompare(int a, int b) const;
   bool SortFis(int i);
 
-  int TrivialMergeOne(int i, bool fErase = false);
+  int TrivialMergeOne(int i);
   int TrivialDecomposeOne(std::list<int>::iterator const & it, int & pos);
 
-  int RemoveRedundantFis(int i);
+  int RemoveRedundantFis(int i, int block_i0 = -1, unsigned j = 0);
   void CalcG(int i);
   int CalcC(int i);
 
@@ -94,23 +122,14 @@ private:
   bool IsFoConeShared(int i) const;
   void BuildFoConeCompl(int i, std::vector<NewBdd::Node> & vPoFsCompl) const;
   bool MspfCalcG(int i);
-  bool MspfCalcC(int i, int block_i, int block_i0);
+  int MspfCalcC(int i, int block_i0 = -1);
 
   bool TryConnect(int i, int f);
-
-private:
-  std::list<int> vObjsOld;
-  std::vector<std::vector<int> > vvFisOld;
-  std::vector<std::vector<int> > vvFosOld;
-  std::vector<NewBdd::Node> vFsOld;
-  std::vector<NewBdd::Node> vGsOld;
-  std::vector<std::vector<NewBdd::Node> > vvCsOld;
-
-  inline void Save();
-  inline void Load();
-  inline void ClearSave();
 };
 
+PfState Transduction::State() const {
+  return state;
+}
 int Transduction::CountGates() const {
   return vObjs.size();
 }
@@ -133,8 +152,44 @@ void Transduction::PrintStats() const {
 bool Transduction::Verify() const {
   for(unsigned j = 0; j < vPos.size(); j++) {
     int i0 = vvFis[vPos[j]][0] >> 1;
-    int c0 = vvFis[vPos[j]][0] & 1;
-    if(bdd->NotCond(vFs[i0], c0) != vPoFs[j]) {
+    bool c0 = vvFis[vPos[j]][0] & 1;
+    if((vFs[i0] ^ c0) != vPoFs[j]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void Transduction::Save(TransductionBackup & b) const {
+  b.state = state;
+  b.nObjsAlloc = nObjsAlloc;
+  b.vObjs = vObjs;
+  b.vvFis = vvFis;
+  b.vvFos = vvFos;
+  b.vFs = vFs;
+  b.vGs = vGs;
+  b.vvCs = vvCs;
+  b.vUpdates = vUpdates;
+  b.vPfUpdates = vPfUpdates;
+  b.vFoConeShared = vFoConeShared;
+}
+void Transduction::Load(TransductionBackup const & b) {
+  state = b.state;
+  nObjsAlloc = b.nObjsAlloc;
+  vObjs = b.vObjs;
+  vvFis = b.vvFis;
+  vvFos = b.vvFos;
+  vFs = b.vFs;
+  vGs = b.vGs;
+  vvCs = b.vvCs;
+  vUpdates = b.vUpdates;
+  vPfUpdates = b.vPfUpdates;
+  vFoConeShared = b.vFoConeShared;
+}
+
+bool Transduction::AllFalse(std::vector<bool> const & v) const {
+  for(std::list<int>::const_iterator it = vObjs.begin(); it != vObjs.end(); it++) {
+    if(v[*it]) {
       return false;
     }
   }
@@ -193,6 +248,7 @@ int Transduction::RemoveFis(int i, bool fPfUpdate) {
   if(nVerbose > 4) {
     std::cout << "\t\t\t\tRemove " << i << std::endl;
   }
+  assert(vvFos[i].empty());
   for(unsigned j = 0; j < vvFis[i].size(); j++) {
     int i0 = vvFis[i][j] >> 1;
     vvFos[i0].erase(std::find(vvFos[i0].begin(), vvFos[i0].end(), i));
@@ -219,18 +275,10 @@ int Transduction::Replace(int i, int f, bool fUpdate) {
     int fc = f ^ (vvFis[k][l] & 1);
     std::vector<int>::iterator it = std::find(vvFis[k].begin(), vvFis[k].end(), fc);
     if(it != vvFis[k].end()) {
-      unsigned ll = it - vvFis[k].begin();
-      if(state == PfState::cspf && vvCs[k][l].Valid() && vvCs[k][ll].Valid()) {
-        vvCs[k][ll] = bdd->And(vvCs[k][l], vvCs[k][ll]);
-      } else {
-        vvCs[k][ll] = NewBdd::Node();
-      }
+      assert(state == PfState::none);
       vvCs[k].erase(vvCs[k].begin() + l);
       vvFis[k].erase(vvFis[k].begin() + l);
       count++;
-      if(!fUpdate) {
-        vPfUpdates[k] = true;
-      }
     } else {
       vvFis[k][l] = f ^ (vvFis[k][l] & 1);
       vvFos[f >> 1].push_back(k);
@@ -243,49 +291,48 @@ int Transduction::Replace(int i, int f, bool fUpdate) {
   vPfUpdates[f >> 1] = true;
   return count + RemoveFis(i);
 }
+int Transduction::ReplaceByConst(int i, bool c) {
+  if(nVerbose > 4) {
+    std::cout << "\t\t\t\tReplace " << i << " by " << c << std::endl;
+  }
+  int count = 0;
+  for(unsigned j = 0; j < vvFos[i].size(); j++) {
+    int k = vvFos[i][j];
+    unsigned l = FindFi(k, i);
+    bool fc = c ^ (vvFis[k][l] & 1);
+    vvFis[k].erase(vvFis[k].begin() + l);
+    vvCs[k].erase(vvCs[k].begin() + l);
+    if(fc) {
+      if(vvFis[k].size() == 1) {
+        count += Replace(k, vvFis[k][0]);
+      } else {
+        vUpdates[k] = true;
+      }
+    } else {
+      count += ReplaceByConst(k, 0);
+    }
+  }
+  count += vvFos[i].size();
+  vvFos[i].clear();
+  return count + RemoveFis(i);
+}
 void Transduction::CreateNewGate(int & pos) {
-  while(pos != nObjs && (!vvFis[pos].empty() || !vvFos[pos].empty())) {
+  while(pos != nObjsAlloc && (!vvFis[pos].empty() || !vvFos[pos].empty())) {
     pos++;
   }
-  if(pos == nObjs) {
-    nObjs++;
-    vvFis.resize(nObjs);
-    vvFos.resize(nObjs);
-    vFs.resize(nObjs);
-    vGs.resize(nObjs);
-    vvCs.resize(nObjs);
-    vUpdates.resize(nObjs);
-    vPfUpdates.resize(nObjs);
+  if(nVerbose > 4) {
+    std::cout << "\t\t\t\tCreate " << pos << std::endl;
   }
-}
-
-void Transduction::Save() {
-  vObjsOld = vObjs;
-  vvFisOld = vvFis;
-  vvFosOld = vvFos;
-  vFsOld = vFs;
-  vGsOld = vGs;
-  vvCsOld = vvCs;
-  assert(std::all_of(vUpdates.begin(), vUpdates.end(), [](bool i) { return !i; }));
-  assert(std::all_of(vPfUpdates.begin(), vPfUpdates.end(), [](bool i) { return !i; }));
-}
-void Transduction::Load() {
-  vObjs = vObjsOld;
-  vvFis = vvFisOld;
-  vvFos = vvFosOld;
-  vFs = vFsOld;
-  vGs = vGsOld;
-  vvCs = vvCsOld;
-  std::fill(vUpdates.begin(), vUpdates.end(), false);
-  std::fill(vPfUpdates.begin(), vPfUpdates.end(), false);
-}
-void Transduction::ClearSave() {
-  vObjsOld.clear();
-  vvFisOld.clear();
-  vvFosOld.clear();
-  vFsOld.clear();
-  vGsOld.clear();
-  vvCsOld.clear();
+  if(pos == nObjsAlloc) {
+    nObjsAlloc++;
+    vvFis.resize(nObjsAlloc);
+    vvFos.resize(nObjsAlloc);
+    vFs.resize(nObjsAlloc);
+    vGs.resize(nObjsAlloc);
+    vvCs.resize(nObjsAlloc);
+    vUpdates.resize(nObjsAlloc);
+    vPfUpdates.resize(nObjsAlloc);
+  }
 }
 
 #endif

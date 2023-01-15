@@ -13,16 +13,16 @@ int main(int argc, char ** argv) {
   NewBdd::Man bdd(aig.nPis);
   std::vector<NewBdd::Node> vNodes;
   Aig2Bdd(aig, bdd, vNodes);
-  bdd.SetRef(vNodes);
+  NewBdd::Node::SetRef(vNodes);
   bdd.Reorder();
-  int count = bdd.CountNodes(vNodes);
+  int count = NewBdd::Node::CountNodes(vNodes);
   std::vector<NewBdd::var> ordering;
   bdd.GetOrdering(ordering);
   NewBdd::Man bdd2(aig.nPis);
   bdd2.SetInitialOrdering(ordering);
   std::vector<NewBdd::Node> vNodes2;
   Aig2Bdd(aig, bdd2, vNodes2);
-  int count2 = bdd2.CountNodes(vNodes2);
+  int count2 = NewBdd::Node::CountNodes(vNodes2);
   Bdd2Aig(bdd, aig, vNodes);
   aig.write("a.aig");
   if(count == count2) {

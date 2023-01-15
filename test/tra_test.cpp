@@ -25,10 +25,10 @@ int main(int argc, char ** argv) {
   aig.read(aigname);
   // prepare tests
   int N = 100;
-  int M = 14;
+  int M = 11;
 #ifdef CSPF_ONLY
   N = 10;
-  M = 9;
+  M = 7;
 #endif
   std::srand(time(NULL));
   std::vector<int> tests;
@@ -52,45 +52,61 @@ int main(int argc, char ** argv) {
     switch(tests[i]) {
     case 0:
       count -= t.TrivialMerge();
+      if(t.State() == PfState::cspf) {
+        assert(!t.CspfDebug());
+      } else if(t.State() == PfState::mspf) {
+        assert(!t.MspfDebug());
+      }
       break;
     case 1:
       count -= t.TrivialDecompose();
+      if(t.State() == PfState::cspf) {
+        assert(!t.CspfDebug());
+      } else if(t.State() == PfState::mspf) {
+        assert(!t.MspfDebug());
+      }
       break;
     case 2:
       count -= t.Decompose();
+      if(t.State() == PfState::cspf) {
+        count -= t.Cspf(true);
+        assert(!t.CspfDebug());
+      } else if(t.State() == PfState::mspf) {
+        count -= t.Mspf();
+        assert(!t.MspfDebug());
+      }
       break;
     case 3:
-      count -= t.Cspf();
+      count -= t.Cspf(true);
+      assert(!t.CspfDebug());
       break;
     case 4:
-      count -= t.CspfEager();
+      count -= t.Resub();
+      assert(!t.CspfDebug());
       break;
     case 5:
-      count -= t.Resub();
+      count -= t.ResubMono();
+      assert(!t.CspfDebug());
       break;
     case 6:
-      count -= t.ResubMono();
+      count -= t.Merge();
+      assert(!t.CspfDebug());
       break;
     case 7:
-      count -= t.Merge();
+      count -= t.Mspf(true);
+      assert(!t.MspfDebug());
       break;
     case 8:
-      count -= t.MergeDecomposeEager();
+      count -= t.Resub(true);
+      assert(!t.MspfDebug());
       break;
     case 9:
-      count -= t.Mspf();
+      count -= t.ResubMono(true);
+      assert(!t.MspfDebug());
       break;
     case 10:
-      count -= t.Resub(true);
-      break;
-    case 11:
-      count -= t.ResubMono(true);
-      break;
-    case 12:
       count -= t.Merge(true);
-      break;
-    case 13:
-      count -= t.MergeDecomposeEager(true);
+      assert(!t.MspfDebug());
       break;
     default:
       std::cout << "Wrong test pattern!" << std::endl;

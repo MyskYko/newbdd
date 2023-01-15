@@ -5,40 +5,50 @@
 
 using namespace std;
 
-int Transduction::TrivialMergeOne(int i, bool fErase) {
+int Transduction::TrivialMergeOne(int i) {
   if(nVerbose > 3) {
     cout << "\t\t\tTrivial merge " << i << endl;
   }
   int count = 0;
-  for(unsigned j = 0; j < vvFis[i].size(); j++) {
-    int i0 = vvFis[i][j] >> 1;
-    int c0 = vvFis[i][j] & 1;
-    if(!vvFis[i0].empty() && vvFos[i0].size() == 1 && !c0) {
-      Disconnect(i, i0, j--, false);
-      count++;
-      for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
-        int f = vvFis[i0][jj];
-        vector<int>::iterator it = find(vvFis[i].begin(), vvFis[i].end(), f);
-        if(it == vvFis[i].end()) {
-          Connect(i, f, false, false, vvCs[i0][jj]);
-          count--;
-        } else {
-          unsigned l = it - vvFis[i].begin();
-          if(state == PfState::cspf && vvCs[i][l].Valid() && vvCs[i0][jj].Valid()) {
-            vvCs[i][l] = bdd->And(vvCs[i][l], vvCs[i0][jj]);
-          } else {
-            vvCs[i][l] = NewBdd::Node();
-          }
-        }
+  vector<int> vFisOld = vvFis[i];
+  vector<NewBdd::Node> vCsOld = vvCs[i];
+  vvFis[i].clear();
+  vvCs[i].clear();
+  for(unsigned j = 0; j < vFisOld.size(); j++) {
+    int i0 = vFisOld[j] >> 1;
+    int c0 = vFisOld[j] & 1;
+    if(vvFis[i0].empty() || vvFos[i0].size() > 1 || c0) {
+      if(nVerbose > 5) {
+        cout << "\t\t\t\t\tFanin " << j << " : " << i0 << "(" << c0 << ")" << endl;
       }
-      count += RemoveFis(i0, false);
-      if(fErase) {
-        vObjs.erase(find(vObjs.begin(), vObjs.end(), i0));
+      vvFis[i].push_back(vFisOld[j]);
+      vvCs[i].push_back(vCsOld[j]);
+      continue;
+    }
+    vPfUpdates[i] = vPfUpdates[i] | vPfUpdates[i0];
+    vvFos[i0].erase(std::find(vvFos[i0].begin(), vvFos[i0].end(), i));
+    count++;
+    vector<int>::iterator itfi = vFisOld.begin() + j;
+    vector<NewBdd::Node>::iterator itc = vCsOld.begin() + j;
+    for(unsigned jj = 0; jj < vvFis[i0].size(); jj++) {
+      int f = vvFis[i0][jj];
+      vector<int>::iterator it = find(vvFis[i].begin(), vvFis[i].end(), f);
+      if(it == vvFis[i].end()) {
+        vvFos[f >> 1].push_back(i);
+        itfi = vFisOld.insert(itfi, f);
+        itc = vCsOld.insert(itc, vvCs[i0][jj]);
+        itfi++;
+        itc++;
+        count--;
+      } else {
+        assert(state == PfState::none);
       }
     }
-  }
-  if(state != PfState::mspf) {
-    vPfUpdates[i] = true;
+    count += RemoveFis(i0, false);
+    vObjs.erase(find(vObjs.begin(), vObjs.end(), i0));
+    vFisOld.erase(itfi);
+    vCsOld.erase(itc);
+    j--;
   }
   return count;
 }
@@ -48,11 +58,6 @@ int Transduction::TrivialMerge() {
   }
   int count = 0;
   for(list<int>::reverse_iterator it = vObjs.rbegin(); it != vObjs.rend();) {
-    if(vvFos[*it].empty()) {
-      assert(vvFis[*it].empty());
-      it = list<int>::reverse_iterator(vObjs.erase(--(it.base())));
-      continue;
-    }
     count += TrivialMergeOne(*it);
     it++;
   }
@@ -73,13 +78,26 @@ int Transduction::TrivialDecomposeOne(list<int>::iterator const & it, int & pos)
     NewBdd::Node c1 = vvCs[*it].back();
     Disconnect(*it, f1 >> 1, vvFis[*it].size() - 1, false, false);
     CreateNewGate(pos);
-    Connect(pos, f0, false, false, c0);
     Connect(pos, f1, false, false, c1);
-    Connect(*it, pos << 1, false, false);
+    Connect(pos, f0, false, false, c0);
+    if(!vPfUpdates[*it]) {
+      if(state == PfState::cspf) {
+        vGs[pos] = vGs[*it];
+      } else if(state == PfState::mspf) {
+        NewBdd::Node x = NewBdd::Node::Const1(bdd);
+        for(unsigned j = 0; j < vvFis[*it].size(); j++) {
+          int i0 = vvFis[*it][j] >> 1;
+          bool c0 = vvFis[*it][j] & 1;
+          x = x & (vFs[i0] ^ c0);
+        }
+        x = ~x;
+        vGs[pos] = x | vGs[*it];
+      }
+    }
+    Connect(*it, pos << 1, false, false, vGs[pos]);
     vObjs.insert(it, pos);
-    Build(pos);
+    Build(pos, vFs);
   }
-  vPfUpdates[*it] = true;
   return count;
 }
 int Transduction::TrivialDecompose() {
@@ -90,7 +108,6 @@ int Transduction::TrivialDecompose() {
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     if(vvFis[*it].size() > 2) {
-      SortFis(*it);
       count += TrivialDecomposeOne(it, pos);
     }
   }
@@ -101,7 +118,7 @@ int Transduction::Merge(bool fMspf) {
   if(nVerbose) {
     cout << "Merge" << endl;
   }
-  int count = fMspf? Mspf(): CspfEager();
+  int count = fMspf? Mspf(true): Cspf(true);
   list<int> targets = vObjs;
   for(list<int>::reverse_iterator it = targets.rbegin(); it != targets.rend(); it++) {
     if(nVerbose > 1) {
@@ -110,10 +127,7 @@ int Transduction::Merge(bool fMspf) {
     if(vvFos[*it].empty()) {
       continue;
     }
-    count += TrivialMergeOne(*it, true);
-    if(!fMspf) {
-      count += CspfEager();
-    }
+    count += TrivialMergeOne(*it);
     bool fConnect = false;
     for(unsigned i = 0; i < vPis.size(); i++) {
       int f = vPis[i] << 1;
@@ -122,7 +136,7 @@ int Transduction::Merge(bool fMspf) {
         count--;
       }
     }
-    vector<bool> vMarks(nObjs);
+    vector<bool> vMarks(nObjsAlloc);
     MarkFoCone_rec(vMarks, *it);
     for(list<int>::iterator it2 = targets.begin(); it2 != targets.end(); it2++) {
       if(!vMarks[*it2] && !vvFos[*it2].empty()) {
@@ -134,62 +148,49 @@ int Transduction::Merge(bool fMspf) {
       }
     }
     if(fConnect) {
-      Build();
-      count += fMspf? Mspf(): CspfEager();
+      if(fMspf) {
+        Build();
+        count += Mspf(true, *it);
+      } else {
+        vPfUpdates[*it] = true;
+        count += Cspf(true, *it);
+      }
+      if(!vvFos[*it].empty()) {
+        vPfUpdates[*it] = true;
+        count += fMspf? Mspf(true): Cspf(true);
+      }
     }
   }
   return count;
 }
 
 int Transduction::Decompose() {
-  if(nVerbose > 2) {
-    cout << "\t\tDecompose" << endl;
+  if(nVerbose) {
+    cout << "Decompose" << endl;
   }
   int count = 0;
   int pos = vPis.size() + 1;
   for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
     set<int> s1(vvFis[*it].begin(), vvFis[*it].end());
-    if(s1.size() < vvFis[*it].size()) {
-      count += vvFis[*it].size() - s1.size();
-      for(unsigned j = 0; j < vvFis[*it].size(); j++) {
-        for(unsigned jj = j + 1; jj < vvFis[*it].size(); jj++) {
-          if(vvFis[*it][j] == vvFis[*it][jj]) {
-            Disconnect(*it, vvFis[*it][jj] >> 1, jj, false);
-            jj--;
-          }
-        }
-      }
-      assert(s1.size() == vvFis[*it].size());
-      assert(vPfUpdates[*it]);
-    }
-  }
-  for(list<int>::iterator it = vObjs.begin(); it != vObjs.end(); it++) {
-    if(nVerbose > 3) {
-      cout << "\t\t\tDecompose " << *it << endl;
-    }
-    set<int> s1(vvFis[*it].begin(), vvFis[*it].end());
+    assert(s1.size() == vvFis[*it].size());
     list<int>::iterator it2 = it;
     for(it2++; it2 != vObjs.end(); it2++) {
-      if(nVerbose > 4) {
-        cout << "\t\t\t\tDecompose " << *it2 << " by " << *it << endl;
-      }
       set<int> s2(vvFis[*it2].begin(), vvFis[*it2].end());
       set<int> s;
       set_intersection(s1.begin(), s1.end(), s2.begin(), s2.end(), inserter(s, s.begin()));
       if(s.size() > 1) {
-        if(nVerbose > 5) {
-          cout << "\t\t\t\t\tIntersection";
-          for(set<int>::iterator it3 = s.begin(); it3 != s.end(); it3++) {
-            cout << " " << (*it3 >> 1) << "(" << (*it3 & 1) << ")";
-          }
-          cout << endl;
-        }
         if(s == s1) {
           if(s == s2) {
+            if(nVerbose > 1) {
+              cout << "\tReplace " << *it2 << " by " << *it << endl;
+            }
             count += Replace(*it2, *it << 1, false);
             it2 = vObjs.erase(it2);
             it2--;
           } else {
+            if(nVerbose > 1) {
+              cout << "\tDecompose " << *it2 << " by " << *it << endl;
+            }
             for(set<int>::iterator it3 = s.begin(); it3 != s.end(); it3++) {
               unsigned j = find(vvFis[*it2].begin(), vvFis[*it2].end(), *it3) - vvFis[*it2].begin();
               Disconnect(*it2, *it3 >> 1, j, false);
@@ -208,40 +209,34 @@ int Transduction::Decompose() {
           vObjs.erase(it2);
         } else {
           CreateNewGate(pos);
+          if(nVerbose > 1) {
+            cout << "\tCreate " << pos << " for intersection of " << *it << " and " << *it2  << endl;
+          }
+          if(nVerbose > 2) {
+            cout << "\t\tIntersection :";
+            for(set<int>::iterator it3 = s.begin(); it3 != s.end(); it3++) {
+              cout << " " << (*it3 >> 1) << "(" << (*it3 & 1) << ")";
+            }
+            cout << endl;
+          }
           for(set<int>::iterator it3 = s.begin(); it3 != s.end(); it3++) {
             Connect(pos, *it3, false, false);
           }
           count -= s.size();
           it = vObjs.insert(it, pos);
-          Build(pos);
-        }
-        if(nVerbose > 3) {
-          cout << "\t\t\tDecompose switch to " << *it << endl;
+          Build(pos, vFs);
+          vPfUpdates[*it] = true;
         }
         s1 = s;
         it2 = it;
       }
     }
     if(vvFis[*it].size() > 2) {
-      SortFis(*it);
+      if(nVerbose > 1) {
+        cout << "\tTrivial decompose " << *it << endl;
+      }
       count += TrivialDecomposeOne(it, pos);
     }
   }
-  return count;
-}
-
-int Transduction::MergeDecomposeEager(bool fMspf) {
-  int count = Merge(fMspf) + Decompose() + (fMspf? Mspf(): CspfEager());
-  Save();
-  while(true) {
-    int diff = Merge(fMspf) + Decompose() + (fMspf? Mspf(): CspfEager());
-    if(diff <= 0) {
-      Load();
-      break;
-    }
-    count += diff;
-    Save();
-  }
-  ClearSave();
   return count;
 }
