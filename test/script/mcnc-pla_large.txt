@@ -1,4 +1,6 @@
+../mcnc-pla/9sym.pla.fx.aig
 ../mcnc-pla/apex1.pla.fx.aig
+../mcnc-pla/apex2.pla.fx.aig
 ../mcnc-pla/apex3.pla.fx.aig
 ../mcnc-pla/cps.pla.fx.aig
 ../mcnc-pla/ex4.pla.fx.aig
