@@ -26,7 +26,7 @@ list(REMOVE_ITEM TESTFILENAMES ${TRATESTFILENAMES})
 foreach(testfilename ${TESTFILENAMES})
   get_filename_component(testname ${testfilename} NAME_WE)
   add_executable(${testname} ${testfilename})
-  target_link_libraries(${testname} aigbdd)
+  target_link_libraries(${testname} argparse aigbdd)
 endforeach()
 
 foreach(testfilename ${REOTESTFILENAMES})
