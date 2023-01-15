@@ -262,7 +262,7 @@ bool Transduction::RankCompare(int a, int b) const {
   case 3:
     return vFs[a0].ZeroCount() < vFs[b0].OneCount();
   default:
-    throw logic_error("Invalid sort type");
+    throw invalid_argument("Invalid sort type");
   }
 }
 bool Transduction::SortFis(int i) {

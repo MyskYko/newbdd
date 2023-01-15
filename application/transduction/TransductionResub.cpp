@@ -1,7 +1,3 @@
-#include <iostream>
-#include <algorithm>
-#include <cassert>
-
 #include "Transduction.h"
 
 using namespace std;

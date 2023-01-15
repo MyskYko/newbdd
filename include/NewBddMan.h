@@ -271,7 +271,7 @@ namespace NewBdd {
 
   inline double Man::OneCount(lit x) const {
     if(vOneCounts.empty()) {
-      throw std::logic_error("Counting ones is not turned on");
+      throw std::logic_error("Counting ones was not turned on");
     }
     if(LitIsCompl(x)) {
       return std::pow(2.0, nVars) - vOneCounts[Lit2Bvar(x)];
