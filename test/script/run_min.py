@@ -1,36 +1,35 @@
 import subprocess
 
 def getsize(f):
-    sp = subprocess.run(f"abc -q \"read {f}; ps;\" | grep -Po \"and =[ ]*\K[0-9]*\"", shell = True, capture_output = True, encoding="utf-8")
+    sp = subprocess.run(f"abc -q \"read {f}; ps;\" | grep -Po \"and =[ ]*\K[0-9]*\"", shell = True, capture_output = True, encoding="utf-8", check=True)
     return int(sp.stdout.strip())
 
 def getio(f):
-    sp = subprocess.run(f"abc -q \"read {f}; ps;\" | grep -Po \"i/o =[ ]*\K[0-9/ ]*\"", shell = True, capture_output = True, encoding="utf-8")
+    sp = subprocess.run(f"abc -q \"read {f}; ps;\" | grep -Po \"i/o =[ ]*\K[0-9/ ]*\"", shell = True, capture_output = True, encoding="utf-8", check=True)
     io = sp.stdout.split('/')
     return [int(s.strip()) for s in io]
 
 def tra1(f, g):
     tra1.seed += 1
-    subprocess.run(f"../../build/tra -r {tra1.seed} {f} {g}", shell = True)
-tra1.seed = 0
+    subprocess.run(f"../../build/tra -r {tra1.seed} {f} {g}", shell = True, check=True)
 
 def tra2(f, g, sorttype, pishuffle, parameter):
-    subprocess.run(f"../../build/tra -s {sorttype} -i {pishuffle} -p {parameter} {f} {g}", shell = True)
+    subprocess.run(f"../../build/tra -s {sorttype} -i {pishuffle} -p {parameter} {f} {g}", shell = True, check=True)
 
 def abc1(f, g):
-    subprocess.run(f"abc -q \"read {f}; {abc1.opt1}; write {g}\"", shell = True)
+    subprocess.run(f"abc -q \"read {f}; {abc1.opt1}; write {g}\"", shell = True, check=True)
 abc1.dc2 = "dc2; dc2; dc2; dc2; dc2"
 abc1.opt1 = f"compress2rs; {abc1.dc2}; resyn; {abc1.dc2}; resyn2; {abc1.dc2}; resyn3; {abc1.dc2}; resub –l -N 2 -K 16; {abc1.dc2}; iresyn –l; {abc1.dc2}; resyn2rs; {abc1.dc2}; &get; &fraig –x; &put; {abc1.dc2}"
 
 def abc2(f, g):
-    subprocess.run(f"abc -q \"read {f}; dch; if -a -m; mfs2 -e; st; write {g}\"", shell = True)
+    subprocess.run(f"abc -q \"read {f}; dch; if -a -m; mfs2 -e; st; write {g}\"", shell = True, check=True)
 
 def abc3(f, g):
-    subprocess.run(f"abc -q \"read {f}; clp; st; write {g}\"", shell = True)
+    subprocess.run(f"abc -q \"read {f}; clp; st; write {g}\"", shell = True, check=True)
 
 def abc4(f, g):
     io = getio(f)
-    subprocess.run(f"abc -q \"&r {f}; &ttopt -I {io[0]} -O {io[1]} -X 100; &w {g}\"", shell = True)
+    subprocess.run(f"abc -q \"&r {f}; &ttopt -I {io[0]} -O {io[1]} -X 100; &w {g}\"", shell = True, check=True)
 
 import shutil
 import os
@@ -60,7 +59,7 @@ def opt1(f):
             tra1(f, f)
         abc1(f, f)
         m = getsize(f)
-        #print(f"\t\t\t\topt1 {m}")
+        print(f"\t\t\t\topt1 {m}")
         if m < n:
             n = m
         else:
@@ -69,14 +68,14 @@ def opt1(f):
 def opt2(f):
     opt1(f)
     n = getsize(f)
-    #print(f"\t\t\topt2 {n}")
+    print(f"\t\t\topt2 {n}")
     g = f + ".tmp.aig"
     shutil.copyfile(f, g)
     for i in range(opt2.n):
         abc2(g, g)
         opt1(g)
         m = getsize(g)
-        #print(f"\t\t\topt2 {m}")
+        print(f"\t\t\topt2 {m}")
         if m < n:
             n = m
             shutil.copyfile(g, f)
@@ -87,11 +86,12 @@ def opt3(f):
     g = f + ".tmp.aig"
     shutil.copyfile(f, g)
     for i in range(opt3.n):
+        tra1.seed = 1234 * i
         h = g + ".tmp.aig"
         shutil.copyfile(f, h)
         opt2(h)
         m = getsize(h)
-        #print(f"\t\topt3 {m}")
+        print(f"\t\topt3 {m}")
         if m < n:
             n = m
             shutil.copyfile(h, g)
@@ -110,7 +110,7 @@ def opt4(f):
     for g in [a, b, c]:
         opt3(g)
         m = getsize(g)
-        #print(f"\topt4 {m}")
+        print(f"\topt4 {m}")
         if m < n:
             n = m
             shutil.copyfile(g, f)
@@ -120,11 +120,10 @@ def opt4(f):
 def run(f):
     g = run.output_dir + '/' + os.path.basename(f)
     shutil.copyfile(f, g)
-    tra1.seed = 0
     opt4(g)
-run.output_dir = None
 
 
+import sys
 import argparse
 import multiprocessing
 
@@ -136,6 +135,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--num_hops', type=int, default=10)
     parser.add_argument('-a', '--abc_only', action='store_true')
     parser.add_argument('-p', '--parallel', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
 
     opt3.n = args.num_restarts + 1
@@ -152,9 +152,12 @@ if __name__ == '__main__':
         else:
             shutil.rmtree(args.output_dir)
 
+    if not args.verbose:
+        sys.stdout = open(os.devnull, 'w')
+
     os.mkdir(args.output_dir)
     run.output_dir = args.output_dir
-    
+
     f = open(args.input_list)
     lines = f.readlines()
     lines = [line.strip() for line in lines]
@@ -166,7 +169,8 @@ if __name__ == '__main__':
     else:
         for line in lines:
             run(line)
-    
+
+    sys.stdout = sys.__stdout__
     for line in lines:
         s = getsize(args.output_dir + "/" + os.path.basename(line))
         print(f"{os.path.basename(line)} {s}")
