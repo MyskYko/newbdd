@@ -19,7 +19,8 @@ def tra2(f, g, sorttype, pishuffle, parameter):
 def abc1(f, g):
     subprocess.run(f"abc -q \"read {f}; {abc1.opt1}; write {g}\"", shell = True, check=True)
 abc1.dc2 = "dc2; dc2; dc2; dc2; dc2"
-abc1.opt1 = f"compress2rs; {abc1.dc2}; resyn; {abc1.dc2}; resyn2; {abc1.dc2}; resyn3; {abc1.dc2}; resub –l -N 2 -K 16; {abc1.dc2}; iresyn –l; {abc1.dc2}; resyn2rs; {abc1.dc2}; &get; &fraig –x; &put; {abc1.dc2}"
+abc1.resyn = f"compress2rs; {abc1.dc2}; resyn; {abc1.dc2}; resyn2; {abc1.dc2}; resyn3; {abc1.dc2}"
+abc1.opt1 = f"{abc1.resyn}; resub –l -N 2 -K 16; {abc1.dc2}; iresyn –l; {abc1.dc2}; resyn2rs; {abc1.dc2}; &get; &fraig –x; &put; {abc1.dc2}"
 
 def abc2(f, g):
     subprocess.run(f"abc -q \"read {f}; dch; if -a -m; mfs2 -e; st; write {g}\"", shell = True, check=True)
@@ -57,7 +58,8 @@ def opt1(f):
     while True:
         if not opt1.abc_only:
             tra1(f, f)
-        abc1(f, f)
+        if not opt1.tra_only:
+            abc1(f, f)
         m = getsize(f)
         print(f"\t\t\t\topt1 {m}")
         if m < n:
@@ -71,7 +73,8 @@ def opt2(f):
     print(f"\t\t\topt2 {n}")
     g = f + ".tmp.aig"
     shutil.copyfile(f, g)
-    for i in range(opt2.n):
+    i = 0
+    while i < opt2.n:
         abc2(g, g)
         opt1(g)
         m = getsize(g)
@@ -79,6 +82,9 @@ def opt2(f):
         if m < n:
             n = m
             shutil.copyfile(g, f)
+            if opt2.reset_hop:
+                i = 0
+        i += 1
     os.remove(g)
 
 def opt3(f):
@@ -131,16 +137,23 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input_list', type=str)
     parser.add_argument('output_dir', type=str)
-    parser.add_argument('-n', '--num_restarts', type=int, default=20)
+    parser.add_argument('-n', '--num_restarts', type=int, default=10)
     parser.add_argument('-m', '--num_hops', type=int, default=10)
     parser.add_argument('-a', '--abc_only', action='store_true')
+    parser.add_argument('-t', '--tra_only', action='store_true')
+    parser.add_argument('-l', '--less_abc', action='store_true')
     parser.add_argument('-p', '--parallel', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-r', '--reset_hop', action='store_true')
     args = parser.parse_args()
 
     opt3.n = args.num_restarts + 1
     opt2.n = args.num_hops
+    opt2.reset_hop = args.reset_hop
     opt1.abc_only = args.abc_only
+    opt1.tra_only = args.tra_only
+    if args.less_abc:
+        abc1.opt1 = abc1.resyn
 
     if os.path.exists(args.output_dir):
         inp = input(f"rm {args.output_dir}? [y/n] : ")
