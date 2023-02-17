@@ -239,11 +239,9 @@ namespace NewBdd {
       while(*q) {
         if(!EdgeOfBvar(*q)) {
           SetVarOfBvar(*q, VarMax());
-          if(MinBvarRemoved > *q) {
-            MinBvarRemoved = *q;
-          }
           bvar next = vNexts[*q];
-          vNexts[*q] = 0;
+          vNexts[*q] = RemovedHead;
+          RemovedHead = *q;
           *q = next;
           vUniqueCounts[v1]--;
           continue;

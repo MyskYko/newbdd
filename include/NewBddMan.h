@@ -53,7 +53,7 @@ namespace NewBdd {
     var nVars;
     bvar nObjs;
     bvar nObjsAlloc;
-    bvar MinBvarRemoved;
+    bvar RemovedHead;
     std::vector<var> vVars;
     std::vector<lit> vObjs;
     std::vector<bvar> vNexts;
@@ -290,16 +290,11 @@ namespace NewBdd {
     bvar next = *p;
     if(nObjs < nObjsAlloc) {
       *p = nObjs++;
+    } else if(RemovedHead) {
+      *p = RemovedHead;
+      RemovedHead = vNexts[*p];
     } else {
-      for(; MinBvarRemoved < nObjs; MinBvarRemoved++) {
-        if(VarOfBvar(MinBvarRemoved) == VarMax()) {
-          break;
-        }
-      }
-      if(MinBvarRemoved >= nObjs) {
-        return LitMax();
-      }
-      *p = MinBvarRemoved++;
+      return LitMax();
     }
     SetVarOfBvar(*p, v);
     SetThenOfBvar(*p, x1);
@@ -383,9 +378,6 @@ namespace NewBdd {
   inline void Man::RemoveBvar(bvar a) {
     var v = VarOfBvar(a);
     SetVarOfBvar(a, VarMax());
-    if(MinBvarRemoved > a) {
-      MinBvarRemoved = a;
-    }
     std::vector<bvar>::iterator q = vvUnique[v].begin() + (Hash(ThenOfBvar(a), ElseOfBvar(a)) & vUniqueMasks[v]);
     for(; *q; q = vNexts.begin() + *q) {
       if(*q == a) {
@@ -393,7 +385,8 @@ namespace NewBdd {
       }
     }
     bvar next = vNexts[*q];
-    vNexts[*q] = 0;
+    vNexts[*q] = RemovedHead;
+    RemovedHead = *q;
     *q = next;
     vUniqueCounts[v]--;
   }
