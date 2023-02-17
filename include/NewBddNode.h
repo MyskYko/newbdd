@@ -128,6 +128,9 @@ namespace NewBdd {
       }
       return man->CountNodes(vLits);
     }
+    static inline bool OrIsConst1(Node x, Node y, Node z) {
+      return x.man->OrIsConst1(x.val, y.val, z.val);
+    }
 
   private:
     Man * man;

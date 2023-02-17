@@ -88,6 +88,7 @@ namespace NewBdd {
     nCacheHits = 0;
     CacheThold = nCache;
     CacheHitRate = 1;
+    OrIsConst1Cache = NULL;
     RemovedHead = 0;
     SetParameters();
   }
@@ -110,6 +111,9 @@ namespace NewBdd {
       if(!vRefs.empty()) {
         cout << "Free " << vRefs.size() << " refs" << endl;
       }
+    }
+    if(OrIsConst1Cache) {
+      delete OrIsConst1Cache;
     }
   }
 
@@ -156,6 +160,12 @@ namespace NewBdd {
       }
     }
     return And_rec(x, y);
+  }
+  bool Man::OrIsConst1(lit x, lit y, lit z) {
+    if(!OrIsConst1Cache) {
+      OrIsConst1Cache = new Cache(1 << 15, nMaxMem, nVerbose);
+    }
+    return OrIsConst1_rec(x, y, z);
   }
 
   void Man::SetRef(vector<lit> const & vLits) {

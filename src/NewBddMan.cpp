@@ -127,6 +127,101 @@ namespace NewBdd {
     return z;
   }
 
+  bool Man::OrIsConst1_rec(lit x, lit y) {
+    if(x == 1 || y == 1) {
+      return true;
+    }
+    if(x == 0 || y == 0) {
+      return false;
+    }
+    if(Lit2Bvar(x) == Lit2Bvar(y)) {
+      if(x == y) {
+        return false;
+      }
+      return true;
+    }
+    if(x > y) {
+      swap(x, y);
+    }
+    int r = OrIsConst1Cache->Lookup(x, y, 0);
+    if(r >= 0) {
+      return r;
+    }
+    lit x0, x1, y0, y1;
+    if(Level(x) < Level(y)) {
+      x1 = Then(x), x0 = Else(x), y0 = y1 = y;
+    } else if(Level(x) > Level(y)) {
+      x0 = x1 = x, y1 = Then(y), y0 = Else(y);
+    } else {
+      x1 = Then(x), x0 = Else(x), y1 = Then(y), y0 = Else(y);
+    }
+    if(!OrIsConst1_rec(x1, y1) || !OrIsConst1_rec(x0, y0)) {
+      OrIsConst1Cache->Insert(x, y, 0, 0);
+      return false;
+    }
+    OrIsConst1Cache->Insert(x, y, 0, 1);
+    return true;
+  }
+  bool Man::OrIsConst1_rec(lit x, lit y, lit z) {
+    if(x == 1 || y == 1 || z == 1) {
+      return true;
+    }
+    if(x > y) {
+      swap(x, y);
+    }
+    if(y > z) {
+      swap(y, z);
+    }
+    if(x > y) {
+      swap(x, y);
+    }
+    if(y == 0 || z == 0) {
+      return false;
+    }
+    if(x == 0) {
+      return OrIsConst1_rec(y, z);
+    }
+    if(Lit2Bvar(x) == Lit2Bvar(y)) {
+      if(x == y) {
+        return OrIsConst1_rec(y, z);
+      }
+      return true;
+    }
+    if(Lit2Bvar(y) == Lit2Bvar(z)) {
+      if(y == z) {
+        return OrIsConst1_rec(x, y);
+      }
+      return true;
+    }
+    int r = OrIsConst1Cache->Lookup(x, y, z);
+    if(r >= 0) {
+      return r;
+    }
+    var v = std::min(Level(x), std::min(Level(y), Level(z)));
+    lit x0, x1, y0, y1, z0, z1;
+    if(Level(x) == v) {
+      x1 = Then(x), x0 = Else(x);
+    } else {
+      x0 = x1 = x;
+    }
+    if(Level(y) == v) {
+      y1 = Then(y), y0 = Else(y);
+    } else {
+      y0 = y1 = y;
+    }
+    if(Level(z) == v) {
+      z1 = Then(z), z0 = Else(z);
+    } else {
+      z0 = z1 = z;
+    }
+    if(!OrIsConst1_rec(x1, y1, z1) || !OrIsConst1_rec(x0, y0, z0)) {
+      OrIsConst1Cache->Insert(x, y, z, 0);
+      return false;
+    }
+    OrIsConst1Cache->Insert(x, y, z, 1);
+    return true;
+  }
+
   bool Man::Resize() {
     if(nObjsAlloc == BvarMax()) {
       return false;

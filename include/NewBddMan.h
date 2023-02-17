@@ -7,6 +7,7 @@
 #include <iomanip>
 
 #include "NewBddTypes.h"
+#include "NewBddCache.h"
 
 namespace NewBdd {
 
@@ -22,6 +23,7 @@ namespace NewBdd {
     bvar GetNumObjs() const;
 
     lit And(lit x, lit y);
+    bool OrIsConst1(lit x, lit y, lit z);
 
     void SetRef(std::vector<lit> const & vLits);
 
@@ -77,6 +79,8 @@ namespace NewBdd {
     size nCacheHits;
     size CacheThold;
     double CacheHitRate;
+
+    Cache * OrIsConst1Cache;
 
     int nGbc;
 
@@ -141,6 +145,8 @@ namespace NewBdd {
     inline void RemoveBvar(bvar a);
 
     lit And_rec(lit x, lit y);
+    bool OrIsConst1_rec(lit x, lit y);
+    bool OrIsConst1_rec(lit x, lit y, lit z);
 
     bool Resize();
     void ResizeUnique(var v);
@@ -391,6 +397,9 @@ namespace NewBdd {
   }
   inline void Man::CacheClear() {
     fill(vCache.begin(), vCache.end(), 0);
+    if(OrIsConst1Cache) {
+      OrIsConst1Cache->Clear();
+    }
   }
 
   inline void Man::RemoveBvar(bvar a) {
