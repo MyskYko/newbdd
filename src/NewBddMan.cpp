@@ -216,7 +216,7 @@ namespace NewBdd {
     CacheMask = nCache - 1;
     for(lit j = 0; j < nCacheOld; j++) {
       size i = (size)j * 3;
-      if(vCache[i] || vCache[i + 1]) {
+      if(vCache[i]) {
         size hash = (size)(Hash(vCache[i], vCache[i + 1]) & CacheMask) * 3;
         vCache[hash] = vCache[i];
         vCache[hash + 1] = vCache[i + 1];
