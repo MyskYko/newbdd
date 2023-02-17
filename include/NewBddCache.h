@@ -23,22 +23,17 @@ namespace NewBdd {
 
   private:
     std::vector<lit> vCache;
-    lit CacheMask;
-    size nCacheLookups;
-    size nCacheHits;
-    size CacheThold;
-    double CacheHitRate;
+    lit Mask;
+    size nLookups;
+    size nHits;
+    size nThold;
+    double HitRate;
     size nMax;
     int nVerbose;
   };
   
-  inline Cache::Cache(lit nCache, size nMax, int nVerbose) : nMax(nMax), nVerbose(nVerbose) {
+  inline Cache::Cache(lit nCache, size nMax, int nVerbose) : Mask(nCache - 1), nLookups(0), nHits(0), nThold(nCache), HitRate(1), nMax(nMax), nVerbose(nVerbose) {
     vCache.resize((size)nCache * 3);
-    CacheMask = nCache - 1;
-    nCacheLookups = 0;
-    nCacheHits = 0;
-    CacheThold = nCache;
-    CacheHitRate = 1;
   }
   inline Cache::~Cache() {
     if(nVerbose) {
@@ -50,37 +45,37 @@ namespace NewBdd {
     return vCache.size() / 3;
   }
   inline lit Cache::Lookup(lit x, lit y) {
-    nCacheLookups++;
-    if(nCacheLookups > CacheThold) {
-      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
+    nLookups++;
+    if(nLookups > nThold) {
+      double NewHitRate = (double)nHits / nLookups;
       if(nVerbose > 2) {
-        std::cout << "Cache Hits: " << nCacheHits << " Lookups: " << nCacheLookups << " Rate: " << NewCacheHitRate << std::endl;
+        std::cout << "Cache Hits: " << nHits << " Lookups: " << nLookups << " Rate: " << NewHitRate << std::endl;
       }
-      if(NewCacheHitRate > CacheHitRate) {
+      if(NewHitRate > HitRate) {
         Resize();
       } else {
-        CacheThold <<= 1;
-        if(!CacheThold) {
-          CacheThold = SizeMax();
+        nThold <<= 1;
+        if(!nThold) {
+          nThold = SizeMax();
         }
       }
-      CacheHitRate = NewCacheHitRate;
+      HitRate = NewHitRate;
     }
-    size i = (size)(Hash(x, y) & CacheMask) * 3;
+    size i = (size)(Hash(x, y) & Mask) * 3;
     if(vCache[i] == x && vCache[i + 1] == y) {
-      nCacheHits++;
+      nHits++;
       return vCache[i + 2];
     }
     return LitMax();
   }
   inline void Cache::Insert(lit x, lit y, lit z) {
-    size i = (size)(Hash(x, y) & CacheMask) * 3;
+    size i = (size)(Hash(x, y) & Mask) * 3;
     vCache[i] = x;
     vCache[i + 1] = y;
     vCache[i + 2] = z;
   }
   inline void Cache::Clear() {
-    fill(vCache.begin(), vCache.end(), 0);
+    std::fill(vCache.begin(), vCache.end(), 0);
   }
 
   inline void Cache::Resize() {
@@ -88,26 +83,26 @@ namespace NewBdd {
     nCache = nCacheOld = Size();
     nCache <<= 1;
     if(!nCache || (size)nCache > nMax) {
-      CacheThold = SizeMax();
+      nThold = SizeMax();
       return;
     }
     if(nVerbose > 1) {
       std::cout << "Reallocate " << nCache << " cache." << std::endl;
     }
     vCache.resize((size)nCache * 3);
-    CacheMask = nCache - 1;
+    Mask = nCache - 1;
     for(lit j = 0; j < nCacheOld; j++) {
       size i = (size)j * 3;
       if(vCache[i] || vCache[i + 1]) {
-        size hash = (size)(Hash(vCache[i], vCache[i + 1]) & CacheMask) * 3;
+        size hash = (size)(Hash(vCache[i], vCache[i + 1]) & Mask) * 3;
         vCache[hash] = vCache[i];
         vCache[hash + 1] = vCache[i + 1];
         vCache[hash + 2] = vCache[i + 2];
       }
     }
-    CacheThold <<= 1;
-    if(!CacheThold) {
-      CacheThold = SizeMax();
+    nThold <<= 1;
+    if(!nThold) {
+      nThold = SizeMax();
     }
   }
 
