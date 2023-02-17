@@ -10,8 +10,8 @@ namespace NewBdd {
 
   class Cache {
   public:
-    inline Cache(lit nCache, size nMax);
-    inline ~Cache() {};
+    inline Cache(lit nCache, size nMax, int nVerbose);
+    inline ~Cache();
     inline lit Hash(lit Arg0, lit Arg1) const {
       return Arg0 + 4256249 * Arg1;
     }
@@ -29,16 +29,21 @@ namespace NewBdd {
     size CacheThold;
     double CacheHitRate;
     size nMax;
-    bool fVerbose;
+    int nVerbose;
   };
   
-  inline Cache::Cache(lit nCache, size nMax) : nMax(nMax) {
+  inline Cache::Cache(lit nCache, size nMax, int nVerbose) : nMax(nMax), nVerbose(nVerbose) {
     vCache.resize((size)nCache * 3);
     CacheMask = nCache - 1;
     nCacheLookups = 0;
     nCacheHits = 0;
     CacheThold = nCache;
     CacheHitRate = 1;
+  }
+  inline Cache::~Cache() {
+    if(nVerbose) {
+      std::cout << "Free " << Size() << " cache." << std::endl;
+    }
   }
 
   inline lit Cache::Size() const {
@@ -48,6 +53,9 @@ namespace NewBdd {
     nCacheLookups++;
     if(nCacheLookups > CacheThold) {
       double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
+      if(nVerbose > 2) {
+        std::cout << "Cache Hits: " << nCacheHits << " Lookups: " << nCacheLookups << " Rate: " << NewCacheHitRate << std::endl;
+      }
       if(NewCacheHitRate > CacheHitRate) {
         Resize();
       } else {
@@ -83,7 +91,7 @@ namespace NewBdd {
       CacheThold = SizeMax();
       return;
     }
-    if(fVerbose) {
+    if(nVerbose > 1) {
       std::cout << "Reallocate " << nCache << " cache." << std::endl;
     }
     vCache.resize((size)nCache * 3);

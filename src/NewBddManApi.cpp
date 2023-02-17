@@ -65,7 +65,7 @@ namespace NewBdd {
         vUniqueTholds[v] = nUnique * UniqueDensity;
       }
     }
-    cache = new Cache(nCache, nMaxMem);
+    cache = new Cache(nCache, nMaxMem, nVerbose);
     if(fCountOnes) {
       if(nVars > 1023) {
         throw length_error("Cannot count ones for more than 1023 variables");
@@ -88,7 +88,7 @@ namespace NewBdd {
   }
   Man::~Man() {
     if(nVerbose) {
-      cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << cache->Size() << " cache." << endl;
+      cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes)." << endl;
       cout << "Free {";
       string delim;
       for(var v = 0; v < nVars; v++) {
