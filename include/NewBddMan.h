@@ -1,11 +1,9 @@
 #ifndef NEW_BDD_MAN_H
 #define NEW_BDD_MAN_H
 
-#include <vector>
 #include <cmath>
-#include <iostream>
 
-#include "NewBddTypes.h"
+#include "NewBddCache.h"
 
 namespace NewBdd {
 
@@ -68,12 +66,7 @@ namespace NewBdd {
     std::vector<bvar> vUniqueCounts;
     std::vector<bvar> vUniqueTholds;
 
-    std::vector<lit> vCache;
-    lit CacheMask;
-    size nCacheLookups;
-    size nCacheHits;
-    size CacheThold;
-    double CacheHitRate;
+    Cache * cache;
 
     int nGbc;
 
@@ -131,17 +124,12 @@ namespace NewBdd {
     inline lit UniqueCreateInt(var v, lit x1, lit x0);
     inline lit UniqueCreate(var v, lit x1, lit x0);
 
-    inline lit CacheLookup(lit x, lit y);
-    inline void CacheInsert(lit x, lit y, lit z);
-    inline void CacheClear();
-
     inline void RemoveBvar(bvar a);
 
     lit And_rec(lit x, lit y);
 
     bool Resize();
     void ResizeUnique(var v);
-    void ResizeCache();
 
     bvar Swap(var i);
     void Sift();
@@ -347,37 +335,6 @@ namespace NewBdd {
       }
     }
     return x;
-  }
-
-  inline lit Man::CacheLookup(lit x, lit y) {
-    nCacheLookups++;
-    if(nCacheLookups > CacheThold) {
-      double NewCacheHitRate = (double)nCacheHits / nCacheLookups;
-      if(NewCacheHitRate > CacheHitRate) {
-        ResizeCache();
-      } else {
-        CacheThold <<= 1;
-        if(!CacheThold) {
-          CacheThold = SizeMax();
-        }
-      }
-      CacheHitRate = NewCacheHitRate;
-    }
-    size i = (size)(Hash(x, y) & CacheMask) * 3;
-    if(vCache[i] == x && vCache[i + 1] == y) {
-      nCacheHits++;
-      return vCache[i + 2];
-    }
-    return LitMax();
-  }
-  inline void Man::CacheInsert(lit x, lit y, lit z) {
-    size i = (size)(Hash(x, y) & CacheMask) * 3;
-    vCache[i] = x;
-    vCache[i + 1] = y;
-    vCache[i + 2] = z;
-  }
-  inline void Man::CacheClear() {
-    fill(vCache.begin(), vCache.end(), 0);
   }
 
   inline void Man::RemoveBvar(bvar a) {

@@ -103,7 +103,7 @@ namespace NewBdd {
     if(x > y) {
       swap(x, y);
     }
-    lit z = CacheLookup(x, y);
+    lit z = cache->Lookup(x, y);
     if(z != LitMax()) {
       return z;
     }
@@ -123,7 +123,7 @@ namespace NewBdd {
     z = UniqueCreate(v, z1, z0);
     DecRef(z1);
     DecRef(z0);
-    CacheInsert(x, y, z);
+    cache->Insert(x, y, z);
     return z;
   }
 
@@ -198,34 +198,6 @@ namespace NewBdd {
     vUniqueTholds[v] <<= 1;
     if((size)vUniqueTholds[v] > (size)BvarMax()) {
       vUniqueTholds[v] = BvarMax();
-    }
-  }
-
-  void Man::ResizeCache() {
-    lit nCache, nCacheOld;
-    nCache = nCacheOld = vCache.size() / 3;
-    nCache <<= 1;
-    if(!nCache || (size)nCache > nMaxMem) {
-      CacheThold = SizeMax();
-      return;
-    }
-    if(nVerbose >= 2) {
-      cout << "Reallocate " << nCache << " cache." << endl;
-    }
-    vCache.resize((size)nCache * 3);
-    CacheMask = nCache - 1;
-    for(lit j = 0; j < nCacheOld; j++) {
-      size i = (size)j * 3;
-      if(vCache[i] || vCache[i + 1]) {
-        size hash = (size)(Hash(vCache[i], vCache[i + 1]) & CacheMask) * 3;
-        vCache[hash] = vCache[i];
-        vCache[hash + 1] = vCache[i + 1];
-        vCache[hash + 2] = vCache[i + 2];
-      }
-    }
-    CacheThold <<= 1;
-    if(!CacheThold) {
-      CacheThold = SizeMax();
     }
   }
 

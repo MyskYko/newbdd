@@ -65,8 +65,7 @@ namespace NewBdd {
         vUniqueTholds[v] = nUnique * UniqueDensity;
       }
     }
-    vCache.resize((size)nCache * 3);
-    CacheMask = nCache - 1;
+    cache = new Cache(nCache, nMaxMem);
     if(fCountOnes) {
       if(nVars > 1023) {
         throw length_error("Cannot count ones for more than 1023 variables");
@@ -84,16 +83,12 @@ namespace NewBdd {
       Var2Level[v] = v;
       Level2Var[v] = v;
     }
-    nCacheLookups = 0;
-    nCacheHits = 0;
-    CacheThold = nCache;
-    CacheHitRate = 1;
     MinBvarRemoved = BvarMax();
     SetParameters();
   }
   Man::~Man() {
     if(nVerbose) {
-      cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << vCache.size() / 3 << " cache." << endl;
+      cout << "Free " << nObjsAlloc << " nodes (" << nObjs << " live nodes) and " << cache->Size() << " cache." << endl;
       cout << "Free {";
       string delim;
       for(var v = 0; v < nVars; v++) {
@@ -105,6 +100,7 @@ namespace NewBdd {
         cout << "Free " << vRefs.size() << " refs" << endl;
       }
     }
+    delete cache;
   }
 
   void Man::SetParameters(int nGbc_, int nReoLog, double MaxGrowth_, bool fReoVerbose_) {
@@ -188,7 +184,7 @@ namespace NewBdd {
         ResetMark_rec(Bvar2Lit(a));
       }
     }
-    CacheClear();
+    cache->Clear();
     return MinBvarRemoved != MinBvarRemovedOld;
   }
 
@@ -204,7 +200,7 @@ namespace NewBdd {
     UncountEdges();
 #endif
     vEdges.clear();
-    CacheClear();
+    cache->Clear();
     fReoVerbose = fReoVerbose_;
   }
   void Man::GetOrdering(vector<var> & Var2Level_) {
