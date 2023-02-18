@@ -41,6 +41,7 @@ public:
   inline int CountWires() const;
   inline int CountNodes() const;
   inline void PrintStats() const;
+  inline void PrintBddStats() const;
   inline bool Verify() const;
 
   inline void Save(TransductionBackup & b) const;
@@ -148,6 +149,9 @@ void Transduction::PrintStats() const {
   int wires = CountWires();
   int nodes = wires - gates;
   std::cout << "nodes " << std::setw(5) << nodes << " gates " << std::setw(5) << gates << " wires " << std::setw(5) << wires << std::endl;
+}
+void Transduction::PrintBddStats() const {
+  bdd->PrintStats();
 }
 bool Transduction::Verify() const {
   for(unsigned j = 0; j < vPos.size(); j++) {

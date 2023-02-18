@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 
 #include "NewBddTypes.h"
 
@@ -31,6 +32,8 @@ namespace NewBdd {
 
     bvar CountNodes();
     bvar CountNodes(std::vector<lit> const & vLits);
+
+    inline void PrintStats();
 
     inline lit Const0() const;
     inline lit Const1() const;
@@ -148,6 +151,21 @@ namespace NewBdd {
 
     bvar CountNodes_rec(lit x);
   };
+
+  inline void Man::PrintStats() {
+    bvar nRemoved = 0;
+    bvar a = RemovedHead;
+    while(a) {
+      nRemoved++;
+      a = vNexts[a];
+    }
+    std::cout << "ref: " << std::setw(10) << CountNodes() << ", "
+              << "used: " << std::setw(10) << nObjs << ", "
+              << "live: " << std::setw(10) << nObjs - nRemoved << ", "
+              << "dead: " << std::setw(10) << nRemoved << ", "
+              << "alloc: " << std::setw(10) << nObjsAlloc
+              << std::endl;
+  }
 
   inline lit Man::Const0() const {
     return 0;
