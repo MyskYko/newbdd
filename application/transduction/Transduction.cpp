@@ -260,7 +260,7 @@ bool Transduction::RankCompare(int a, int b) const {
   case 2:
     return vFs[a0].OneCount() < vFs[b0].OneCount();
   case 3:
-    return vFs[a0].ZeroCount() < vFs[b0].OneCount();
+    return vFs[a0].ZeroCount() < vFs[b0].ZeroCount();
   default:
     throw invalid_argument("Invalid sort type");
   }
